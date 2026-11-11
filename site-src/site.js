@@ -147,8 +147,8 @@ const alumnoNets = [
     desc:"El estudiante está en el centro de una red amplia: predominan claramente las relaciones positivas (verde) hacia muchos compañeros. Al mostrar las negativas apenas surge algún vínculo puntual (rojo).",
     data: makeAlumno(7,{pos:40, neg:2, layout:'flower', negTarget:'bottom', color:'#25e0e0', egoColor:'#22c9d0', pocas:false}) },
   { title:"Un estudiante con pocas relaciones",
-    desc:"El estudiante mantiene pocos vínculos positivos (verde). Al mostrar las negativas aparece un abanico amplio de relaciones desfavorables (rojo): una señal de baja calidad relacional que conviene atender.",
-    data: makeAlumno(9,{pos:9, neg:30, layout:'split', negTarget:'right', color:'#6f9fb3', egoColor:'#8fb4c4', pocas:true}) }
+    desc:"El estudiante tiene una red más pequeña. En este ejemplo hay nueve relaciones positivas (verde) y dos negativas (rojo), que puedes mostrar con el interruptor.",
+    data: makeAlumno(9,{pos:9, neg:2, layout:'split', negTarget:'right', color:'#6f9fb3', egoColor:'#8fb4c4', pocas:true}) }
 ];
 
 /* ---- render ---- */
