@@ -89,7 +89,7 @@ try{
  }
  // Restored non-participation report: real UI, entirely synthetic Excel and intercepted mail.
  const absent=classRows.find(r=>r.respondio==='No'),sampleBook=X.utils.book_new();
- const excelRows=rows=>rows.map(r=>Object.fromEntries(Object.entries(r).map(([k,v])=>[k,v!==null&&typeof v==='object'?JSON.stringify(v):v])));
+ const excelRows=rows=>rows.map(r=>Object.fromEntries(Object.entries(r).filter(([,v])=>v===null||typeof v!=='object')));
  X.utils.book_append_sheet(sampleBook,X.utils.json_to_sheet(excelRows(demoData.students.filter(r=>r.Centro===absent.Centro))),'Datos');
  X.utils.book_append_sheet(sampleBook,X.utils.json_to_sheet(excelRows(demoData.groups.filter(r=>r.Centro===absent.Centro))),'Grupos');
  fs.mkdirSync(path.join(root,'test-results'),{recursive:true});
