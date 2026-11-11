@@ -200,9 +200,9 @@ footer{background:var(--espresso);color:var(--crema);padding:64px 0 34px}
 .foot-completo svg{display:block;height:104px;width:auto}
 .foot-bottom{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;padding-top:26px}
 .foot-bottom p{margin:0;font-size:13px;color:rgba(247,242,236,.6)}
-.foot-links{display:flex;gap:22px;flex-wrap:wrap}
-.foot-links button{background:none;border:none;color:rgba(247,242,236,.78);cursor:pointer;font-family:"Space Grotesk";font-size:13.5px;padding:0;text-decoration:underline;text-underline-offset:3px}
-.foot-links button:hover{color:var(--coral-soft)}
+.foot-links{display:flex;align-items:center;gap:8px 22px;flex-wrap:wrap}
+.foot-links button,.foot-links a{display:inline-flex;align-items:center;min-height:44px;background:none;border:none;color:rgba(247,242,236,.78);cursor:pointer;font:inherit;font-size:13.5px;line-height:1.5;padding:0;text-decoration:underline;text-underline-offset:3px}
+.foot-links button:hover,.foot-links a:hover{color:var(--coral-soft)}
 
 /* ---------- COOKIE BANNER ---------- */
 .cookie{position:fixed;left:20px;right:20px;bottom:20px;z-index:90;max-width:560px;margin:0 auto;
@@ -262,7 +262,9 @@ footer{background:var(--espresso);color:var(--crema);padding:64px 0 34px}
 .nav-right .private-access:hover{background:var(--espresso);color:white}
 .skip-link{position:fixed;top:8px;left:8px;z-index:200;background:white;padding:12px;transform:translateY(-180%)}.skip-link:focus{transform:none}
 .contact-ack{display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.5;margin:20px 0}.contact-ack input{width:18px;height:18px;flex:none;accent-color:var(--coral-deep);margin:2px 0 0}.inline-link{background:none;border:0;text-decoration:underline;color:inherit;font:inherit;padding:0;cursor:pointer}
-#contact-status{font-size:14px;margin:16px 0 0}#contact-status:empty{display:none}.cont-form [disabled]{opacity:.65;cursor:wait}
+#contact-status{font-size:14px;margin:16px 0 0}#contact-status:empty{display:none}
+#contact-status[data-state="success"]{color:#a7332d;background:#fff0ed;border:1px solid #e8b3aa;border-left:4px solid #c65043;border-radius:12px;padding:16px 18px;font-size:16px;font-weight:600;line-height:1.5}
+.cont-form [disabled]{opacity:.65;cursor:wait}
 .legal-dialog{border:1px solid var(--line);border-radius:20px;background:var(--crema);color:var(--ink);width:min(760px,calc(100% - 24px));max-height:85dvh;padding:0}.legal-dialog::backdrop{background:rgba(36,26,22,.6)}
 .legal-top{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 24px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--crema)}.legal-top h2{font-size:20px}.legal-top button{border:1px solid var(--line);background:var(--crema-2);border-radius:9px;min-height:42px;padding:8px 14px;cursor:pointer;font:inherit}
 .legal-body{padding:8px 28px 28px;font-size:15px;overflow-wrap:anywhere}.legal-body h1{font-size:24px;margin:22px 0}.legal-body h2{font-size:19px;line-height:1.3;margin:24px 0 10px}.legal-body p{line-height:1.7}.legal-body a{color:#923d27}
