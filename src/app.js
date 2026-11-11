@@ -397,7 +397,15 @@ document.getElementById('tab-group').onclick=()=>{resultFilter=null;changeView('
 document.getElementById('tab-network').onclick=()=>{resultFilter=null;changeView('network');};
 document.getElementById('tab-roster').onclick=()=>{resultFilter=null;changeView('roster');};document.getElementById('tab-student').onclick=()=>changeView('student');
 if(canViewCenter())document.getElementById('tab-center').onclick=()=>changeView('center');
-document.querySelector('.tabs').onkeydown=e=>{if(!dataset||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(e.key))return;e.preventDefault();const views=canViewCenter()?['center','group','roster','network','student']:['group','roster','network','student'];const visible=views.filter(id=>!document.getElementById('tab-'+id).hidden),i=visible.indexOf(view);changeView(e.key==='Home'?visible[0]:e.key==='End'?visible[visible.length-1]:visible[(i+(['ArrowRight','ArrowDown'].includes(e.key)?1:visible.length-1))%visible.length]);document.getElementById('tab-'+view).focus();};if(!demoSession)document.getElementById('change-files').onclick=()=>{if(hasSessionReviews()){closeStatus('Envía o descarta las valoraciones antes de cambiar los archivos.');return;}document.getElementById('main').classList.remove('results-mode');document.getElementById('import-details').open=true;document.getElementById('import-details').scrollIntoView({block:'start'});};
+document.querySelector('.tabs').onkeydown=e=>{
+ if(!dataset||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(e.key))return;
+ const tabs=[...e.currentTarget.querySelectorAll('[role="tab"]')].filter(tab=>!tab.hidden&&!tab.disabled);
+ const index=tabs.indexOf(e.target.closest('[role="tab"]'));if(index<0)return;
+ e.preventDefault();
+ const next=e.key==='Home'?tabs[0]:e.key==='End'?tabs[tabs.length-1]:tabs[(index+(['ArrowRight','ArrowDown'].includes(e.key)?1:tabs.length-1))%tabs.length];
+ // Follow the visual order and the same filters/permissions as a pointer click.
+ next.click();next.focus();
+};if(!demoSession)document.getElementById('change-files').onclick=()=>{if(hasSessionReviews()){closeStatus('Envía o descarta las valoraciones antes de cambiar los archivos.');return;}document.getElementById('main').classList.remove('results-mode');document.getElementById('import-details').open=true;document.getElementById('import-details').scrollIntoView({block:'start'});};
 }
 async function loadDemo(){
 if(!hasDemo||!profile||!demoSession)return;
@@ -540,18 +548,18 @@ function renderReport(){
  const reportActions='<div class="pdf-toolbar report-actions">'+(hasPdf?'<button id="export-pdf" class="quiet" type="button">Descargar PDF</button>':'')+appFeedbackButton(feedbackBlock)+'</div>';
  const filterNote=view==='roster'&&resultFilter?'<div class="result-filter"><strong>'+E(window.PbisConsultationUI.labels[resultFilter.key])+' · '+scopedList.length+(scopedList.length===1?' estudiante':' estudiantes')+'</strong><button id="clear-result" class="quiet" type="button">Volver al '+(resultFilter.scope==='center'?'centro':'aula')+'</button></div>':'';
  document.getElementById('report-content').innerHTML=reportActions+importQualityNote(centerRows)+filterNote+report+consultationContext(view==='center'||(view==='roster'&&resultFilter?.scope==='center')?centerRows:rows);
- if(view==='group')document.getElementById('open-roster').onclick=()=>{resultFilter=null;changeView('roster');};
+ if(view==='group')document.getElementById('open-roster').onclick=()=>{resultFilter=null;changeView('roster');focusReportHeading();};
  if(['roster','group','center'].includes(view))document.querySelectorAll('.student-link[data-student-id]').forEach(button=>button.onclick=()=>{
   const row=dataset.students.find(row=>row.ID===button.dataset.studentId);if(!row)return;
-  studentOrigin=view;selection={center:row.Campus,course:row.Curso,group:row.Grupo,student:row.ID};changeView('student');document.getElementById('report-content').scrollIntoView({block:'start'});
+  studentOrigin=view;selection={center:row.Campus,course:row.Curso,group:row.Grupo,student:row.ID};changeView('student');focusReportHeading();
  });
  if(view==='student'){
   const back=document.getElementById('back-to-roster');
   back.textContent=studentOrigin==='network'?'← Volver a la red':studentOrigin==='center'?'← Volver al centro':studentOrigin==='group'?'← Volver al aula':'← Volver a la lista';
-  back.onclick=()=>changeView(studentOrigin);
+  back.onclick=()=>{changeView(studentOrigin);focusReportHeading();};
   for(const [id,step] of [['previous-student',-1],['next-student',1]]){const button=document.getElementById(id);if(button)button.onclick=()=>{const ordered=rows.slice().sort((a,b)=>String(a.Nombre||a.ID).localeCompare(String(b.Nombre||b.ID),'es',{numeric:true})||a.ID.localeCompare(b.ID)),index=ordered.findIndex(row=>row.ID===selection.student);if(ordered.length<2||index<0)return;selection.student=ordered[(index+step+ordered.length)%ordered.length].ID;renderFilters();renderReport();document.getElementById(id)?.focus();};}
  }
- if(document.getElementById('clear-result'))document.getElementById('clear-result').onclick=()=>{const destination=resultFilter.scope==='center'?'center':'group';resultFilter=null;changeView(destination);};
+ if(document.getElementById('clear-result'))document.getElementById('clear-result').onclick=()=>{const destination=resultFilter.scope==='center'?'center':'group';resultFilter=null;changeView(destination);focusReportHeading();};
  if(view==='roster')bindRosterSort();
  const pdfButton=document.getElementById('export-pdf');if(pdfButton)pdfButton.onclick=openPdfExport;
 
@@ -873,12 +881,16 @@ function studentNetworkClick(event){
 }
 
 /* New consultation entry points use only the already-authorized dataset. */
+function focusReportHeading(){
+ const heading=document.querySelector('.result-filter strong')||document.querySelector('.report-hero h2');
+ if(heading){heading.setAttribute('tabindex','-1');heading.focus();}
+}
 function resultClick(event){
  const button=event.target.closest('button[data-result]');
  if(!button||!dataset)return;
  const scope=view==='center'?'center':'group',key=button.dataset.result;
  if(!Object.hasOwn(window.PbisConsultationUI.labels,key))return;
- resultFilter={key,scope};changeView('roster');
+ resultFilter={key,scope};changeView('roster');focusReportHeading();
 }
 for(const event of ['pointerdown','keydown','wheel','touchstart'])document.addEventListener(event,()=>{lastActivity=Date.now();},{passive:true});
 async function checkInactivity(){

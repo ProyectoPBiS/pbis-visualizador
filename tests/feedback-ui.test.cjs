@@ -15,7 +15,7 @@ function fixture({endpoint = '', provider = 'service', fetchResult, holdWorker =
   let nextTimer = 0, nextUrl = 0;
   class Element {
     constructor(tag) {this.tag = tag; this.listeners = {}; this.value = ''; this.checked = false; this.disabled = false; this.hidden = false; this.open = false; this.textContent = '';}
-    setAttribute() {}
+    setAttribute(name,value) {(this.attributes??={})[name]=value;}
     append(child) {if (child.id) elements.set(child.id, child);}
     set innerHTML(value) {
       this.html = value;
@@ -135,6 +135,25 @@ test('missing rating does not send or export and guides focus to the vote', asyn
   await f.submit(); await f.save();
   assert.equal(f.fetchCalls.length, 0); assert.equal(f.workers.length, 0);
   assert.match(f.el('status').textContent, /Elige una valoración/); assert.equal(f.radios[0].focused, true);
+});
+
+test('app improvement requires text, focuses the field, and recovers without losing the vote',async()=>{
+ const f=fixture({batchOnClose:true});f.api.startSession('orientador',{demo:true});
+ f.api.open({scope:'app',sheet:'group',section:'group'});f.el('kind').value='improvement';f.choose(4,'  ');
+ await f.submit();assert.equal(f.api.sessionSnapshot().opinions.length,0);
+ assert.equal(f.el('comment').focused,true);assert.equal(f.el('comment').attributes['aria-invalid'],'true');
+ assert.match(f.el('comment-error').textContent,/Describe brevemente/);
+ f.choose(4,'Me gustaría ampliar los gráficos.');await f.el('form').dispatch('input');
+ assert.equal(f.el('comment').attributes['aria-invalid'],'false');assert.equal(f.el('comment-error').textContent,'');
+ await f.submit();const record=f.api.sessionSnapshot().opinions[0];
+ assert.equal(record.rating,4);assert.equal(record.comment,'Me gustaría ampliar los gráficos.');
+ assert.equal(f.fetchCalls.length,0);assert.equal(f.workers.length,0);
+});
+
+test('empty optional app opinion guides to voting without creating a record',async()=>{
+ const f=fixture({batchOnClose:true});f.api.startSession('tutor');f.api.open({scope:'app',sheet:'roster',section:'roster'});
+ await f.submit();assert.equal(f.radios[0].focused,true);assert.match(f.el('status').textContent,/valoración o escribe/);
+ assert.equal(f.api.sessionSnapshot().opinions.length,0);assert.equal(f.fetchCalls.length,0);
 });
 
 test('confirmed online submission sends no cookies/referrer and reports accepted separately from delivery', async () => {

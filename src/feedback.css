@@ -23,5 +23,7 @@
 #feedback-kind{min-height:44px;border:1px solid var(--line);border-radius:8px;padding:9px;background:#fff;color:var(--ink);font:inherit}
 #feedback-dialog .feedback-codes:empty{display:none}
 #feedback-dialog{max-height:90dvh;overflow:auto}
+#feedback-comment-error:empty{display:none}
+#feedback-comment[aria-invalid=true]{border-color:var(--error-text,#a7332d)}
 @media(max-width:480px){.section-heading{gap:7px}.section-feedback{font-size:11px}#feedback-dialog h2{font-size:26px}#feedback-dialog .feedback-heading .quiet{min-height:44px}}
 @media print{.section-feedback,.section-feedback-toolbar{display:none!important}}

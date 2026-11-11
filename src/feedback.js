@@ -14,7 +14,8 @@
     <form id="feedback-form"><label class="field" id="feedback-kind-label" for="feedback-kind">¿Qué quieres compartir?<select id="feedback-kind"><option value="opinion">Una opinión</option><option value="improvement">Una propuesta de mejora</option><option value="problem">Algo no funciona</option></select></label><fieldset class="feedback-rating"><legend>¿Te resulta útil este apartado?</legend>
       <div class="rating-options">${['Nada útil','Poco útil','Algo útil','Útil','Muy útil'].map((label,i)=>`<label><input type="radio" name="feedback-rating" value="${i+1}" required><span><strong>${i+1}</strong><small>${label}</small></span></label>`).join('')}</div></fieldset>
       <label class="field" for="feedback-comment">¿Qué mejorarías? <span class="optional" id="feedback-comment-option">Opcional</span></label>
-      <textarea id="feedback-comment" rows="3" maxlength="1500" placeholder="Una idea, algo que falta o lo que te ha resultado útil…" aria-describedby="feedback-hint"></textarea>
+      <textarea id="feedback-comment" rows="3" maxlength="1500" placeholder="Una idea, algo que falta o lo que te ha resultado útil…" aria-describedby="feedback-comment-error feedback-hint"></textarea>
+      <p id="feedback-comment-error" class="error"></p>
       <p id="feedback-hint" class="feedback-hint">Comenta el diseño o la claridad. No incluyas nombres ni datos de estudiantes.</p>
       <details class="feedback-disclosure"><summary>Qué datos acompañan mi opinión</summary><p class="feedback-privacy">Se incluyen los códigos que ves arriba, tu rol, un código aleatorio de sesión, el tipo de ficha, la valoración, el comentario, la fecha y la versión. No se añaden nombres ni indicadores. Quien tenga la correspondencia de códigos podrá identificar el aula y a qué estudiante se refiere la opinión.</p></details>
       <p id="feedback-mode" class="feedback-mode"></p>
@@ -28,7 +29,7 @@
   const requests = new Set();
   let drafts = {}, records = new Map(), targets = new Map();
   const names = {...M.views,group:'Ficha de aula',roster:'Lista de aula',individual:'Ficha de estudiante'};
-  const blank = () => ({rating:'',comment:'',kind:'opinion',opinion:null,status:'',busy:false,saved:false});
+  const blank = () => ({rating:'',comment:'',kind:'opinion',opinion:null,status:'',errorTarget:'',busy:false,saved:false});
   const key = () => context && JSON.stringify(context);
   const current = () => context && drafts[key()];
   function collect() {
@@ -62,11 +63,25 @@
     el('comment-option').textContent=context.scope==='app'&&d.kind!=='opinion'?'Necesario':'Opcional';
     el('kind-label').hidden=context.scope!=='app';el('kind').value=d.kind;el('kind').disabled=!!d.opinion||d.busy;
     radios.forEach(r=>{r.required=context.scope!=='app';});
-    el('status').textContent=d.status;
+    el('comment').setAttribute('aria-invalid',String(d.errorTarget==='comment'));
+    el('comment-error').textContent=d.errorTarget==='comment'?d.status:'';
+    el('status').textContent=d.errorTarget==='comment'?'':d.status;
+  }
+  function clearInputError(){
+    const d=current();if(!d?.errorTarget)return;
+    d.errorTarget='';d.status='';el('comment').setAttribute('aria-invalid','false');
+    el('comment-error').textContent='';el('status').textContent='';
+  }
+  function invalidOpinion(message,target){
+    const d=current();d.status=message;d.errorTarget=target;render();
+    (target==='comment'?el('comment'):radios[0]).focus();return null;
   }
   function opinion() {
     collect();const d=current();
-    if(!d.rating&&context.scope!=='app'){d.status='Elige una valoración del 1 al 5.';render();radios[0].focus();return null;}
+    clearInputError();
+    if(context.scope==='app'&&d.kind!=='opinion'&&!d.comment.trim())return invalidOpinion('Describe brevemente tu propuesta o el problema.','comment');
+    if(context.scope==='app'&&!d.rating&&!d.comment.trim())return invalidOpinion('Elige una valoración o escribe un comentario.','rating');
+    if(!d.rating&&context.scope!=='app')return invalidOpinion('Elige una valoración del 1 al 5.','rating');
     if(!d.opinion){
       if(records.size>=100)throw Error('Ya hay 100 opiniones en esta sesión. Envía las pendientes antes de añadir más.');
       d.opinion=context.scope==='app'
@@ -140,8 +155,8 @@
   el('form').addEventListener('submit',send);el('save').addEventListener('click',save);
   el('close').addEventListener('click',()=>dialog.close());
   dialog.addEventListener('close',()=>{collect();window.PBIS_UPDATE_CLOSE?.();});
-  el('kind').addEventListener('change',()=>{collect();render();});
-  el('form').addEventListener('input',()=>{collect();window.PBIS_UPDATE_CLOSE?.();});
+  el('kind').addEventListener('change',()=>{collect();clearInputError();render();});
+  el('form').addEventListener('input',()=>{collect();clearInputError();window.PBIS_UPDATE_CLOSE?.();});
   el('new').addEventListener('click',()=>{drafts[key()]=blank();render();radios[0].focus();});
   window.PbisFeedback=Object.freeze({
     startSession(role,{demo=false}={}){reset();if(!['tutor','orientador'].includes(role))throw Error('Rol de opinión no válido.');session={role,code:M.newId(),demo};},

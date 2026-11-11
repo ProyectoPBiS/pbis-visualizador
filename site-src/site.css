@@ -265,6 +265,9 @@ footer{background:var(--espresso);color:var(--crema);padding:64px 0 34px}
 #contact-status{font-size:14px;margin:16px 0 0}#contact-status:empty{display:none}
 #contact-status[data-state="success"]{color:#a7332d;background:#fff0ed;border:1px solid #e8b3aa;border-left:4px solid #c65043;border-radius:12px;padding:16px 18px;font-size:16px;font-weight:600;line-height:1.5}
 .cont-form [disabled]{opacity:.65;cursor:wait}
+.cont-form input,.cont-form textarea,#contact-status{scroll-margin-block:100px}
+.legal-dialog{overscroll-behavior:contain}
+@media(max-width:720px){.cont-form input,.cont-form textarea{font-size:16px}}
 .legal-dialog{border:1px solid var(--line);border-radius:20px;background:var(--crema);color:var(--ink);width:min(760px,calc(100% - 24px));max-height:85dvh;padding:0}.legal-dialog::backdrop{background:rgba(36,26,22,.6)}
 .legal-top{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 24px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--crema)}.legal-top h2{font-size:20px}.legal-top button{border:1px solid var(--line);background:var(--crema-2);border-radius:9px;min-height:42px;padding:8px 14px;cursor:pointer;font:inherit}
 .legal-body{padding:8px 28px 28px;font-size:15px;overflow-wrap:anywhere}.legal-body h1{font-size:24px;margin:22px 0}.legal-body h2{font-size:19px;line-height:1.3;margin:24px 0 10px}.legal-body p{line-height:1.7}.legal-body a{color:#923d27}

@@ -5,6 +5,8 @@ body{background:var(--cream);color:var(--ink);font-family:system-ui,-apple-syste
 h1,h2,h3,h4,.report-hero h2,.login h1,.login h2{font-family:inherit;letter-spacing:-.025em}
 button,input,select,textarea{font:inherit}
 :focus-visible{outline:3px solid #a9442a;outline-offset:4px}
+dialog{overscroll-behavior:contain}
+.report-hero h2,.result-filter strong{scroll-margin-block:24px}
 .brand{color:var(--ink);gap:10px;letter-spacing:-1px;font-weight:750}
 .brand img{height:43px;width:44px;object-fit:contain}
 .brand span{font-size:28px}.brand-caption{font-size:11px;color:var(--muted)}
@@ -67,6 +69,18 @@ button,input,select,textarea{font:inherit}
 @media(max-width:1000px){.topbar-inner{gap:15px;padding:14px 18px}.top-actions{gap:9px}.brand-caption{display:none}.main.results-mode{margin-left:200px;width:calc(100% - 200px);padding:18px}.tabs{width:175px;left:12px;top:110px;padding:8px}.report-body{padding:18px}.group-summary-grid{grid-template-columns:1fr}}
 @media(max-width:720px){.login-story{padding:25px;min-height:0}.login-story h1{font-size:34px;max-width:17ch}.login-art,.login-story footer{display:none}.login-side{padding:25px 18px}.login-panel{padding:0}.login-story .brand{margin-bottom:26px}.topbar{position:static}.topbar-inner{flex-wrap:wrap}.top-actions{width:100%;justify-content:flex-end;flex-wrap:wrap}.top-actions .user-info{margin-right:auto}.main.results-mode,.main{margin:0;width:100%;padding:12px}.tabs,.results-mode .tabs{position:static;width:100%;display:flex;flex-direction:row;flex-wrap:wrap;border-radius:14px;gap:5px;padding:8px;margin:12px 0}.tab{width:auto;flex:1 1 125px;padding:10px;justify-content:center;text-align:center;font-size:12px;min-height:42px}.tab svg{width:16px;height:16px}.filters{padding:12px;gap:10px}.report-hero{padding:20px;gap:12px}.report-hero h2{font-size:27px}.report-body{padding:15px}.group-summary-panel{padding:16px}.group-summary-panel h4{font-size:20px}.simple-review-heading h3{font-size:21px}.demo-mode-note{padding:10px 14px;gap:10px}.simple-review-footer .btn{width:100%}.bottom{font-size:11px}.consultation-context{font-size:12px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+/* Reach the access form sooner on a phone; keep the established logo and motto. */
+@media(max-width:720px){
+ .login-story{padding:22px 24px}
+ .login-story .brand{margin-bottom:18px}
+ .login-story h1{font-size:27px;line-height:1.12;letter-spacing:-1px;margin:0;max-width:none}
+ .login-story .eyebrow,.login-story .intro,.login-panel>.pill{display:none}
+ .login-panel h2{margin-top:0}
+ .login .field input,.filters .field input,.filters .field select,
+ .protected-dialog input:not([type=checkbox]),.protected-dialog select,
+ .non-participation-control select,.non-participation-control textarea,
+ #roster-search,#roster-sort-select,#feedback-comment,#feedback-kind{font-size:16px}
+}
 
 
 /* Keep the identity consistent in legacy cards without changing their data. */
