@@ -78,7 +78,9 @@ try{
  await page.context().setOffline(true);
  await page.goto(pathToFileURL(path.join(local,'index.html')).href);
  assert.ok(await page.locator('.private-access').isVisible());
- await page.locator('.art[href="metodologia.html"]').click();assert.match(await page.locator('main').innerText(),/Metodología/);
+ await page.locator('.art[href="metodologia.html"]').click();
+ assert.match(await page.title(),/Metodología/);
+ assert.equal(await page.locator('main h1').innerText(),'Cómo leer PBIS');
  await page.goto(pathToFileURL(path.join(local,'index.html')).href);
  await page.locator('.hero-cta a').click();await page.locator('#tab-group:enabled').waitFor();
  await loadGuidedDemo();
