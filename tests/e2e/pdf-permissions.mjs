@@ -14,7 +14,7 @@ await page.addInitScript(()=>{for(const key of ['localStorage','sessionStorage',
 await page.route('**/*',route=>{if(route.request().url().startsWith('file:'))return route.continue();external.push(route.request().url());return route.abort();});
 async function login(user='orientacion',password='FRJ508',file){await page.locator('#username').fill(user);await page.locator('#password').fill(password);await page.locator('#login-terms').check();await page.locator('#login-form button[type=submit]').click();if(file){await page.locator('#file-data').setInputFiles(file);await page.locator('#tab-group:not([disabled])').waitFor();}}
 async function logout(){await page.locator('#logout').click();await page.locator('#login-form').waitFor();}
-async function checkViews(allowed,center=false){for(const tab of [...(center?['center']:[]),'group','student']){await page.locator('#tab-'+tab).click();assert.equal(await page.locator('#export-pdf').count(),allowed?1:0);assert.equal(await page.locator('#pdf-dialog').count(),0);}}
+async function checkViews(allowed,center=false){for(const tab of [...(center?['center']:[]),'group','student']){if(tab==='student'){await page.locator('#tab-roster').click();await page.locator('.student-link').first().click();}else await page.locator('#tab-'+tab).click();assert.equal(await page.locator('#export-pdf').count(),allowed?1:0);assert.equal(await page.locator('#pdf-dialog').count(),0);}}
 try{
  await page.goto(pathToFileURL(path.join(root,'release/PBIS.html')).href);await login();await page.locator('#admin-project').click();
  await page.locator('#admin-file').setInputFiles(path.join(root,'data/examples/datos_evaluacion.xlsx'));await page.locator('#admin-source-status').filter({hasText:'estudiantes preparados'}).waitFor();

@@ -5,6 +5,8 @@ import path from 'node:path';
 import http from 'node:http';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {chromium} from 'playwright';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url),C=require('../../src/core.js'),X=require('../../vendor/xlsx.full.min.js');
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const site=process.env.PBIS_TEST_SITE?path.resolve(process.env.PBIS_TEST_SITE):path.join(root,'site');
 const server=http.createServer((req,res)=>{
@@ -19,6 +21,8 @@ const page=await browser.newPage({viewport:{width:1360,height:1000}});
 page.setDefaultTimeout(15000);
 const errors=[],external=[],sent=[];
 const demoData=JSON.parse(fs.readFileSync(path.join(site,'demo-data.json'),'utf8'));
+const workbook=X.read(fs.readFileSync(path.join(root,'data/examples/datos_evaluacion.xlsx')),{type:'buffer'});
+const sourceStudents=C.validateAndJoin(X.utils.sheet_to_json(workbook.Sheets.Datos),null,X.utils.sheet_to_json(workbook.Sheets.Grupos)).students;
 const classRows=demoData.students.filter(s=>s.Centro==='Centro 3705'&&s.Curso==='1.º ESO'&&s.Grupo==='A');
 const classIds=new Set(classRows.map(s=>s.ID));
 const expectedMentionIds=classRows.filter(s=>s.bullying_companeros_n>=2).map(s=>s.ID).sort();
@@ -71,8 +75,16 @@ try{
  for(const account of profiles){
   await page.goto(origin+'/PBIS.html');await login(account);
   assert.equal(await page.locator('#tab-center').count(),account.role==='orientador'?1:0);
-  await upload();await page.locator('#report-content .report').waitFor();
-  if(account.role==='tutor')assert.deepEqual(await page.locator('#course option').allTextContents(),[account.course]);
+  const permitted=C.scopeRows(sourceStudents,account);
+  await upload();
+  if(permitted.length){
+   await page.locator('#report-content .report').waitFor();
+   if(account.role==='tutor')assert.deepEqual(await page.locator('#course option').allTextContents(),[account.course]);
+  }else{
+   await page.locator('#import-error').filter({hasText:'No hay estudiantes del curso o aula asignados'}).waitFor();
+   assert.equal(await page.locator('#tab-roster').isDisabled(),true);
+   assert.equal(await page.locator('#report-content .report').count(),0);
+  }
   await page.locator('#logout').click();
  }
  await page.context().setOffline(true);await demo(pathToFileURL(path.join(root,'release/PBIS.html')).href);
