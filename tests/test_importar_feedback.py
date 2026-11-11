@@ -50,6 +50,23 @@ class FeedbackImportTests(unittest.TestCase):
         with Path(result['csv']).open(encoding='utf-8-sig', newline='') as handle:
             self.assertEqual(next(csv.DictReader(handle))['comment'], "'" + self.record['comment'])
 
+    def test_combined_session_imports_participation_without_mixing_app_opinions(self):
+        self.record.update(feedbackType='non_participation', nonParticipationReason='absent_day',
+                           valueStatus='not_answered', indicator=None, indicatorField=None,
+                           indicatorLabel=None, observedValue=None, reaction=None)
+        packet = {'schemaVersion': 'pbis.session-feedback.v1', 'batchId': 'batch-1',
+                  'parts': [self.envelope(), {'schemaVersion': 'pbis.app-feedback.v1',
+                            'batchId': 'batch-1', 'records': [{'comment': 'Improve the app'}]}]}
+        path = self.write('mixed.json', {'feedback_json': json.dumps(packet)})
+        result = module.import_feedback([path], self.root / 'out')
+        self.assertEqual(result['insertados'], 1)
+        with closing(sqlite3.connect(result['sqlite'])) as db:
+            self.assertEqual(db.execute('SELECT studentId, nonParticipationReason FROM feedback').fetchone(), ('00012', 'absent_day'))
+        self.assertEqual(module.import_feedback([path], self.root / 'out')['duplicados_omitidos'], 1)
+        packet['parts'][1]['batchId'] = 'another-batch'
+        with self.assertRaisesRegex(ValueError, 'incoherente'):
+            module.load(self.write('bad-mixed.json', packet))
+
     def test_conflicting_id_rolls_back_new_rows_and_keeps_csv(self):
         initial = self.write('first.json', self.envelope())
         result = module.import_feedback([initial], self.root / 'out')

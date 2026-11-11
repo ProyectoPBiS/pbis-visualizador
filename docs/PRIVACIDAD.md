@@ -24,7 +24,9 @@ El envío requiere conexión. Solo se indica como registrado cuando el receptor 
 
 El botón **Opinar** permite valorar la aplicación, proponer mejoras o comunicar fallos. Al añadir una aportación, permanece en la memoria de esta sesión. Al cerrar sesión puedes revisar y enviar todas juntas al equipo PBIS mediante Formspree, con aviso a pbis_usuario@outlook.es. También se intenta enviar lo añadido tras 15 minutos sin actividad; un borrador incompleto o un fallo impiden ese cierre automático.
 
-El envío incluye cuenta, rol, código aleatorio de sesión, apartado, tipo de aportación, voto opcional, comentario, fecha y versión. No añade nombres ni códigos de estudiantes, indicadores, el archivo ni contraseñas. No incluyas información personal de estudiantes en el texto libre. En un proyecto protegido se utiliza el código de cuenta, no el DNI completo. La cuenta identifica el acceso utilizado; puede ser compartida.
+Las opiniones sobre la aplicación incluyen cuenta, rol, código aleatorio de sesión, apartado, tipo de aportación, voto opcional, comentario, fecha y versión. No añade nombres ni códigos de estudiantes, indicadores, el archivo ni contraseñas. No incluyas información personal de estudiantes en el texto libre. En un proyecto protegido se utiliza el código de cuenta, no el DNI completo. La cuenta identifica el acceso utilizado; puede ser compartida.
+
+En la lista también puedes indicar el motivo de una encuesta sin responder. Ese informe incluye cuenta, centro, curso, aula, código de estudiante, periodo, motivo y referencia al archivo (huella y hoja). No añade nombres, contraseñas ni respuestas educativas. Los motivos y las opiniones se reúnen en un correo con revisión previa al cierre; no cambian los datos originales.
 
 La demo no envía aportaciones. Sin confirmación del servicio se conserva lo pendiente en memoria y se ofrece reintentar o descargar una copia JSON. Cerrar la pestaña o apagar el equipo puede perderlo. Los registros ya recibidos por Formspree o por correo permanecen fuera del navegador; cerrar la aplicación no los elimina.
 

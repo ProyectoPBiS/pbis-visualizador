@@ -133,7 +133,10 @@ async function reviewBatch(){
   if(pendingReviewBatch)closeEventId=null;
   closeEventId??=window.PbisFeedbackModel.newId();
   const options={eventId:closeEventId,username:profile.username,role:profile.role,sessionCode,source,version:window.PBIS_FEEDBACK.version,roster,opinions};
-  const batch=appOnly?window.PbisFeedbackModel.makeAppBatch(options):window.PbisLinkedFeedback.create(options);
+  const applicationOpinions=opinions.filter(opinion=>opinion.scope==='app');
+  const linkedOpinions=opinions.filter(opinion=>opinion.scope!=='app');
+  const linkedBatch=appOnly?null:window.PbisLinkedFeedback.create({...options,opinions:linkedOpinions});
+  const batch=window.PbisFeedbackModel.makeSessionBatch({...options,opinions:applicationOpinions,linkedBatch});
   pendingReviewBatch=batch;pendingReviewSignature=signature;
   return batch;
 }
@@ -182,7 +185,7 @@ async function showReviewPreview(destination=null){
     window.PbisFeedback.closeContext();
     const batch=await reviewBatch(),drafts=draftCount();if(!batch&&!drafts)return;
     const appOnly=!batch||batch.schemaVersion==='pbis.app-feedback.v1';
-    const disclosure=appOnly?'Todas tus aportaciones se reunirán en un único correo al equipo PBIS mediante Formspree. Incluye tu cuenta, rol, apartado, voto y comentario. No añade datos de estudiantes, el archivo ni contraseñas.':'Compartirás tu cuenta y las valoraciones vinculadas al archivo. Revisa el resumen antes de enviarlo.';
+    const disclosure=appOnly?'Todas tus aportaciones se reunirán en un único correo al equipo PBIS mediante Formspree. Incluye tu cuenta, rol, apartado, voto y comentario. No añade datos de estudiantes, el archivo ni contraseñas.':'Se enviará un único correo al equipo PBIS con tu cuenta, centro, aula, códigos de estudiante y motivos indicados, junto con las opiniones que hayas añadido. No se adjuntan nombres, contraseñas ni el Excel. Revisa el resumen antes de enviarlo.';
     document.getElementById('review-send-dialog')?.remove();
     const dialog=document.createElement('dialog');dialog.id='review-send-dialog';dialog.className='review-send-dialog';dialog.setAttribute('aria-labelledby','review-send-title');
     dialog.innerHTML=`<div class="feedback-heading"><h2 id="review-send-title">Revisa antes de enviar</h2><button type="button" class="quiet" id="review-preview-close">Volver a la consulta</button></div><p>${E(disclosure)}</p><p><button type="button" class="usage-link" data-usage-terms>Condiciones de uso y comunicación de datos</button></p><p>Destino: ${E(window.PBIS_FEEDBACK.recipient)} · ${E(batch?.recordCount||0)} registros.</p>${drafts?`<p role="alert">Tienes ${drafts} opiniones sin añadir. Revísalas o descártalas antes de enviar.</p><div class="review-send-actions"><button id="review-draft-open" type="button" class="btn secondary">Revisar borrador</button><button id="review-draft-discard" type="button" class="quiet">Descartar borradores</button></div>`:''}<pre id="review-preview-content"></pre><div class="review-send-actions"><button id="review-preview-send" type="button" class="btn" ${!batch||drafts?'disabled':''}>${destination?'Enviar y cerrar sesión':'Enviar valoraciones'}</button><button id="review-preview-save" type="button" class="btn secondary" ${!batch||drafts?'disabled':''}>Guardar copia JSON</button>${destination?'<button id="review-preview-discard" type="button" class="quiet">Cerrar sin enviar</button>':''}</div><p class="subtle">${destination?'Cerrar sin enviar elimina las valoraciones de esta sesión.':'Tras el envío podrás seguir consultando las fichas.'} La copia JSON permite conservar este resumen si no puedes enviarlo.</p>`;
@@ -665,6 +668,11 @@ function nonParticipationCell(row){
   const person=row.Nombre||`código ${row.ID}`;
   return `<div class="non-participation-control"><label><span>Motivo de no participación</span><select data-roster-reason data-student-id="${E(row.ID)}" aria-label="${E(`Motivo de no participación de ${person}`)}"><option value="">Seleccionar motivo</option>${Object.entries(window.PbisRosterReview.nonParticipationReasons).map(([value,label])=>`<option value="${value}" ${entry?.reason===value?'selected':''}>${E(label)}</option>`).join('')}</select></label><label class="non-participation-detail" ${entry?.reason==='other'?'':'hidden'}><span>Especifica el motivo</span><textarea data-roster-reason-detail data-student-id="${E(row.ID)}" rows="3" maxlength="300" ${entry?.reason==='other'?'required':''} aria-label="${E(`Otro motivo de no participación de ${person}`)}" placeholder="Describe brevemente el motivo, sin nombres ni detalles personales.">${E(entry?.detail||'')}</textarea><small>Máximo 300 caracteres.</small></label></div>`;
 }
+function nonParticipationReport(row){
+  const entry=rosterReviews.get(row.ID).nonParticipation;
+  const label=entry?window.PbisRosterReview.nonParticipationReasons[entry.reason]:'Indicar motivo';
+  return `<details class="non-participation-report"><summary>${E(label)}</summary>${nonParticipationCell(row)}<p>${demoSession?"Práctica: no se enviará.":"Se enviará al cerrar sesión."}</p></details>`;
+}
 function confidenceCell(row){
   if(window.PbisRosterReview.isNonRespondent(row))return nonParticipationCell(row);
   const value=rosterReviews.get(row.ID).confidence;
@@ -678,7 +686,7 @@ function rosterReport(rows){
   const ordered=window.PbisRosterReview.sortRows(rows,rosterSort,rosterReviews);
   const sortHeader=(key,label)=>{const active=rosterSort.key===key;const direction=active?rosterSort.direction:'none';const arrow=active?(direction==='asc'?'↑':'↓'):'↕';return `<th scope="col" aria-sort="${direction==='asc'?'ascending':direction==='desc'?'descending':'none'}"><button type="button" class="roster-sort" data-roster-sort="${key}" aria-label="Ordenar por ${E(label)}" title="Ordenar por ${E(label)}">${E(label)} <span aria-hidden="true">${arrow}</span></button></th>`;};
   const header=rosterColumns.map(([key,label])=>sortHeader(key,label)).join('');
-  const body=ordered.map((row,rowIndex)=>`<tr data-student-id="${E(row.ID)}" ${matched.has(row.ID)?'':'hidden'} class="${window.PbisRosterReview.isNonRespondent(row)?'roster-no-response':''}"><th scope="row"><button type="button" class="student-link" data-student-id="${E(row.ID)}">${E(row.Nombre||'Estudiante')}<span>${E(row.ID)}</span>${resultFilter?.scope==='center'?`<span class="roster-class">${E(row.Curso)} · Aula ${E(row.Grupo)}</span>`:''}${window.PbisRosterReview.isNonRespondent(row)?'<small class="participation-tag">No ha respondido</small>':''}</button></th>${rosterColumns.map(column=>`<td><span class="roster-cell-label">${E(column[1])}</span>${reviewCell(row,column,rowIndex)}</td>`).join('')}</tr>`).join('');
+  const body=ordered.map((row,rowIndex)=>`<tr data-student-id="${E(row.ID)}" ${matched.has(row.ID)?'':'hidden'} class="${window.PbisRosterReview.isNonRespondent(row)?'roster-no-response':''}"><th scope="row"><button type="button" class="student-link" data-student-id="${E(row.ID)}">${E(row.Nombre||'Estudiante')}<span>${E(row.ID)}</span>${resultFilter?.scope==='center'?`<span class="roster-class">${E(row.Curso)} · Aula ${E(row.Grupo)}</span>`:''}${window.PbisRosterReview.isNonRespondent(row)?'<small class="participation-tag">No ha respondido</small>':''}</button>${window.PbisRosterReview.isNonRespondent(row)?nonParticipationReport(row):''}</th>${rosterColumns.map(column=>`<td><span class="roster-cell-label">${E(column[1])}</span>${reviewCell(row,column,rowIndex)}</td>`).join('')}</tr>`).join('');
   return `<article class="report">${reportHero(resultFilter?.scope==='center'?selection.center:`${selection.course} · ${selection.group}`,`${rows.length} estudiantes · ${selection.center}`,resultFilter?.scope==='center'?'Lista del centro':'Lista de aula')}<div class="report-body"><div class="roster-search-bar"><label class="field" for="roster-search">Buscar estudiante<input id="roster-search" type="search" autocomplete="off" placeholder="Nombre o código" value="${E(rosterQuery)}" aria-describedby="roster-search-status"></label><button id="roster-search-clear" class="quiet" type="button" ${rosterQuery.trim()?'':'hidden'}>Borrar búsqueda</button></div><p id="roster-search-status" class="roster-search-status" role="status" aria-live="polite">${rosterQuery.trim()?`${matched.size} de ${rows.length} estudiantes`:''}</p><p class="roster-intro">Pulsa un nombre para abrir su ficha.</p><div class="roster-mobile-sort"><label for="roster-sort-select">Ordenar por<select id="roster-sort-select" aria-label="Ordenar por">${[['student','Estudiante'],...rosterColumns.map(([key,label])=>[key,label])].map(([key,label])=>`<option value="${key}" ${rosterSort.key===key?'selected':''}>${E(label)}</option>`).join('')}</select></label><button id="roster-sort-direction" class="quiet" type="button">${rosterOrderLabel()}</button></div><div class="roster-scroll" tabindex="0" aria-label="Resultados de estudiantes"><table class="roster-table"><thead><tr>${sortHeader('student','Estudiante')}${header}</tr></thead><tbody>${body}</tbody></table></div><p id="roster-search-empty" class="roster-search-empty" ${matched.size?'hidden':''}>No hay coincidencias en esta lista. Prueba otro nombre o código.</p><details class="roster-method"><summary>Cómo se leen estos datos</summary><p><strong>Recibidas:</strong> otras personas mencionan a este estudiante. <strong>Declaradas:</strong> este estudiante menciona a otras personas, sin contarse a sí mismo.</p><p>Bienestar combina cómo se siente en el centro, la diversión y la soledad invertida (0–10). Los colores distinguen cantidades, no niveles de riesgo. «No respondió» y «Datos insuficientes» no significan cero.</p></details></div></article>`;
 }
 function rosterOrderLabel(){return rosterSort.key==='student'?(rosterSort.direction==='asc'?'A → Z':'Z → A'):(rosterSort.direction==='asc'?'Menor → mayor':'Mayor → menor');}
@@ -716,9 +724,11 @@ function rosterReviewChange(event){
   if(!dataset)return;
   const select=event.target.closest('select[data-roster-reason]');
   if(select){
-    const row=currentRows().find(row=>row.ID===select.dataset.studentId);
+    const row=dataset.students.find(row=>row.ID===select.dataset.studentId&&row.Campus===selection.center);
     if(!window.PbisRosterReview.isNonRespondent(row))return;
     rosterReviews.setNonParticipation(row.ID,select.value||null);
+    const summary=select.closest('.non-participation-report')?.querySelector('summary');
+    if(summary)summary.textContent=window.PbisRosterReview.nonParticipationReasons[select.value]||'Indicar motivo';
     const control=select.closest('.non-participation-control'),label=control.querySelector('.non-participation-detail'),text=control.querySelector('textarea');
     label.hidden=select.value!=='other';text.value='';text.required=!label.hidden;text.setCustomValidity(text.required?'Especifica el motivo.':'');
     if(!label.hidden)text.focus();
@@ -730,7 +740,7 @@ function rosterReviewInput(event){
   if(!dataset)return;
   const text=event.target.closest('textarea[data-roster-reason-detail]');
   if(text){
-    const row=currentRows().find(row=>row.ID===text.dataset.studentId);
+    const row=dataset.students.find(row=>row.ID===text.dataset.studentId&&row.Campus===selection.center);
     if(!window.PbisRosterReview.isNonRespondent(row)||rosterReviews.get(row.ID).nonParticipation?.reason!=='other')return;
     rosterReviews.setNonParticipation(row.ID,'other',text.value);
     text.setCustomValidity(text.value.trim()?'':'Especifica el motivo.');updateCloseAction();return;

@@ -28,7 +28,15 @@ def submissions(value):
     elif isinstance(value, dict) and 'submissions' in value:
         yield from submissions(value['submissions'])
     elif isinstance(value, dict) and value.get('feedback_json'):
-        yield json.loads(value['feedback_json'])
+        yield from submissions(json.loads(value['feedback_json']))
+    elif isinstance(value, dict) and value.get('schemaVersion') == 'pbis.session-feedback.v1':
+        parts = value.get('parts')
+        if not isinstance(parts, list) or len(parts) != 2 or [p.get('schemaVersion') if isinstance(p, dict) else None for p in parts] != [SCHEMA, 'pbis.app-feedback.v1']:
+            raise ValueError('Partes del envío conjunto no válidas.')
+        if any(p.get('batchId') != value.get('batchId') for p in parts):
+            raise ValueError('Lote incoherente en el envío conjunto.')
+        # App opinions stay in the original JSON, never become student observations.
+        yield from submissions(parts[0])
     elif isinstance(value, dict) and value.get('schemaVersion') == SCHEMA:
         yield value
     else:

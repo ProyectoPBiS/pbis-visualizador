@@ -150,6 +150,20 @@
     return {_subject:`PBIS · Opiniones sobre la app · ${username}`,eventId:batchId,username,role,sessionCode,date,schemaVersion,
       recordCount:String(records.length),message:lines.join('\n'),feedback_json:JSON.stringify(envelope)};
   }
-  return Object.freeze({newId, classCode, makeOpinion, toSheetRows, makeAppOpinion, makeAppBatch, views, sections, kinds});
+  // Keep educational participation reports separate from opinions about the app,
+  // while delivering both in one confirmed request at session close.
+  function makeSessionBatch({linkedBatch=null,...options}) {
+    if(!linkedBatch)return makeAppBatch(options);
+    if(linkedBatch.schemaVersion!=='pbis.feedback.v2'||linkedBatch.eventId!==options.eventId||linkedBatch.sessionCode!==options.sessionCode||linkedBatch.username!==options.username||linkedBatch.role!==options.role)throw Error('Las aportaciones no corresponden a esta sesión.');
+    if(!options.opinions.length)return linkedBatch;
+    const application=makeAppBatch({...options,date:linkedBatch.date});
+    const parts=[JSON.parse(linkedBatch.feedback_json),JSON.parse(application.feedback_json)];
+    const schemaVersion='pbis.session-feedback.v1';
+    return {...linkedBatch,_subject:`PBIS · Aportaciones de ${options.username}`,schemaVersion,
+      recordCount:String(Number(linkedBatch.recordCount)+Number(application.recordCount)),
+      message:linkedBatch.message+'\n\n—— OPINIONES SOBRE LA APLICACIÓN ——\n\n'+application.message,
+      feedback_json:JSON.stringify({schemaVersion,batchId:linkedBatch.eventId,parts})};
+  }
+  return Object.freeze({newId, classCode, makeOpinion, toSheetRows, makeAppOpinion, makeAppBatch, makeSessionBatch, views, sections, kinds});
 }));
 

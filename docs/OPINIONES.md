@@ -9,9 +9,17 @@ Hay un único botón **Opinar** por bloque: **Centro**, **Aula**, **Estudiantes*
 
 También puedes abrir **Revisar y enviar** durante la consulta. No se envía un correo por tarjeta ni por voto. El correo contiene un resumen legible y un JSON compacto, sin adjuntar Excel ni generar un ZIP.
 
+## Motivos de una encuesta sin responder
+
+En **Estudiantes**, las filas con **No ha respondido** muestran **Indicar motivo**. Puedes elegir **Sin consentimiento registrado**, **Ausencia el día de la encuesta**, **Ausencia prolongada**, **Traslado a otro centro** u **Otro motivo**. Esta última opción requiere una explicación breve, sin nombres ni información personal adicional. «Seleccionar motivo» permite quitar lo indicado.
+
+Es una aportación voluntaria del profesional: no cambia las respuestas ni los cálculos. Se conserva al cambiar de aula, ordenar o buscar. Al cerrar sesión, los motivos se reúnen con las opiniones en un único correo, tras revisar el resumen y pulsar **Enviar y cerrar sesión**. Un fallo de envío mantiene la consulta abierta para reintentar. La demo permite practicar sin enviar.
+
+Estos informes incluyen cuenta, centro, curso, aula, código del estudiante, periodo, motivo y la referencia al archivo (huella y hoja), sin nombres, contraseñas ni respuestas educativas. El texto libre contiene solo lo que escriba el profesional.
+
 ## Contenido y conservación
 
-Se incluyen cuenta, rol, sesión aleatoria, vista y apartado, tipo de aportación, puntuación opcional, comentario, fecha y versión. No se añaden nombres, códigos de estudiantes, resultados educativos, nombre del archivo, huellas de archivos ni contraseñas. No introduzcas datos personales en el texto libre.
+En las opiniones sobre la aplicación se incluyen cuenta, rol, sesión aleatoria, vista y apartado, tipo de aportación, puntuación opcional, comentario, fecha y versión. No se añaden nombres, códigos de estudiantes, resultados educativos, nombre del archivo, huellas de archivos ni contraseñas. No introduzcas datos personales en el texto libre.
 
 En un proyecto protegido se utiliza el código de cuenta. Una cuenta compartida no acredita quién comentó físicamente. Las aportaciones no se incluyen en los PDF ni alteran los indicadores.
 
@@ -27,4 +35,6 @@ Los mismos controles permiten probar la función. La demo muestra que son opinio
 
 El JSON se identifica como `pbis.app-feedback.v1`: un lote con `batchId`, `username`, `role`, `sessionCode`, `version`, `preparedAt` y una lista `records`. Cada registro contiene `eventId`, `scope: app`, `sheet`, `section`, `kind`, `rating` (1–5 o null), `comment`, `date`, rol, sesión y versión. `kind` distingue `opinion`, `improvement` y `problem`. No interpretes una puntuación ausente como cero.
 
-Este formato es distinto del histórico `pbis.feedback.v2`, que vinculaba valoraciones a estudiantes. El importador histórico de FEEDBACK_DATOS.md sigue destinado a ese formato anterior; no debe mezclar estas opiniones con respuestas educativas.
+Este formato es distinto del histórico `pbis.feedback.v2`, que vinculaba valoraciones a estudiantes. El importador de FEEDBACK_DATOS.md admite los motivos vinculados a estudiantes en formato v2; no mezcla las opiniones sobre la app con respuestas educativas.
+
+Si la sesión contiene opiniones de la app y motivos de no participación, el JSON usa `pbis.session-feedback.v1` con dos partes separadas: `pbis.feedback.v2` para los motivos y `pbis.app-feedback.v1` para las opiniones. El importador `tools/importar_feedback.py` extrae los motivos sin mezclar las opiniones de diseño con datos educativos. Si solo hay motivos, se mantiene el formato v2.

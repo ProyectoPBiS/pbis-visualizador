@@ -87,9 +87,34 @@ try{
   }
   await page.locator('#logout').click();
  }
+ // Restored non-participation report: real UI, entirely synthetic Excel and intercepted mail.
+ const absent=classRows.find(r=>r.respondio==='No'),sampleBook=X.utils.book_new();
+ const excelRows=rows=>rows.map(r=>Object.fromEntries(Object.entries(r).map(([k,v])=>[k,v!==null&&typeof v==='object'?JSON.stringify(v):v])));
+ X.utils.book_append_sheet(sampleBook,X.utils.json_to_sheet(excelRows(demoData.students.filter(r=>r.Centro===absent.Centro))),'Datos');
+ X.utils.book_append_sheet(sampleBook,X.utils.json_to_sheet(excelRows(demoData.groups.filter(r=>r.Centro===absent.Centro))),'Grupos');
+ fs.mkdirSync(path.join(root,'test-results'),{recursive:true});
+ const samplePath=path.join(root,'test-results/participacion-simulada.xlsx');fs.writeFileSync(samplePath,X.write(sampleBook,{type:'buffer',bookType:'xlsx'}));
+ await page.goto(origin+'/PBIS.html');await login(profiles.find(p=>p.role==='orientador'));
+ await page.locator('#file-data').setInputFiles(samplePath);await page.locator('#sheet-data').selectOption('Datos');await page.locator('#show-reports').click();
+ await page.locator('#tab-roster:enabled').waitFor();await page.locator('#tab-roster').click();
+ await page.locator('#center').selectOption(absent.Centro);await page.locator('#course').selectOption(absent.Curso);await page.locator('#group').selectOption(absent.Grupo);
+ const reasonRow=page.locator(`tr[data-student-id="${absent.ID}"]`),reason=reasonRow.locator('[data-roster-reason]');
+ assert.equal(await page.locator('tr:not(.roster-no-response) [data-roster-reason]').count(),0);
+ await reasonRow.locator('details > summary').click();await reason.selectOption('other');
+ await page.locator('#logout').click();assert.match(await page.locator('#close-status').innerText(),/motivo/);assert.equal(sent.length,0);
+ await reasonRow.locator('textarea').fill('Encuesta pendiente de realizar');await reason.selectOption('absent_day');assert.equal(await reasonRow.locator('textarea').inputValue(),'');
+ await page.locator('#tab-group').click();await page.locator('#tab-roster').click();assert.equal(await reason.inputValue(),'absent_day');
+ for(const width of [390,320]){await page.setViewportSize({width,height:1000});await reasonRow.locator('details > summary').click();assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await reasonRow.locator('details > summary').click();}
+ await page.locator('[data-app-feedback=roster]').click();await page.locator('#feedback-comment').fill('La lista se entiende bien.');await page.locator('#feedback-send').click();await page.locator('#feedback-close').click();
+ await page.locator('#logout').click();await page.locator('#review-send-dialog').waitFor();assert.match(await page.locator('#review-preview-content').innerText(),/Ausencia el día de la encuesta/);assert.match(await page.locator('#review-preview-content').innerText(),/La lista se entiende bien/);assert.equal(sent.length,0);
+ await page.locator('#review-preview-send').click();await page.locator('#close-status').filter({hasText:'No se ha podido confirmar'}).waitFor();assert.equal(sent.length,1);assert.equal(await page.locator('#tab-roster').count(),1);
+ await page.locator('#review-send-preview').click();await page.locator('#review-preview-send').click();await page.locator('#login-form').waitFor();assert.equal(sent.length,2);assert.deepEqual(sent[0],sent[1]);
+ const bundle=JSON.parse(sent[1].feedback_json);assert.equal(bundle.schemaVersion,'pbis.session-feedback.v1');assert.equal(sent[1].recordCount,'2');
+ assert.equal(bundle.parts[0].records[0].studentId,absent.ID);assert.equal(bundle.parts[0].records[0].center,absent.Centro);assert.equal(bundle.parts[0].records[0].nonParticipationReason,'absent_day');assert.doesNotMatch(sent[1].feedback_json,/password|"Nombre"|"Apellidos"|bullying_companeros_n/);
  await page.context().setOffline(true);await demo(pathToFileURL(path.join(root,'release/PBIS.html')).href);
- await page.locator('#logout').click();assert.equal(sent.length,0);
+ await page.locator('#tab-roster').click();const demoReason=page.locator('.non-participation-report').first();await demoReason.locator('summary').click();await demoReason.locator('select').selectOption('extended_absence');
+ await page.locator('#logout').click();assert.equal(sent.length,2);
  assert.deepEqual(errors,[]);assert.deepEqual(external,[]);
- console.log(JSON.stringify({ok:true,directDemo:true,clickableCounts:true,communities:true,teacherReviewsRemoved:true,profiles:profiles.length,offlineEmbeddedDemo:true,widths:[1360,390,320]}));
+ console.log(JSON.stringify({ok:true,directDemo:true,clickableCounts:true,communities:true,nonParticipationRestored:true,combinedMailAndRetry:true,profiles:profiles.length,offlineEmbeddedDemo:true,widths:[1360,390,320]}));
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
 

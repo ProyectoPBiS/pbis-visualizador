@@ -47,3 +47,7 @@ Los envíos previos usaban códigos transformados sin huella de archivo. Este ca
 ## Envío y recuperación
 
 Revisar y enviar muestra el contenido y permite guardar una copia JSON sin enviarla. Enviar valoraciones registra el lote y mantiene la consulta; Enviar y cerrar sesión espera la confirmación antes de salir. Tras 15 minutos sin actividad también se intenta enviar lo añadido: un fallo o un borrador incompleto impiden el cierre automático. Un reintento sin cambios reutiliza el mismo lote, fecha e IDs; si cambian las valoraciones se crea otro. El importador resuelve duplicados idénticos, pero no se promete entrega exactamente una vez por correo. Una respuesta positiva confirma la aceptación por Formspree, no la recepción del mensaje en Outlook.
+
+## Envíos conjuntos
+
+El importador también admite `pbis.session-feedback.v1`: extrae su parte `pbis.feedback.v2`, incluidos los motivos de no participación. La parte `pbis.app-feedback.v1` se conserva en el JSON original y no se mezcla con los registros educativos de CSV y SQLite.
