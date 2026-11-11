@@ -140,14 +140,14 @@ async function reviewBatch(){
   pendingReviewBatch=batch;pendingReviewSignature=signature;
   return batch;
 }
-function closeStatus(message,failed=false){
+function closeStatus(message,failed=false,retryDestination=null){
   let box=document.getElementById('close-status');
   if(!box){box=document.createElement('div');box.id='close-status';box.className='close-status';box.setAttribute('role','status');document.querySelector('.topbar').after(box);}
   box.replaceChildren();
   const text=document.createElement('p');text.textContent=message;box.append(text);
   if(failed){
     if(pendingReviewBatch){const save=document.createElement('button');save.type='button';save.className='quiet';save.textContent='Guardar copia JSON';save.onclick=downloadReviewBatch;box.append(save);}
-    const retry=document.createElement('button');retry.type='button';retry.className='quiet';retry.textContent='Revisar y reintentar';retry.onclick=()=>showReviewPreview();box.append(retry);
+    const retry=document.createElement('button');retry.type='button';retry.className='quiet';retry.textContent='Revisar y reintentar';retry.onclick=()=>showReviewPreview(retryDestination);box.append(retry);
     const discard=document.createElement('button');discard.type='button';discard.className='quiet';discard.textContent='Cerrar sin enviar';discard.onclick=()=>finish('Sesión cerrada sin enviar las valoraciones.',closeDestination);box.append(discard);
   }
 }
@@ -228,7 +228,7 @@ async function closeWithReviews(destination='login',keepOpen=false){
   }catch(error){
     if(!profile||sendGeneration!==generation)return;
     lastActivity=Date.now();
-    closeStatus(pendingReviewBatch?`No se ha podido confirmar el envío: ${error.message} La sesión permanece abierta. Si reintentas, podría llegar una copia adicional.`:`${error.message} No se ha enviado ninguna valoración. La sesión permanece abierta.`,true);
+    closeStatus(pendingReviewBatch?`No se ha podido confirmar el envío: ${error.message} La sesión permanece abierta. Si reintentas, podría llegar una copia adicional.`:`${error.message} No se ha enviado ninguna valoración. La sesión permanece abierta.`,true,keepOpen?null:closeDestination);
   }finally{if(sendGeneration===generation){closing=false;button.disabled=false;updateCloseAction();const main=document.getElementById('main'),bar=document.querySelector('.topbar');if(main)main.inert=false;if(bar)bar.inert=false;}}
 }
 function showHelp(){const help=document.getElementById('help');if(!help.querySelector('[data-usage-terms]'))help.insertAdjacentHTML('beforeend','<p><button type="button" class="usage-link" data-usage-terms>Condiciones de uso</button></p>');help.showModal();}

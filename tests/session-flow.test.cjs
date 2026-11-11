@@ -238,7 +238,7 @@ test('an offline app-feedback close retains all contributions and retries the id
  f.addAppOpinion('individual','cognitive',null,'La escala se ve pequeña','problem');
  await f.el('logout').onclick();await f.el('review-preview-send').onclick();assert.ok(f.el('report-content'));
  assert.match(f.el('close-status').children[0].textContent,/No se ha podido confirmar/);
- f.setFailSend(false);await f.el('logout').onclick();await f.el('review-preview-send').onclick();
+ f.setFailSend(false);await f.el('close-status').children.find(child=>child.textContent==='Revisar y reintentar').onclick();await f.el('review-preview-send').onclick();
  assert.equal(f.fetches.length,2);assert.equal(f.fetches[0].options.body,f.fetches[1].options.body);assert.ok(f.el('login-form'));
 });
 test('count navigation does not expand the selected classroom or expose the centre to tutoring',async()=>{
@@ -388,4 +388,24 @@ test('downloads use the packaged universal ZIP only for the unified website',()=
  assert.match(unified.el('root').innerHTML,/downloads\/PBIS.zip/);
  assert.doesNotMatch(unified.el('root').innerHTML,/downloads\/PBIS-Windows.zip/);
  assert.match(local.el('root').innerHTML,/https:\/\/proyectopbis.github.io\/pbis-visualizador\/downloads\/PBIS-Windows.zip/);
+});
+
+test('non-participation controls preserve a reason through navigation and send it with app feedback',async()=>{
+ const f=fixture();f.login('tutoria1eso');await f.upload();f.el('tab-roster').onclick();
+ const absent=demo.students.find(r=>r.Centro==='Centro 3705'&&r.Curso==='1.º ESO'&&r.Grupo==='A'&&r.respondio==='No');
+ assert.match(f.el('report-content').innerHTML,new RegExp('data-roster-reason data-student-id="'+absent.ID+'"'));
+ const label={hidden:true},text={value:'',setCustomValidity(){},focus(){}},summary={};
+ const control={querySelector:s=>s==='.non-participation-detail'?label:text};
+ const select={value:'absent_day',dataset:{studentId:absent.ID},closest:s=>s==='.non-participation-control'?control:{querySelector:()=>summary}};
+ f.el('report-content').listeners.change({target:{closest:s=>s==='select[data-roster-reason]'?select:null}});
+ assert.equal(summary.textContent,'Ausencia el día de la encuesta');
+ f.el('tab-group').onclick();f.el('tab-roster').onclick();assert.match(f.el('report-content').innerHTML,/<option value="absent_day" selected>/);
+ f.addAppOpinion('roster','roster',null,'La lista se entiende bien');
+ await f.el('logout').onclick();assert.equal(f.fetches.length,0);assert.match(f.el('review-preview-content').textContent,/Ausencia el día de la encuesta/);
+ await f.el('review-preview-send').onclick();assert.equal(f.fetches.length,1);assert.ok(f.el('login-form'));
+ const payload=JSON.parse(f.fetches[0].options.body),bundle=JSON.parse(payload.feedback_json);
+ assert.equal(bundle.schemaVersion,'pbis.session-feedback.v1');assert.equal(payload.recordCount,'2');
+ assert.equal(bundle.parts[0].records[0].studentId,absent.ID);assert.equal(bundle.parts[0].records[0].nonParticipationReason,'absent_day');
+ assert.equal(bundle.parts[1].records[0].comment,'La lista se entiende bien');
+ assert.doesNotMatch(payload.feedback_json,/"Nombre"|password|bullying_companeros_n/);
 });
