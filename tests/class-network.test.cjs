@@ -1,0 +1,154 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict');
+const N=require('../src/class-network.js');
+const student=(ID,extra={})=>({ID,Campus:'Centro 3705',Curso:'1.º ESO',Grupo:'A',Nombre:null,amistad_recibida_n:0,relaciones_red:[],...extra});
+const link=(id,tipo='amistad',intensidad=1)=>({id,tipo,intensidad});
+
+test('seeded networks draw exactly the same-sign reciprocal pairs once without mutating input',()=>{
+  let seed=20261016;
+  const random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/2**32);
+  for(let trial=0;trial<60;trial++){
+    const count=2+Math.floor(random()*38),rows=Array.from({length:count},(_,i)=>student(String(i).padStart(3,'0'),{amistad_recibida_n:Math.floor(random()*count)}));
+    const expected=new Map();
+    for(const row of rows)for(const other of rows)if(row!==other&&random()<.15){
+      const edge={id:other.ID,tipo:random()<.7?'amistad':'rechazo',intensidad:random()<.5?1:2};
+      row.relaciones_red.push(edge,{...edge,intensidad:1});
+      expected.set(JSON.stringify([row.ID,edge.id,edge.tipo]),edge.intensidad);
+    }
+    const before=JSON.stringify(rows),model=N.model(rows),layout=N.geometry(model);
+    const pairs=[];
+    for(let i=0;i<rows.length;i++)for(let j=i+1;j<rows.length;j++){
+      const a=rows[i].ID,b=rows[j].ID;
+      for(const tipo of ['amistad','rechazo']){
+        const opposite=tipo==='amistad'?'rechazo':'amistad';
+        const ida=expected.get(JSON.stringify([a,b,tipo])),vuelta=expected.get(JSON.stringify([b,a,tipo]));
+        if(ida&&vuelta&&!expected.has(JSON.stringify([a,b,opposite]))&&!expected.has(JSON.stringify([b,a,opposite])))pairs.push({from:a,to:b,tipo,intensidad:(ida+vuelta)/2,intensidadIda:ida,intensidadVuelta:vuelta});
+      }
+    }
+    const order=(a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b));
+    assert.deepEqual([...model.edges].sort(order),pairs.sort(order));
+    assert.equal(layout.paths.length,pairs.length);
+    assert.ok(layout.nodes.every(node=>Number.isFinite(node.x)&&Number.isFinite(node.y)));
+    assert.doesNotMatch(N.svg(model),/NaN|Infinity|undefined/);
+    assert.equal(JSON.stringify(rows),before);
+  }
+});
+test('circle includes isolated and nonresponding students, sorted by existing popularity with stable ties and unknowns last',()=>{
+  const rows=[student('02',{amistad_recibida_n:4}),student('03',{amistad_recibida_n:null}),student('01',{amistad_recibida_n:4,respondio:'No',relaciones_red:null}),student('04')];
+  const before=JSON.stringify(rows),m=N.model(rows);
+  assert.deepEqual(m.students.map(r=>r.ID),['01','02','04','03']);assert.equal(m.respondents,3);
+  assert.equal(JSON.stringify(rows),before);assert.equal((N.view(rows).match(/data-class-student=/g)||[]).length,4);
+  assert.match(N.view(rows),/class-network-unanswered/);assert.match(N.view(rows),/3 de 4 han respondido/);
+});
+test('one line per reciprocal pair uses mean intensity, excludes mixed signs and one-way ties',()=>{
+  const rows=[student('01',{relaciones_red:[link('01'),link('02'),link('02','amistad',2),link('X'),link('03'),link('03','bad'),link('03','rechazo',0)]}),
+    student('02',{relaciones_red:[link('01'),link('03','rechazo',2)]}),
+    student('03',{relaciones_red:[link('02','rechazo',2),link('01','rechazo')]}),
+    student('04',{relaciones_red:[link('01'),link('05')]}),student('05',{relaciones_red:[link('04')]})];
+  const m=N.model(rows);assert.equal(m.edges.length,3);assert.equal(m.outside,1);
+  assert.deepEqual(m.edges,[{from:'01',to:'02',tipo:'amistad',intensidad:1.5,intensidadIda:2,intensidadVuelta:1},
+    {from:'02',to:'03',tipo:'rechazo',intensidad:2,intensidadIda:2,intensidadVuelta:2},
+    {from:'04',to:'05',tipo:'amistad',intensidad:1,intensidadIda:1,intensidadVuelta:1}]);
+  assert.deepEqual(N.geometry(m).paths.map(p=>p.width),[2.4,3.2,1.6]);
+  const html=N.svg(m);assert.equal((html.match(/class-network-edge"/g)||[]).length,3);assert.doesNotMatch(html,/marker-end=|marker-start=/);
+  assert.match(html,/01 ↔ 02: relación recíproca/);assert.match(html,/01 declara muy buena relación; 02 declara buena relación/);
+  assert.match(N.view(rows),/1 mención hacia un código fuera/);
+});
+
+test('mixed-sign duplicates are omitted entirely and individual stars retain all their directed links',()=>{
+ const C=require('../src/core.js');
+ const rows=[student('A',{relaciones_red:[link('B'),link('B','rechazo',2)]}),student('B',{relaciones_red:[link('A')]}),student('C',{Grupo:'B',relaciones_red:[link('A')]})];
+ const before=C.studentNetwork(rows,'A'),source=JSON.stringify(rows);
+ assert.equal(N.model(rows).edges.length,0);assert.equal(JSON.stringify(rows),source);
+ assert.deepEqual(C.studentNetwork(rows,'A'),before);assert.equal(before.edges.length,4);
+ assert.ok(before.edges.some(e=>e.from==='C'&&e.to==='A'));
+});
+
+test('class and center boundaries stay closed even if a caller accidentally passes mixed rows',()=>{
+  const rows=[student('01',{relaciones_red:[link('02'),link('03')]}),student('02',{Grupo:'B'}),student('03',{Campus:'Other'})];
+  const m=N.model(rows);assert.equal(m.students.length,1);assert.equal(m.edges.length,0);assert.equal(m.outside,2);
+  assert.doesNotMatch(N.view(rows),/data-class-student="02"|data-class-student="03"|Other/);
+});
+test('unknown relationships differ from empty answers and a zero received count is not missing',()=>{
+  assert.equal(N.view([]),'');
+  const unavailable=N.view([student('01',{relaciones_red:null})]);
+  assert.match(unavailable,/No hay respuestas de relaciones disponibles/);assert.match(unavailable,/0 recibidas/);
+  const empty=N.view([student('01')]);assert.match(empty,/No hay relaciones recíprocas del mismo signo/);assert.doesNotMatch(empty,/No hay respuestas/);
+});
+test('nonrespondents remain visible, but their incoming-only relationships are not drawn',()=>{
+  const rows=[student('01',{respondio:'No',relaciones_red:[]}),student('02',{relaciones_red:[link('01')]})];
+  const m=N.model(rows);assert.equal(m.respondents,1);assert.equal(m.edges.length,0);
+  assert.match(N.view(rows),/class-network-unanswered/);assert.match(N.view(rows),/1 de 2 han respondido/);
+});
+test('received center counts determine order even when the class-only incoming degrees differ',()=>{
+  const rows=[student('01',{amistad_recibida_n:18,ambito_nominaciones:'centro',relaciones_red:[link('02')]}),student('02',{amistad_recibida_n:3,ambito_nominaciones:'centro'})];
+  assert.equal(N.model(rows).students[0].ID,'01');assert.equal(N.model(rows).scope,'centro');
+});
+test('same-radius circle runs clockwise from noon with readable node separation and safe path coordinates',()=>{
+  for(const n of [1,2,3,12,28,50,100,300]){
+    const m=N.model(Array.from({length:n},(_,i)=>student(String(i),{amistad_recibida_n:n-i,relaciones_red:i?[link('0')]:[]}))),g=N.geometry(m);
+    assert.equal(g.nodes[0].y,g.center-g.radius);assert.equal(g.nodes[0].x,g.center);
+    if(n>2)assert.ok(g.nodes[1].x>g.center);
+    for(const node of g.nodes)assert.ok(Math.abs(Math.hypot(node.x-g.center,node.y-g.center)-g.radius)<.01);
+    for(let i=0;i<g.nodes.length;i++)for(let j=i+1;j<g.nodes.length;j++)assert.ok(Math.hypot(g.nodes[i].x-g.nodes[j].x,g.nodes[i].y-g.nodes[j].y)>28);
+    assert.doesNotMatch(N.svg(m),/NaN|Infinity|undefined/);
+  }
+});
+test('codes and names are escaped, no full surnames appear, and missing names use the original ID',()=>{
+  const html=N.view([student('01',{Nombre:'Ana García López'}),student('02" onclick="bad<')]);
+  assert.match(html,/Ana G\. L\./);assert.doesNotMatch(html,/García|López|\sonclick="/);assert.match(html,/data-class-student="02&quot; onclick=&quot;bad&lt;"/);
+});
+test('highlight counts reciprocal pairs without removing unrelated students',()=>{
+  const element=dataset=>({dataset,classes:new Set(),classList:{toggle(name,on){on?this.owner.classes.add(name):this.owner.classes.delete(name);}}});
+  const nodes=['A','B','C','D'].map(classStudent=>element({classStudent})),edges=[['A','B'],['A','C'],['C','B']].map(([classFrom,classTo])=>element({classFrom,classTo}));
+  for(const el of [...nodes,...edges])el.classList.owner=el;
+  const status={},panel={querySelectorAll:selector=>selector==='[data-class-from]'?edges:nodes,querySelector:()=>status};
+  N.highlight(panel,'A');assert.match(status.textContent,/2 relaciones recíprocas dentro del aula/);
+  assert.equal(edges[2].classes.has('is-muted'),true);assert.equal(nodes[3].classes.has('is-muted'),true);assert.equal(nodes[0].classes.has('is-selected'),true);
+  N.highlight(panel,'outside');assert.equal(status.textContent,'4 estudiantes · 3 relaciones recíprocas dentro del aula');assert.ok([...nodes,...edges].every(el=>!el.classes.has('is-muted')));
+});
+
+test('community layout uses existing assignments and preserves every student, edge and metric',()=>{
+  const rows=[student('A',{Nombre:'Ana García López',comunidad_amistad:'Red 1',centralidad:4,relaciones_red:[link('B'),link('C','rechazo',2)]}),student('B',{comunidad_amistad:'Red 1',respondio:'No',relaciones_red:[]}),student('C',{comunidad_amistad:'Red 2',relaciones_red:[link('A','rechazo')]}),student('D',{comunidad_amistad:null})];
+  const before=JSON.stringify(rows),network=N.model(rows),layout=N.clusterGeometry(network);
+  assert.deepEqual(layout.islands.map(group=>group.students.map(row=>row.ID)),[['A','B'],['C'],['D']]);
+  assert.deepEqual(layout.paths.map(({from,to,tipo,intensidad,width})=>({from,to,tipo,intensidad,width})),N.geometry(network).paths.map(({from,to,tipo,intensidad,width})=>({from,to,tipo,intensidad,width})));
+  assert.equal(layout.nodes.find(n=>n.student.ID==='A').colour,layout.nodes.find(n=>n.student.ID==='B').colour);
+  assert.notEqual(layout.nodes.find(n=>n.student.ID==='A').colour,layout.nodes.find(n=>n.student.ID==='C').colour);
+  assert.equal(layout.islands[2].label,'Sin comunidad asignada');
+  assert.deepEqual(N.clusterGeometry(network),layout);
+  assert.equal(JSON.stringify(rows),before);
+  const html=N.svg(network,'communities');
+  assert.match(html,/Ana G\. L\./);assert.match(html,/class-network-unanswered/);
+  assert.doesNotMatch(html,/class-network-ring|NaN|Infinity|undefined|García|López/);
+  assert.equal((html.match(/data-class-student=/g)||[]).length,4);
+  assert.equal((html.match(/class-network-edge"/g)||[]).length,1);assert.doesNotMatch(html,/marker-end=/);
+});
+
+test('community islands keep labels separated and within the view for small and large classes',()=>{
+  for(const count of [1,2,3,28,50,100,300]){
+    const rows=Array.from({length:count},(_,i)=>student(String(i),{comunidad_amistad:'Red '+i%7,relaciones_red:i?[link('0')]:[]}));
+    const network=N.model(rows),layout=N.clusterGeometry(network);
+    assert.equal(layout.nodes.length,count);
+    for(const island of layout.islands){
+      const nodes=layout.nodes.filter(n=>island.students.includes(n.student));
+      assert.ok(island.x>=0&&island.y>=0&&island.x+island.width<layout.width&&island.y+island.height<layout.height);
+      for(const node of nodes){
+        assert.ok(node.x-73>island.x&&node.x+73<island.x+island.width);
+        assert.ok(node.y-23>island.y+30&&node.y+52<island.y+island.height);
+      }
+      for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){
+        assert.ok(Math.abs(nodes[i].x-nodes[j].x)>=146||Math.abs(nodes[i].y-nodes[j].y)>=75,'Node label rectangles overlap');
+      }
+    }
+    assert.doesNotMatch(N.svg(network,'communities'),/NaN|Infinity|undefined/);
+  }
+});
+
+test('community view remains scoped and never treats missing membership as a computed group',()=>{
+  const network=N.model([student('A',{comunidad_amistad:'Red 1'}),student('B',{Campus:'Otro',comunidad_amistad:'Hidden'}),student('C',{Grupo:'B',comunidad_amistad:'Hidden'}),student('D')]);
+  assert.deepEqual(N.clusterGeometry(network).nodes.map(n=>n.student.ID),['A','D']);
+  assert.doesNotMatch(N.svg(network,'communities'),/Hidden|data-class-student="[BC]"/);
+  assert.match(N.view([student('A')]),/disabled title="Este archivo no incluye comunidades de relaciones/);
+  assert.match(N.view([student('A',{comunidad_amistad:'Red 1'})]),/aria-pressed="true" aria-controls="class-network-stage">Ver círculo/);
+});

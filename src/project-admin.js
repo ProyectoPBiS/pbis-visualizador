@@ -1,0 +1,47 @@
+/* Simple project administration. No persistent credentials; existing crypto engine. */
+(function(root){'use strict';
+const P=root.PbisProtected,A=root.PbisProjectAccounts,E=root.PbisCore.escapeHtml;
+function download(name,value){const binary=value instanceof Uint8Array;const type=name.endsWith('.docx')?'application/vnd.openxmlformats-officedocument.wordprocessingml.document':binary?'application/zip':'application/octet-stream';const url=URL.createObjectURL(new Blob([binary||typeof value==='string'?value:JSON.stringify(value,null,2)],{type})),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}
+function dialog(title){const d=document.createElement('dialog');d.className='protected-dialog';d.setAttribute('aria-label',title);d.innerHTML=`<div class="protected-heading"><h2>${E(title)}</h2><button type="button" class="quiet" data-close>Cerrar ×</button></div><div class="protected-body"></div>`;document.body.append(d);d.querySelector('[data-close]').onclick=()=>d.close();d.addEventListener('close',()=>{d.querySelectorAll('input').forEach(i=>i.value='');d.remove();},{once:true});d.showModal();return d;}
+function showAdmin({previous=null,orientationPassword='',loadBook,convertSheet,directorTools=false,auditEndpoint=''}){
+ const inheritedEndpoint=previous?.endpoint||auditEndpoint,d=dialog('Administrar el proyecto');d.classList.add('project-admin');
+ let data=previous?.data||null,book=null,center=previous?.center||'',rows=[],busy=false,alive=true,result=null,pack=null,sourceTicket=0;
+ d.addEventListener('cancel',e=>{if(busy)e.preventDefault();});
+ d.addEventListener('close',()=>{alive=false;sourceTicket++;orientationPassword='';data=null;book=null;rows=[];result=null;pack=null;});
+ d.querySelector('.protected-body').innerHTML=`<p>Sube el Excel y elige las aulas. Crearemos sus usuarios y contraseñas automáticamente.</p><div class="admin-source"><label class="field">Excel de datos<input id="admin-file" type="file" accept=".xlsx,.xls,.pbis"></label><label class="field">Hoja<select id="admin-sheet" disabled></select></label><label class="field">Centro<select id="admin-center" ${previous?'disabled':''}></select></label></div><p id="admin-source-status" role="status"></p><section class="admin-section"><h3>Accesos por aula</h3><p>Cada docente accede a su aula. El equipo de orientación puede ver todo el centro.</p><label class="admin-pdf-option"><input id="admin-select-all" type="checkbox" disabled> Seleccionar todas las aulas</label><fieldset id="admin-classes"><legend>Aulas incluidas</legend><p>Carga primero los datos.</p></fieldset></section><section class="admin-section"><h3>Opciones</h3><label class="admin-pdf-option"><input id="admin-pdf-all" type="checkbox" ${previous?.accounts.every(a=>P.canExportPdf(a))?'checked':''}> Permitir descargar PDF a todas las cuentas</label><p class="subtle">Cada PDF autorizado se abre con el DNI de quien lo descarga.</p></section><p>Recibirás un ZIP con el proyecto <strong>.pbis</strong> y un <strong>Word de accesos</strong>. Guarda el Word y entrega a cada docente solo su acceso.</p><p class="subtle">Cada generación renueva las contraseñas de las aulas. Orientación mantiene su contraseña. Las copias anteriores conservan sus accesos.</p>${directorTools?`<section class="admin-section"><h3>Registro del proyecto · Dirección general</h3><label class="field">Receptor de Google Sheets<input id="admin-endpoint" type="url" placeholder="https://script.google.com/macros/s/…/exec" value="${E(inheritedEndpoint)}"></label></section>`:''}${root.PbisTerms.checkbox('admin-terms','project')}<p id="admin-status" role="status" aria-live="polite"></p><div class="admin-actions"><button id="admin-build" class="btn" type="button" disabled>Generar y descargar</button><button id="admin-download" class="btn secondary" type="button" hidden>Descargar ZIP de nuevo</button></div><div id="admin-recovery" hidden><p class="subtle">Si la descarga no se inicia, pulsa «Descargar ZIP de nuevo» o guarda los archivos por separado.</p><div class="admin-actions"><button id="admin-project-download" class="quiet" type="button">Solo archivo .pbis</button><button id="admin-credentials-download" class="quiet" type="button">Solo Word de accesos</button>${directorTools?'<button id="admin-manifest" class="quiet" type="button">Manifiesto de accesos</button>':''}</div></div>`;
+ const $=id=>d.querySelector('#'+id),message=text=>{$('admin-status').textContent=text;};
+ function invalidate(){result=null;pack=null;$('admin-terms').checked=false;$('admin-download').hidden=true;$('admin-recovery').hidden=true;}
+ function selected(){return [...d.querySelectorAll('[name=allowed]:checked')].map(i=>rows[Number(i.value)]);}
+ function selectionState(){const count=selected().length,all=$('admin-select-all');all.disabled=!rows.length;all.checked=!!rows.length&&count===rows.length;all.indeterminate=count>0&&count<rows.length;$('admin-build').disabled=!count||!data;}
+ function drawClasses(){rows=data?A.plan(data,center):[];$('admin-classes').innerHTML='<legend>Aulas incluidas</legend>'+(rows.length?rows.map((c,i)=>`<label class="admin-class"><input type="checkbox" name="allowed" value="${i}" checked><span class="admin-class-name">${E(c.course)} · Aula ${E(c.group)}<small>${c.count} estudiantes</small></span><strong>${E(c.username)}</strong></label>`).join(''):'<p>Carga primero los datos.</p>');selectionState();}
+ function clearSource(){data=null;rows=[];invalidate();$('admin-center').innerHTML='';$('admin-source-status').textContent='Selecciona un Excel y una hoja válidos.';drawClasses();}
+ function setData(next){const centers=[...new Set(next.students.map(r=>r.Centro||r.Campus))];if(previous&&!centers.includes(center))throw Error('El Excel no contiene el centro de este proyecto.');data=next;if(!centers.includes(center))center=centers[0];$('admin-center').innerHTML=centers.map(x=>`<option ${x===center?'selected':''}>${E(x)}</option>`).join('');drawClasses();$('admin-source-status').textContent=`${data.students.filter(r=>(r.Centro||r.Campus)===center).length} estudiantes preparados · ${rows.length} aulas.`;invalidate();}
+ function selectSheet(){clearSource();try{setData(convertSheet(book,$('admin-sheet').value));message('');}catch(error){clearSource();message(error.message);}}
+ $('admin-file').onchange=async()=>{const file=$('admin-file').files[0];if(!file)return;const ticket=++sourceTicket;clearSource();book=null;$('admin-sheet').innerHTML='';$('admin-sheet').disabled=true;$('admin-file').disabled=true;message('Leyendo el Excel…');try{const next=await loadBook(file);if(!alive||ticket!==sourceTicket)return;book=next;const sheets=book.sheets.filter(s=>!s.unsupported);$('admin-sheet').innerHTML=sheets.map(s=>`<option value="${E(s.name)}">${E(s.name)}</option>`).join('');$('admin-sheet').disabled=false;for(const name of ['Datos','Users'])if(sheets.some(s=>s.name===name))$('admin-sheet').value=name;selectSheet();}catch(error){if(alive&&ticket===sourceTicket)message(error.message);}finally{if(alive&&ticket===sourceTicket)$('admin-file').disabled=false;}};
+ $('admin-sheet').onchange=selectSheet;
+ $('admin-center').onchange=()=>{center=$('admin-center').value;setData(data);message('');};
+ $('admin-classes').onchange=()=>{invalidate();selectionState();message('');};
+ $('admin-select-all').onchange=()=>{d.querySelectorAll('[name=allowed]').forEach(i=>i.checked=$('admin-select-all').checked);invalidate();selectionState();message('');};
+ $('admin-pdf-all').onchange=()=>{invalidate();message('');};
+ $('admin-endpoint')?.addEventListener('input',invalidate);
+ $('admin-build').onclick=async()=>{
+  if(busy)return;let accounts=[];
+  try{
+   if(!data)throw Error('Carga primero un Excel válido.');
+   if(!root.PbisTerms.check('admin-terms'))throw Error('Confirma que has revisado las aulas y los permisos antes de generar.');
+   accounts=A.accounts(selected(),$('admin-pdf-all').checked,{orientationPassword,previous});busy=true;invalidate();d.querySelector('.protected-body').inert=true;d.querySelector('[data-close]').disabled=true;message('Preparando el proyecto…');
+   const next=await P.build({data,center,accounts,previous,auditEndpoint:directorTools?$('admin-endpoint').value.trim():inheritedEndpoint,onProgress:text=>{if(alive)message(text);}});
+   if(!alive)return;pack=A.bundle(next,center,accounts);result=next;
+   $('admin-download').hidden=false;$('admin-recovery').hidden=false;message(`Proyecto v${result.revision} preparado: ${accounts.length-1} accesos de aula y orientación. El ZIP contiene el .pbis y el Word.`);
+   download(pack.name,pack.bytes);
+  }catch(error){if(alive){result=null;pack=null;$('admin-download').hidden=true;$('admin-recovery').hidden=true;message(error.message+' Puedes volver a intentarlo.');}}
+  finally{accounts.forEach(a=>a.password='');accounts=[];busy=false;if(alive){d.querySelector('.protected-body').inert=false;d.querySelector('[data-close]').disabled=false;}}
+ };
+ $('admin-download').onclick=()=>{if(pack)download(pack.name,pack.bytes);};
+ $('admin-project-download').onclick=()=>{if(pack)download(pack.files[0].name,pack.files[0].text);};
+ $('admin-credentials-download').onclick=()=>{if(pack)download(pack.files[1].name,pack.files[1].bytes);};
+ $('admin-manifest')?.addEventListener('click',()=>{if(result)download('PBIS_registro_'+result.projectId+'_v'+result.revision+'.json',result.manifest);});
+ if(data)setData(data);return d;
+}
+root.PbisProjectUI=Object.freeze({showAdmin,download});
+})(window);

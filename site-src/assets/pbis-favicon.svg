@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Capa_1" data-name="Capa 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 424.12 412.95">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #ea8366;
+      }
+
+      .cls-2 {
+        fill: #f7f2ec;
+      }
+    </style>
+  </defs>
+  <path class="cls-2" d="M326.46,408.69c-76.26,4.23-152.53,4.23-228.79,0-47.33-2.94-90.38-45.76-93.41-93.1C.08,242.84.08,170.11,4.25,97.37,7.28,50.02,50.33,7.21,97.66,4.26c76.26-4.23,152.53-4.23,228.79,0,47.33,2.94,90.38,45.76,93.41,93.1,4.17,72.74,4.17,145.48,0,218.22-3.04,47.34-46.08,90.16-93.41,93.1Z"/>
+  <g>
+    <rect class="cls-1" x="318.65" y="127.22" width="37.25" height="37.25" rx="9.72" ry="9.72"/>
+    <rect class="cls-1" x="318.65" y="187.85" width="37.25" height="37.25" rx="9.72" ry="9.72"/>
+    <rect class="cls-1" x="312.15" y="241.97" width="50.26" height="50.26" rx="9.72" ry="9.72"/>
+    <rect class="cls-1" x="312.15" y="302.6" width="50.26" height="50.26" rx="9.72" ry="9.72"/>
+    <rect class="cls-1" x="312.15" y="60.09" width="50.26" height="50.26" rx="9.72" ry="9.72"/>
+    <rect class="cls-1" x="256.04" y="248.48" width="37.25" height="37.25" rx="9.72" ry="9.72"/>
+    <rect class="cls-1" x="249.54" y="302.6" width="50.26" height="50.26" rx="9.72" ry="9.72"/>
+    <rect class="cls-1" x="256.04" y="66.59" width="37.25" height="37.25" rx="9.72" ry="9.72"/>
+    <rect class="cls-1" x="193.43" y="127.22" width="37.25" height="37.25" rx="9.72" ry="9.72"/>
+    <rect class="cls-1" x="193.43" y="309.11" width="37.25" height="37.25" rx="9.72" ry="9.72"/>
+    <rect class="cls-1" x="186.93" y="60.09" width="50.26" height="50.26" rx="9.72" ry="9.72"/>
+    <rect class="cls-1" x="130.83" y="248.48" width="37.25" height="37.25" rx="9.72" ry="9.72"/>
+    <rect class="cls-1" x="124.32" y="302.6" width="50.26" height="50.26" rx="9.72" ry="9.72"/>
+    <rect class="cls-1" x="130.83" y="66.59" width="37.25" height="37.25" rx="9.72" ry="9.72"/>
+    <rect class="cls-1" x="68.22" y="127.22" width="37.25" height="37.25" rx="9.72" ry="9.72"/>
+    <rect class="cls-1" x="68.22" y="187.85" width="37.25" height="37.25" rx="9.72" ry="9.72"/>
+    <rect class="cls-1" x="61.71" y="241.97" width="50.26" height="50.26" rx="9.72" ry="9.72"/>
+    <rect class="cls-1" x="61.71" y="302.6" width="50.26" height="50.26" rx="9.72" ry="9.72"/>
+    <rect class="cls-1" x="61.71" y="60.09" width="50.26" height="50.26" rx="9.72" ry="9.72"/>
+  </g>
+</svg>

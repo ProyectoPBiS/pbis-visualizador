@@ -1,0 +1,60 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),zlib=require('node:zlib');
+const root=path.resolve(__dirname,'..'),site=path.join(root,'site'),read=p=>fs.readFileSync(path.join(root,p),'utf8');
+test('every relative link and resource in the public website resolves to a shipped file',()=>{
+ for(const file of fs.readdirSync(site).filter(f=>f.endsWith('.html'))){const html=fs.readFileSync(path.join(site,file),'utf8').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'');
+  for(const m of html.matchAll(/\b(?:href|src)=["']([^"']+)["']/g)){const url=m[1];if(/^(?:#|data:|https?:|mailto:)/.test(url))continue;const destination=path.resolve(site,url.split(/[?#]/)[0]);assert.ok(destination.startsWith(site+path.sep));assert.ok(fs.existsSync(destination),`${file}: ${url}`);}
+ }
+});
+test('all published download sizes and SHA-256 checksums match the manifest',()=>{
+ const manifest=JSON.parse(read('site/downloads/manifest.json'));assert.equal(manifest.files.length,4);
+ for(const entry of manifest.files){const bytes=fs.readFileSync(path.join(site,'downloads',entry.name));assert.equal(bytes.length,entry.size);assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),entry.sha256);}
+});
+test('all platform ZIP files contain the identical app and local home without separate Excel files',()=>{
+ const expected=fs.readFileSync(path.join(root,'release/PBIS.html'));
+ for(const platform of ['Windows','macOS','Linux','Universal']){const zip=fs.readFileSync(path.join(site,'downloads',`PBIS-${platform}.zip`));let offset=0;const entries=new Map();while(zip.readUInt32LE(offset)===0x04034b50){const size=zip.readUInt32LE(offset+18),nameSize=zip.readUInt16LE(offset+26),extraSize=zip.readUInt16LE(offset+28),name=zip.subarray(offset+30,offset+30+nameSize).toString('utf8');const start=offset+30+nameSize+extraSize;entries.set(name,zlib.inflateRawSync(zip.subarray(start,start+size)));offset=start+size;}assert.deepEqual(entries.get('PBIS/PBIS.html'),expected);assert.deepEqual(entries.get('PBIS/index.html'),fs.readFileSync(path.join(root,'release/index.html')));assert.ok(entries.has('PBIS/EMPIEZA-AQUI.txt'));assert.ok(entries.has('PBIS/AUDITORIA.md'));assert.ok(entries.has('PBIS/PROMPTS.md'));assert.ok(entries.has('PBIS/LICENSE-SheetJS.txt'));assert.ok([...entries.keys()].every(name=>!name.endsWith('.xlsx')));}
+});
+test('runtime has no persistent storage or telemetry and only the configured feedback connection',()=>{
+ const source=fs.readdirSync(path.join(root,'src')).filter(name=>name.endsWith('.js')).map(name=>read('src/'+name)).join('\n');assert.doesNotMatch(source,/\b(?:localStorage|sessionStorage|indexedDB|sendBeacon|XMLHttpRequest|WebSocket)\s*[.(]/);assert.match(source,/fetch\(window\.PBIS_BATCH\.endpoint/);assert.ok(read('release/PBIS.html').includes('connect-src '+(process.env.PBIS_BATCH_ENDPOINT || 'https://formspree.io/f/mvkgydrn')));
+});
+
+test('public home and release no longer distribute the accounts workbook',()=>{
+ assert.doesNotMatch(read('site/index.html'),/Archivos de prueba|Prueba la carga con datos simulados|downloads\/perfiles_evaluacion/);
+ assert.equal(fs.existsSync(path.join(site,'downloads/perfiles_evaluacion.xlsx')),false);
+ assert.ok(JSON.parse(read('site/downloads/manifest.json')).files.every(f=>!f.name.includes('perfiles')));
+});
+
+test('public output excludes standalone data and key workbooks and server files',()=>{
+ for(const name of ['datos_evaluacion.pbis','datos_evaluacion.xlsx','llave_evaluacion.xlsx','perfiles_evaluacion.xlsx']){
+  assert.equal(fs.existsSync(path.join(site,'downloads',name)),false,name);
+ }
+ assert.equal(fs.existsSync(path.join(site,'feedback-service')),false);
+ assert.ok(JSON.parse(read('site/downloads/manifest.json')).files.every(f=>f.name.endsWith('.zip')));
+});
+
+test('browser and offline HTML contain the tested Wave 1 reader with the same nomination filter',()=>{
+ const source=read('src/raw-wave1.js').replace(/\r\n?/g,'\n');
+ assert.match(source,/MAX_BULLYING_OTHERS=15/);
+ for(const file of ['site/DEMO.html','site/PBIS.html','release/PBIS.html']){
+   const scripts=[...read(file).matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
+   assert.ok(scripts.includes(source),file+' must contain the exact tested reader');
+   assert.ok(scripts.includes(read('src/core.js').replace(/\r\n?/g,'\n')),file+' must contain the exact tested aggregation engine');
+   assert.doesNotMatch(read(file),/Señalamientos de acoso: se excluyen|más de 15 personas|respuestas excluidas en el centro/,file+' must omit the removed note');
+ }
+});
+
+test('published documentation and packaged checks omit the removed methodological note',()=>{
+ for(const file of ['site/metodologia.html','docs/METODOLOGIA.md','COMPROBACIONES.md']){
+  assert.doesNotMatch(read(file),/más de \*{0,2}15|hasta 15 menciones|respuestas se han excluido|límites de 15\/16/);
+ }
+});
+
+test('web and offline releases embed only the current inclusive accounts with both PDC profiles',()=>{
+ const profiles=JSON.parse(read('data/profiles.json'));
+ assert.equal(profiles.find(p=>p.username==='orientacion').password,'FRJ508');
+ assert.deepEqual(profiles.filter(p=>p.group).map(p=>p.group),['PDC I','PDC II']);
+ for(const file of ['site/DEMO.html','site/PBIS.html','release/PBIS.html']){
+  assert.ok(read(file).includes('window.PBIS_PROFILES='+read('data/profiles.json')));
+  assert.doesNotMatch(read(file),/"username":\s*"(?:orientador|tutor[1-6][^"]*)"/);
+ }
+});

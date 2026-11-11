@@ -1,0 +1,68 @@
+# Salidas reconstruidas por GitHub Actions.
+/site/
+/release/
+*.zip
+
+# Dependencias locales, pruebas visuales y archivos temporales.
+node_modules/
+/.qa/
+/qa/
+coverage/
+.cache/
+__pycache__/
+*.pyc
+*.log
+*.tmp
+*.bak
+*.inspect.ndjson
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Configuración privada y registros del servicio de opiniones.
+.env
+.env.*
+!.env.example
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*
+*.pem
+*.key
+/private/
+/feedback-service/storage/
+/feedback-service/private/
+
+# Solo se publican los Excel sintéticos de indicadores y nombres del piloto.
+*.xls
+*.xlsx
+*.xlsm
+*.csv
+/outputs/
+!/data/examples/datos_evaluacion.xlsx
+!/data/examples/llave_evaluacion.xlsx
+
+
+# Revisión interna de archivos aportados; no forma parte de la demo pública.
+/docs/AUDITORIA_SIN_DATOS_LOCAL.md
+
+# Resultados locales de las pruebas de navegador.
+/test-results/
+/playwright-report/
+
+# Proyectos de centros, credenciales y manifiestos de registro: solo locales.
+/revision-local/
+*.pbis
+*.zip.sha256
+ACCESOS_DE_PRUEBA.txt
+Registro_pruebas.json
+PBIS_registro_*.json
+/audit-service/private/
+
+# Private write connections: never embed or publish.
+PBIS-conexion-*.json
+
+# Local operator UI; not distributed with centre downloads.
+/direccion-local/

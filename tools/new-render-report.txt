@@ -1,0 +1,21 @@
+function renderReport(){
+ if(!dataset)return;
+ window.PbisFeedback.closeContext();
+ const rows=currentRows(),centerRows=dataset.students.filter(row=>row.Campus===selection.center);
+ const meta=dataset.groups.find(g=>g.Campus===selection.center&&g.Curso===selection.course&&g.Grupo===selection.group);
+ const scopedList=resultFilter?window.PbisConsultationUI.filter(resultFilter.scope==='center'?centerRows:rows,resultFilter.key):rows;
+ const hasPdf=['center','group','student'].includes(view)&&canExportPdf();
+ const report=view==='center'?centerReport(centerRows):view==='group'?groupReportBrief(rows,meta)+'<div class="class-next"><button id="open-roster" class="btn" type="button">Ver lista de aula →</button></div>':view==='roster'?rosterReport(scopedList):view==='review'?simpleReview(rows):view==='network'?'<article class="report">'+reportHero(selection.course+' · '+selection.group,rows.length+' estudiantes · '+selection.center,'Red de relaciones')+'<div class="report-body">'+G.view(rows)+'</div></article>':studentReport(rows.find(x=>x.ID===selection.student)||rows[0],rows,centerRows);
+ const filterNote=view==='roster'&&resultFilter?'<div class="result-filter"><strong>'+E(window.PbisConsultationUI.labels[resultFilter.key])+' · '+scopedList.length+' estudiantes</strong><button id="clear-result" class="quiet" type="button">Ver toda el aula</button></div>':'';
+ document.getElementById('report-content').innerHTML=(hasPdf?'<div class="pdf-toolbar"><button id="export-pdf" class="quiet" type="button">Descargar PDF</button></div>':'')+consultationContext(view==='center'||(view==='roster'&&resultFilter?.scope==='center')?centerRows:rows)+importQualityNote(centerRows)+filterNote+report;
+ if(view==='group')document.getElementById('open-roster').onclick=()=>{resultFilter=null;changeView('roster');};
+ if(view==='roster'||view==='review')document.querySelectorAll('.student-link[data-student-id]').forEach(button=>button.onclick=()=>{
+  const row=dataset.students.find(row=>row.ID===button.dataset.studentId);if(!row)return;
+  studentOrigin=view;selection={center:row.Campus,course:row.Curso,group:row.Grupo,student:row.ID};changeView('student');document.getElementById('report-content').scrollIntoView({block:'start'});
+ });
+ if(view==='student')document.getElementById('back-to-roster').onclick=()=>changeView(studentOrigin);
+ if(document.getElementById('clear-result'))document.getElementById('clear-result').onclick=()=>{resultFilter=null;changeView('roster');};
+ const pdfButton=document.getElementById('export-pdf');if(pdfButton)pdfButton.onclick=openPdfExport;
+ if(view==='review')bindSimpleReview();
+}
+

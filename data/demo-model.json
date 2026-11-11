@@ -1,0 +1,3624 @@
+{
+  "version": 1,
+  "seed": 20261111,
+  "classes": [
+    {
+      "center": "3705",
+      "course": "4.º Primaria",
+      "group": "A",
+      "n": 26,
+      "answered": 0.984,
+      "density": 0.553,
+      "negativeDensity": 0.068,
+      "crossRate": 0.233,
+      "strongPositive": 0.421,
+      "strongNegative": 0.42,
+      "selfRate": 0.118,
+      "peerDistribution": [
+        0.442,
+        0.353,
+        0.093,
+        0,
+        0.032,
+        0,
+        0,
+        0.013,
+        0.03,
+        0,
+        0.037,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0.007,
+        0.032,
+        0.134,
+        0.46,
+        0.367
+      ],
+      "fun": [
+        0,
+        0,
+        0.097,
+        0.297,
+        0.606
+      ],
+      "alone": [
+        0.425,
+        0.276,
+        0.201,
+        0.023,
+        0.075
+      ],
+      "crt": [
+        0.315,
+        0.521,
+        0.148,
+        0.016
+      ],
+      "crtItems": [
+        0.597,
+        0.252,
+        0.016
+      ],
+      "mediator": 7.637,
+      "negativeMediator": 4.155,
+      "popular": 0.934,
+      "central": 0.854
+    },
+    {
+      "center": "3705",
+      "course": "4.º Primaria",
+      "group": "B",
+      "n": 29,
+      "answered": 0.958,
+      "density": 0.502,
+      "negativeDensity": 0.066,
+      "crossRate": 0.177,
+      "strongPositive": 0.441,
+      "strongNegative": 0.386,
+      "selfRate": 0.123,
+      "peerDistribution": [
+        0.54,
+        0.246,
+        0.078,
+        0.02,
+        0.052,
+        0.013,
+        0,
+        0.013,
+        0.016,
+        0,
+        0.016,
+        0,
+        0,
+        0,
+        0.006,
+        0
+      ],
+      "general": [
+        0.014,
+        0.059,
+        0.118,
+        0.425,
+        0.383
+      ],
+      "fun": [
+        0,
+        0.006,
+        0.087,
+        0.278,
+        0.629
+      ],
+      "alone": [
+        0.493,
+        0.26,
+        0.13,
+        0.062,
+        0.055
+      ],
+      "crt": [
+        0.252,
+        0.509,
+        0.223,
+        0.016
+      ],
+      "crtItems": [
+        0.641,
+        0.345,
+        0.016
+      ],
+      "mediator": 7.16,
+      "negativeMediator": 3.38,
+      "popular": 0.935,
+      "central": 0.811
+    },
+    {
+      "center": "3705",
+      "course": "4.º Primaria",
+      "group": "C",
+      "n": 29,
+      "answered": 0.918,
+      "density": 0.517,
+      "negativeDensity": 0.06,
+      "crossRate": 0.251,
+      "strongPositive": 0.45,
+      "strongNegative": 0.441,
+      "selfRate": 0.098,
+      "peerDistribution": [
+        0.528,
+        0.268,
+        0.071,
+        0.023,
+        0.047,
+        0,
+        0.008,
+        0,
+        0.024,
+        0,
+        0.016,
+        0,
+        0,
+        0.015,
+        0,
+        0
+      ],
+      "general": [
+        0.025,
+        0.057,
+        0.089,
+        0.449,
+        0.38
+      ],
+      "fun": [
+        0.017,
+        0,
+        0.072,
+        0.292,
+        0.619
+      ],
+      "alone": [
+        0.529,
+        0.237,
+        0.162,
+        0.024,
+        0.048
+      ],
+      "crt": [
+        0.375,
+        0.487,
+        0.122,
+        0.016
+      ],
+      "crtItems": [
+        0.487,
+        0.259,
+        0.033
+      ],
+      "mediator": 7.819,
+      "negativeMediator": 2.519,
+      "popular": 0.856,
+      "central": 0.818
+    },
+    {
+      "center": "3705",
+      "course": "5.º Primaria",
+      "group": "A",
+      "n": 25,
+      "answered": 0.942,
+      "density": 0.604,
+      "negativeDensity": 0.065,
+      "crossRate": 0.106,
+      "strongPositive": 0.42,
+      "strongNegative": 0.367,
+      "selfRate": 0.166,
+      "peerDistribution": [
+        0.404,
+        0.274,
+        0.13,
+        0.064,
+        0.046,
+        0,
+        0.042,
+        0.007,
+        0.016,
+        0,
+        0.016,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0.015,
+        0.055,
+        0.107,
+        0.494,
+        0.329
+      ],
+      "fun": [
+        0,
+        0.007,
+        0.07,
+        0.302,
+        0.621
+      ],
+      "alone": [
+        0.36,
+        0.3,
+        0.223,
+        0.054,
+        0.063
+      ],
+      "crt": [
+        0.241,
+        0.566,
+        0.177,
+        0.016
+      ],
+      "crtItems": [
+        0.619,
+        0.326,
+        0.023
+      ],
+      "mediator": 7.892,
+      "negativeMediator": 3.728,
+      "popular": 0.904,
+      "central": 0.835
+    },
+    {
+      "center": "3705",
+      "course": "5.º Primaria",
+      "group": "B",
+      "n": 28,
+      "answered": 0.962,
+      "density": 0.506,
+      "negativeDensity": 0.068,
+      "crossRate": 0.227,
+      "strongPositive": 0.435,
+      "strongNegative": 0.417,
+      "selfRate": 0.098,
+      "peerDistribution": [
+        0.443,
+        0.305,
+        0.13,
+        0.014,
+        0.04,
+        0,
+        0.014,
+        0,
+        0.038,
+        0,
+        0.016,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0.014,
+        0.054,
+        0.124,
+        0.386,
+        0.421
+      ],
+      "fun": [
+        0,
+        0,
+        0.115,
+        0.315,
+        0.57
+      ],
+      "alone": [
+        0.474,
+        0.222,
+        0.218,
+        0.038,
+        0.048
+      ],
+      "crt": [
+        0.326,
+        0.527,
+        0.131,
+        0.016
+      ],
+      "crtItems": [
+        0.547,
+        0.275,
+        0.016
+      ],
+      "mediator": 8.21,
+      "negativeMediator": 3.18,
+      "popular": 0.894,
+      "central": 0.852
+    },
+    {
+      "center": "3705",
+      "course": "5.º Primaria",
+      "group": "C",
+      "n": 31,
+      "answered": 0.976,
+      "density": 0.555,
+      "negativeDensity": 0.069,
+      "crossRate": 0.239,
+      "strongPositive": 0.435,
+      "strongNegative": 0.369,
+      "selfRate": 0.126,
+      "peerDistribution": [
+        0.458,
+        0.313,
+        0.101,
+        0.008,
+        0.04,
+        0.008,
+        0,
+        0.013,
+        0.03,
+        0,
+        0.03,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0.008,
+        0.04,
+        0.129,
+        0.41,
+        0.413
+      ],
+      "fun": [
+        0,
+        0,
+        0.062,
+        0.257,
+        0.681
+      ],
+      "alone": [
+        0.466,
+        0.268,
+        0.167,
+        0.024,
+        0.075
+      ],
+      "crt": [
+        0.314,
+        0.507,
+        0.163,
+        0.016
+      ],
+      "crtItems": [
+        0.606,
+        0.26,
+        0.016
+      ],
+      "mediator": 8.153,
+      "negativeMediator": 4.25,
+      "popular": 0.926,
+      "central": 0.822
+    },
+    {
+      "center": "3705",
+      "course": "6.º Primaria",
+      "group": "A",
+      "n": 30,
+      "answered": 0.959,
+      "density": 0.603,
+      "negativeDensity": 0.049,
+      "crossRate": 0.163,
+      "strongPositive": 0.4,
+      "strongNegative": 0.249,
+      "selfRate": 0.089,
+      "peerDistribution": [
+        0.471,
+        0.205,
+        0.175,
+        0.07,
+        0.008,
+        0.017,
+        0.024,
+        0,
+        0.017,
+        0,
+        0,
+        0,
+        0,
+        0.013,
+        0,
+        0
+      ],
+      "general": [
+        0.009,
+        0.022,
+        0.121,
+        0.567,
+        0.281
+      ],
+      "fun": [
+        0,
+        0,
+        0.048,
+        0.281,
+        0.671
+      ],
+      "alone": [
+        0.485,
+        0.286,
+        0.186,
+        0.035,
+        0.009
+      ],
+      "crt": [
+        0.152,
+        0.645,
+        0.203,
+        0
+      ],
+      "crtItems": [
+        0.788,
+        0.251,
+        0.013
+      ],
+      "mediator": 7.508,
+      "negativeMediator": 3.444,
+      "popular": 0.879,
+      "central": 0.816
+    },
+    {
+      "center": "3705",
+      "course": "6.º Primaria",
+      "group": "B",
+      "n": 27,
+      "answered": 0.939,
+      "density": 0.522,
+      "negativeDensity": 0.078,
+      "crossRate": 0.174,
+      "strongPositive": 0.429,
+      "strongNegative": 0.248,
+      "selfRate": 0.089,
+      "peerDistribution": [
+        0.551,
+        0.159,
+        0.183,
+        0.039,
+        0.014,
+        0.017,
+        0,
+        0,
+        0.031,
+        0,
+        0.006,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0,
+        0.015,
+        0.129,
+        0.584,
+        0.272
+      ],
+      "fun": [
+        0,
+        0,
+        0.092,
+        0.306,
+        0.602
+      ],
+      "alone": [
+        0.473,
+        0.274,
+        0.208,
+        0.039,
+        0.007
+      ],
+      "crt": [
+        0.121,
+        0.714,
+        0.137,
+        0.028
+      ],
+      "crtItems": [
+        0.776,
+        0.233,
+        0.062
+      ],
+      "mediator": 6.199,
+      "negativeMediator": 3.666,
+      "popular": 0.858,
+      "central": 0.76
+    },
+    {
+      "center": "3705",
+      "course": "6.º Primaria",
+      "group": "C",
+      "n": 27,
+      "answered": 0.936,
+      "density": 0.627,
+      "negativeDensity": 0.065,
+      "crossRate": 0.104,
+      "strongPositive": 0.421,
+      "strongNegative": 0.221,
+      "selfRate": 0.017,
+      "peerDistribution": [
+        0.599,
+        0.171,
+        0.101,
+        0.062,
+        0.013,
+        0.017,
+        0,
+        0,
+        0.024,
+        0,
+        0.013,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0,
+        0,
+        0.076,
+        0.62,
+        0.304
+      ],
+      "fun": [
+        0,
+        0,
+        0.096,
+        0.358,
+        0.546
+      ],
+      "alone": [
+        0.534,
+        0.232,
+        0.186,
+        0.048,
+        0
+      ],
+      "crt": [
+        0.141,
+        0.562,
+        0.205,
+        0.092
+      ],
+      "crtItems": [
+        0.765,
+        0.375,
+        0.108
+      ],
+      "mediator": 6.952,
+      "negativeMediator": 3.729,
+      "popular": 0.846,
+      "central": 0.815
+    },
+    {
+      "center": "3705",
+      "course": "1.º ESO",
+      "group": "A",
+      "n": 28,
+      "answered": 0.954,
+      "density": 0.552,
+      "negativeDensity": 0.037,
+      "crossRate": 0.16,
+      "strongPositive": 0.405,
+      "strongNegative": 0.354,
+      "selfRate": 0.014,
+      "peerDistribution": [
+        0.658,
+        0.239,
+        0.046,
+        0.022,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0.019,
+        0.016,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0.012,
+        0,
+        0.127,
+        0.451,
+        0.409
+      ],
+      "fun": [
+        0,
+        0,
+        0.076,
+        0.304,
+        0.62
+      ],
+      "alone": [
+        0.556,
+        0.263,
+        0.139,
+        0.035,
+        0.007
+      ],
+      "crt": [
+        0.256,
+        0.462,
+        0.254,
+        0.028
+      ],
+      "crtItems": [
+        0.688,
+        0.303,
+        0.062
+      ],
+      "mediator": 6.852,
+      "negativeMediator": 2.057,
+      "popular": 0.905,
+      "central": 0.871
+    },
+    {
+      "center": "3705",
+      "course": "1.º ESO",
+      "group": "B",
+      "n": 25,
+      "answered": 0.924,
+      "density": 0.655,
+      "negativeDensity": 0.027,
+      "crossRate": 0.121,
+      "strongPositive": 0.441,
+      "strongNegative": 0.352,
+      "selfRate": 0.059,
+      "peerDistribution": [
+        0.45,
+        0.282,
+        0.108,
+        0.04,
+        0.02,
+        0.012,
+        0.036,
+        0.012,
+        0.012,
+        0.012,
+        0,
+        0.016,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0.022,
+        0.009,
+        0.133,
+        0.439,
+        0.397
+      ],
+      "fun": [
+        0,
+        0.013,
+        0.013,
+        0.234,
+        0.74
+      ],
+      "alone": [
+        0.5,
+        0.301,
+        0.144,
+        0.047,
+        0.009
+      ],
+      "crt": [
+        0.247,
+        0.511,
+        0.215,
+        0.027
+      ],
+      "crtItems": [
+        0.652,
+        0.329,
+        0.04
+      ],
+      "mediator": 8.392,
+      "negativeMediator": 1.823,
+      "popular": 0.873,
+      "central": 0.834
+    },
+    {
+      "center": "3705",
+      "course": "1.º ESO",
+      "group": "C",
+      "n": 31,
+      "answered": 0.957,
+      "density": 0.604,
+      "negativeDensity": 0.046,
+      "crossRate": 0.231,
+      "strongPositive": 0.415,
+      "strongNegative": 0.244,
+      "selfRate": 0.047,
+      "peerDistribution": [
+        0.724,
+        0.15,
+        0.036,
+        0.054,
+        0.007,
+        0,
+        0,
+        0.013,
+        0,
+        0,
+        0,
+        0.016,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0.008,
+        0.029,
+        0.166,
+        0.382,
+        0.415
+      ],
+      "fun": [
+        0,
+        0.013,
+        0.063,
+        0.279,
+        0.645
+      ],
+      "alone": [
+        0.537,
+        0.279,
+        0.139,
+        0.045,
+        0
+      ],
+      "crt": [
+        0.166,
+        0.487,
+        0.339,
+        0.008
+      ],
+      "crtItems": [
+        0.751,
+        0.386,
+        0.053
+      ],
+      "mediator": 8.011,
+      "negativeMediator": 2.785,
+      "popular": 0.906,
+      "central": 0.812
+    },
+    {
+      "center": "3705",
+      "course": "2.º ESO",
+      "group": "A",
+      "n": 25,
+      "answered": 0.907,
+      "density": 0.51,
+      "negativeDensity": 0.029,
+      "crossRate": 0.225,
+      "strongPositive": 0.375,
+      "strongNegative": 0.327,
+      "selfRate": 0.037,
+      "peerDistribution": [
+        0.707,
+        0.103,
+        0.126,
+        0.03,
+        0.034,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0.022,
+        0.036,
+        0.148,
+        0.463,
+        0.33
+      ],
+      "fun": [
+        0.008,
+        0.017,
+        0.074,
+        0.265,
+        0.636
+      ],
+      "alone": [
+        0.545,
+        0.238,
+        0.166,
+        0.043,
+        0.008
+      ],
+      "crt": [
+        0.082,
+        0.479,
+        0.416,
+        0.022
+      ],
+      "crtItems": [
+        0.828,
+        0.464,
+        0.087
+      ],
+      "mediator": 4.029,
+      "negativeMediator": 1.301,
+      "popular": 0.902,
+      "central": 0.811
+    },
+    {
+      "center": "3705",
+      "course": "2.º ESO",
+      "group": "B",
+      "n": 28,
+      "answered": 0.981,
+      "density": 0.575,
+      "negativeDensity": 0.031,
+      "crossRate": 0.066,
+      "strongPositive": 0.44,
+      "strongNegative": 0.308,
+      "selfRate": 0.011,
+      "peerDistribution": [
+        0.563,
+        0.189,
+        0.11,
+        0.035,
+        0.016,
+        0.022,
+        0.019,
+        0.022,
+        0.008,
+        0.016,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0.008,
+        0.008,
+        0.14,
+        0.455,
+        0.389
+      ],
+      "fun": [
+        0,
+        0,
+        0.079,
+        0.289,
+        0.632
+      ],
+      "alone": [
+        0.549,
+        0.204,
+        0.228,
+        0.008,
+        0.011
+      ],
+      "crt": [
+        0.275,
+        0.344,
+        0.381,
+        0
+      ],
+      "crtItems": [
+        0.717,
+        0.325,
+        0.064
+      ],
+      "mediator": 7.432,
+      "negativeMediator": 3.028,
+      "popular": 0.916,
+      "central": 0.929
+    },
+    {
+      "center": "3705",
+      "course": "2.º ESO",
+      "group": "C",
+      "n": 31,
+      "answered": 0.915,
+      "density": 0.552,
+      "negativeDensity": 0.037,
+      "crossRate": 0.297,
+      "strongPositive": 0.376,
+      "strongNegative": 0.251,
+      "selfRate": 0.042,
+      "peerDistribution": [
+        0.651,
+        0.152,
+        0.091,
+        0.015,
+        0.031,
+        0.038,
+        0.015,
+        0,
+        0.007,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0.018,
+        0.068,
+        0.09,
+        0.531,
+        0.293
+      ],
+      "fun": [
+        0,
+        0,
+        0.085,
+        0.271,
+        0.644
+      ],
+      "alone": [
+        0.542,
+        0.256,
+        0.11,
+        0.076,
+        0.016
+      ],
+      "crt": [
+        0.13,
+        0.416,
+        0.42,
+        0.033
+      ],
+      "crtItems": [
+        0.796,
+        0.425,
+        0.136
+      ],
+      "mediator": 5.534,
+      "negativeMediator": 2.079,
+      "popular": 0.87,
+      "central": 0.71
+    },
+    {
+      "center": "3705",
+      "course": "3.º ESO",
+      "group": "A",
+      "n": 30,
+      "answered": 0.951,
+      "density": 0.474,
+      "negativeDensity": 0.056,
+      "crossRate": 0.384,
+      "strongPositive": 0.382,
+      "strongNegative": 0.558,
+      "selfRate": 0,
+      "peerDistribution": [
+        0.625,
+        0.242,
+        0.039,
+        0.055,
+        0,
+        0.011,
+        0.011,
+        0,
+        0.017,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0,
+        0,
+        0.216,
+        0.499,
+        0.285
+      ],
+      "fun": [
+        0,
+        0.011,
+        0.068,
+        0.374,
+        0.547
+      ],
+      "alone": [
+        0.418,
+        0.433,
+        0.127,
+        0.023,
+        0
+      ],
+      "crt": [
+        0.105,
+        0.277,
+        0.318,
+        0.3
+      ],
+      "crtItems": [
+        0.831,
+        0.629,
+        0.353
+      ],
+      "mediator": 6.844,
+      "negativeMediator": 2.633,
+      "popular": 0.884,
+      "central": 0.827
+    },
+    {
+      "center": "3705",
+      "course": "3.º ESO",
+      "group": "B",
+      "n": 27,
+      "answered": 0.887,
+      "density": 0.41,
+      "negativeDensity": 0.055,
+      "crossRate": 0.283,
+      "strongPositive": 0.41,
+      "strongNegative": 0.467,
+      "selfRate": 0.026,
+      "peerDistribution": [
+        0.69,
+        0.195,
+        0.053,
+        0.026,
+        0.023,
+        0,
+        0,
+        0,
+        0.013,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0.019,
+        0.019,
+        0.166,
+        0.476,
+        0.32
+      ],
+      "fun": [
+        0.019,
+        0.038,
+        0.094,
+        0.406,
+        0.444
+      ],
+      "alone": [
+        0.494,
+        0.305,
+        0.175,
+        0.007,
+        0.019
+      ],
+      "crt": [
+        0.083,
+        0.401,
+        0.355,
+        0.161
+      ],
+      "crtItems": [
+        0.83,
+        0.556,
+        0.206
+      ],
+      "mediator": 4.785,
+      "negativeMediator": 2.626,
+      "popular": 0.865,
+      "central": 0.822
+    },
+    {
+      "center": "3705",
+      "course": "3.º ESO",
+      "group": "C",
+      "n": 27,
+      "answered": 0.877,
+      "density": 0.502,
+      "negativeDensity": 0.043,
+      "crossRate": 0.146,
+      "strongPositive": 0.451,
+      "strongNegative": 0.42,
+      "selfRate": 0.024,
+      "peerDistribution": [
+        0.612,
+        0.226,
+        0.081,
+        0.037,
+        0.015,
+        0.011,
+        0.018,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0,
+        0,
+        0.231,
+        0.455,
+        0.314
+      ],
+      "fun": [
+        0,
+        0.011,
+        0.124,
+        0.394,
+        0.471
+      ],
+      "alone": [
+        0.447,
+        0.361,
+        0.145,
+        0.039,
+        0.008
+      ],
+      "crt": [
+        0.086,
+        0.421,
+        0.372,
+        0.122
+      ],
+      "crtItems": [
+        0.846,
+        0.555,
+        0.129
+      ],
+      "mediator": 7.098,
+      "negativeMediator": 2.413,
+      "popular": 0.907,
+      "central": 0.833
+    },
+    {
+      "center": "3705",
+      "course": "4.º ESO",
+      "group": "A",
+      "n": 26,
+      "answered": 0.988,
+      "density": 0.532,
+      "negativeDensity": 0.051,
+      "crossRate": 0.286,
+      "strongPositive": 0.382,
+      "strongNegative": 0.286,
+      "selfRate": 0.099,
+      "peerDistribution": [
+        0.704,
+        0.21,
+        0.019,
+        0.024,
+        0.006,
+        0,
+        0,
+        0.013,
+        0,
+        0,
+        0.018,
+        0,
+        0,
+        0,
+        0.006,
+        0
+      ],
+      "general": [
+        0,
+        0.049,
+        0.228,
+        0.565,
+        0.158
+      ],
+      "fun": [
+        0,
+        0.024,
+        0.075,
+        0.437,
+        0.464
+      ],
+      "alone": [
+        0.278,
+        0.367,
+        0.3,
+        0.05,
+        0.006
+      ],
+      "crt": [
+        0.122,
+        0.345,
+        0.362,
+        0.172
+      ],
+      "crtItems": [
+        0.785,
+        0.595,
+        0.203
+      ],
+      "mediator": 5.887,
+      "negativeMediator": 2.16,
+      "popular": 0.994,
+      "central": 0.87
+    },
+    {
+      "center": "3705",
+      "course": "4.º ESO",
+      "group": "B",
+      "n": 29,
+      "answered": 0.988,
+      "density": 0.537,
+      "negativeDensity": 0.04,
+      "crossRate": 0.285,
+      "strongPositive": 0.415,
+      "strongNegative": 0.513,
+      "selfRate": 0.038,
+      "peerDistribution": [
+        0.8,
+        0.104,
+        0.031,
+        0.022,
+        0.036,
+        0,
+        0,
+        0.007,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0,
+        0.023,
+        0.198,
+        0.497,
+        0.282
+      ],
+      "fun": [
+        0,
+        0.023,
+        0.102,
+        0.306,
+        0.569
+      ],
+      "alone": [
+        0.5,
+        0.294,
+        0.183,
+        0.007,
+        0.016
+      ],
+      "crt": [
+        0.075,
+        0.358,
+        0.321,
+        0.247
+      ],
+      "crtItems": [
+        0.88,
+        0.491,
+        0.368
+      ],
+      "mediator": 6.993,
+      "negativeMediator": 2.351,
+      "popular": 0.937,
+      "central": 0.828
+    },
+    {
+      "center": "3705",
+      "course": "4.º ESO",
+      "group": "C",
+      "n": 29,
+      "answered": 0.949,
+      "density": 0.505,
+      "negativeDensity": 0.052,
+      "crossRate": 0.274,
+      "strongPositive": 0.424,
+      "strongNegative": 0.3,
+      "selfRate": 0.049,
+      "peerDistribution": [
+        0.694,
+        0.144,
+        0.041,
+        0.066,
+        0.024,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0.031,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0,
+        0.046,
+        0.143,
+        0.541,
+        0.27
+      ],
+      "fun": [
+        0,
+        0.014,
+        0.076,
+        0.383,
+        0.527
+      ],
+      "alone": [
+        0.371,
+        0.345,
+        0.244,
+        0.021,
+        0.018
+      ],
+      "crt": [
+        0.036,
+        0.332,
+        0.415,
+        0.217
+      ],
+      "crtItems": [
+        0.896,
+        0.647,
+        0.271
+      ],
+      "mediator": 5.144,
+      "negativeMediator": 2.952,
+      "popular": 0.963,
+      "central": 0.821
+    },
+    {
+      "center": "3705",
+      "course": "1.º Bachillerato",
+      "group": "A",
+      "n": 25,
+      "answered": 0.917,
+      "density": 0.427,
+      "negativeDensity": 0.053,
+      "crossRate": 0.206,
+      "strongPositive": 0.458,
+      "strongNegative": 0.417,
+      "selfRate": 0.032,
+      "peerDistribution": [
+        0.742,
+        0.122,
+        0.046,
+        0.018,
+        0.047,
+        0.007,
+        0,
+        0.007,
+        0,
+        0,
+        0.011,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0,
+        0,
+        0.172,
+        0.49,
+        0.337
+      ],
+      "fun": [
+        0,
+        0,
+        0.108,
+        0.313,
+        0.579
+      ],
+      "alone": [
+        0.514,
+        0.247,
+        0.208,
+        0.019,
+        0.012
+      ],
+      "crt": [
+        0.11,
+        0.461,
+        0.303,
+        0.126
+      ],
+      "crtItems": [
+        0.835,
+        0.378,
+        0.233
+      ],
+      "mediator": 4.996,
+      "negativeMediator": 2.767,
+      "popular": 0.891,
+      "central": 0.773
+    },
+    {
+      "center": "3705",
+      "course": "1.º Bachillerato",
+      "group": "B",
+      "n": 28,
+      "answered": 0.993,
+      "density": 0.528,
+      "negativeDensity": 0.039,
+      "crossRate": 0.364,
+      "strongPositive": 0.344,
+      "strongNegative": 0.481,
+      "selfRate": 0.012,
+      "peerDistribution": [
+        0.677,
+        0.269,
+        0.032,
+        0.015,
+        0,
+        0,
+        0,
+        0,
+        0.007,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0,
+        0.012,
+        0.205,
+        0.562,
+        0.221
+      ],
+      "fun": [
+        0,
+        0.012,
+        0.04,
+        0.377,
+        0.571
+      ],
+      "alone": [
+        0.429,
+        0.459,
+        0.1,
+        0,
+        0.012
+      ],
+      "crt": [
+        0.121,
+        0.279,
+        0.296,
+        0.304
+      ],
+      "crtItems": [
+        0.81,
+        0.551,
+        0.42
+      ],
+      "mediator": 6.122,
+      "negativeMediator": 1.458,
+      "popular": 0.939,
+      "central": 0.891
+    },
+    {
+      "center": "3705",
+      "course": "1.º Bachillerato",
+      "group": "C",
+      "n": 31,
+      "answered": 0.925,
+      "density": 0.502,
+      "negativeDensity": 0.049,
+      "crossRate": 0.198,
+      "strongPositive": 0.373,
+      "strongNegative": 0.255,
+      "selfRate": 0.031,
+      "peerDistribution": [
+        0.651,
+        0.259,
+        0.048,
+        0.021,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0.014,
+        0.007,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0,
+        0,
+        0.194,
+        0.496,
+        0.31
+      ],
+      "fun": [
+        0,
+        0,
+        0.031,
+        0.372,
+        0.597
+      ],
+      "alone": [
+        0.471,
+        0.343,
+        0.148,
+        0.023,
+        0.016
+      ],
+      "crt": [
+        0.183,
+        0.453,
+        0.239,
+        0.126
+      ],
+      "crtItems": [
+        0.716,
+        0.356,
+        0.235
+      ],
+      "mediator": 5.842,
+      "negativeMediator": 2.252,
+      "popular": 0.897,
+      "central": 0.845
+    },
+    {
+      "center": "3705",
+      "course": "2.º Bachillerato",
+      "group": "A",
+      "n": 30,
+      "answered": 0.972,
+      "density": 0.498,
+      "negativeDensity": 0.059,
+      "crossRate": 0.308,
+      "strongPositive": 0.403,
+      "strongNegative": 0.289,
+      "selfRate": 0.062,
+      "peerDistribution": [
+        0.67,
+        0.134,
+        0.071,
+        0.073,
+        0.013,
+        0,
+        0.007,
+        0,
+        0,
+        0,
+        0.031,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0,
+        0.05,
+        0.164,
+        0.526,
+        0.26
+      ],
+      "fun": [
+        0,
+        0.018,
+        0.073,
+        0.406,
+        0.503
+      ],
+      "alone": [
+        0.362,
+        0.302,
+        0.296,
+        0.018,
+        0.022
+      ],
+      "crt": [
+        0.08,
+        0.272,
+        0.427,
+        0.221
+      ],
+      "crtItems": [
+        0.863,
+        0.656,
+        0.27
+      ],
+      "mediator": 5.644,
+      "negativeMediator": 2.689,
+      "popular": 0.972,
+      "central": 0.828
+    },
+    {
+      "center": "3705",
+      "course": "2.º Bachillerato",
+      "group": "B",
+      "n": 27,
+      "answered": 0.919,
+      "density": 0.542,
+      "negativeDensity": 0.038,
+      "crossRate": 0.118,
+      "strongPositive": 0.359,
+      "strongNegative": 0.373,
+      "selfRate": 0.048,
+      "peerDistribution": [
+        0.741,
+        0.146,
+        0.084,
+        0.011,
+        0.007,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0.011,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0.008,
+        0.032,
+        0.206,
+        0.512,
+        0.242
+      ],
+      "fun": [
+        0,
+        0.016,
+        0.079,
+        0.324,
+        0.581
+      ],
+      "alone": [
+        0.529,
+        0.252,
+        0.163,
+        0.028,
+        0.028
+      ],
+      "crt": [
+        0.103,
+        0.322,
+        0.333,
+        0.242
+      ],
+      "crtItems": [
+        0.817,
+        0.485,
+        0.412
+      ],
+      "mediator": 6.098,
+      "negativeMediator": 1.8,
+      "popular": 0.871,
+      "central": 0.846
+    },
+    {
+      "center": "3705",
+      "course": "2.º Bachillerato",
+      "group": "C",
+      "n": 27,
+      "answered": 0.959,
+      "density": 0.529,
+      "negativeDensity": 0.049,
+      "crossRate": 0.388,
+      "strongPositive": 0.371,
+      "strongNegative": 0.314,
+      "selfRate": 0.045,
+      "peerDistribution": [
+        0.507,
+        0.26,
+        0.091,
+        0.076,
+        0.025,
+        0,
+        0.024,
+        0,
+        0,
+        0,
+        0.017,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0.009,
+        0.027,
+        0.133,
+        0.546,
+        0.285
+      ],
+      "fun": [
+        0,
+        0,
+        0.018,
+        0.313,
+        0.669
+      ],
+      "alone": [
+        0.353,
+        0.456,
+        0.147,
+        0.017,
+        0.027
+      ],
+      "crt": [
+        0.178,
+        0.358,
+        0.274,
+        0.19
+      ],
+      "crtItems": [
+        0.755,
+        0.445,
+        0.275
+      ],
+      "mediator": 5.523,
+      "negativeMediator": 2.53,
+      "popular": 0.951,
+      "central": 0.832
+    },
+    {
+      "center": "3884",
+      "course": "4.º Primaria",
+      "group": "A",
+      "n": 25,
+      "answered": 0.926,
+      "density": 0.505,
+      "negativeDensity": 0.061,
+      "crossRate": 0.267,
+      "strongPositive": 0.433,
+      "strongNegative": 0.453,
+      "selfRate": 0.112,
+      "peerDistribution": [
+        0.545,
+        0.256,
+        0.076,
+        0.022,
+        0.047,
+        0,
+        0,
+        0,
+        0.016,
+        0,
+        0.016,
+        0,
+        0,
+        0.022,
+        0,
+        0
+      ],
+      "general": [
+        0.017,
+        0.056,
+        0.125,
+        0.443,
+        0.359
+      ],
+      "fun": [
+        0.017,
+        0,
+        0.056,
+        0.295,
+        0.632
+      ],
+      "alone": [
+        0.529,
+        0.287,
+        0.12,
+        0.016,
+        0.048
+      ],
+      "crt": [
+        0.285,
+        0.535,
+        0.164,
+        0.016
+      ],
+      "crtItems": [
+        0.57,
+        0.301,
+        0.04
+      ],
+      "mediator": 6.991,
+      "negativeMediator": 3.097,
+      "popular": 0.858,
+      "central": 0.804
+    },
+    {
+      "center": "3884",
+      "course": "4.º Primaria",
+      "group": "B",
+      "n": 28,
+      "answered": 0.933,
+      "density": 0.585,
+      "negativeDensity": 0.056,
+      "crossRate": 0.105,
+      "strongPositive": 0.444,
+      "strongNegative": 0.431,
+      "selfRate": 0.163,
+      "peerDistribution": [
+        0.336,
+        0.29,
+        0.167,
+        0.06,
+        0.055,
+        0.009,
+        0.042,
+        0.009,
+        0.016,
+        0,
+        0.016,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0.015,
+        0.047,
+        0.11,
+        0.495,
+        0.333
+      ],
+      "fun": [
+        0,
+        0,
+        0.058,
+        0.297,
+        0.645
+      ],
+      "alone": [
+        0.377,
+        0.294,
+        0.199,
+        0.056,
+        0.073
+      ],
+      "crt": [
+        0.243,
+        0.53,
+        0.192,
+        0.035
+      ],
+      "crtItems": [
+        0.637,
+        0.328,
+        0.054
+      ],
+      "mediator": 7.444,
+      "negativeMediator": 3.05,
+      "popular": 0.894,
+      "central": 0.862
+    },
+    {
+      "center": "3884",
+      "course": "4.º Primaria",
+      "group": "C",
+      "n": 31,
+      "answered": 0.937,
+      "density": 0.52,
+      "negativeDensity": 0.053,
+      "crossRate": 0.14,
+      "strongPositive": 0.453,
+      "strongNegative": 0.408,
+      "selfRate": 0.072,
+      "peerDistribution": [
+        0.487,
+        0.319,
+        0.081,
+        0.014,
+        0.039,
+        0,
+        0.014,
+        0,
+        0.03,
+        0,
+        0.016,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0.014,
+        0.046,
+        0.111,
+        0.414,
+        0.415
+      ],
+      "fun": [
+        0,
+        0,
+        0.12,
+        0.346,
+        0.534
+      ],
+      "alone": [
+        0.496,
+        0.22,
+        0.199,
+        0.037,
+        0.048
+      ],
+      "crt": [
+        0.292,
+        0.489,
+        0.195,
+        0.023
+      ],
+      "crtItems": [
+        0.591,
+        0.335,
+        0.023
+      ],
+      "mediator": 8.211,
+      "negativeMediator": 2.832,
+      "popular": 0.906,
+      "central": 0.874
+    },
+    {
+      "center": "3884",
+      "course": "5.º Primaria",
+      "group": "A",
+      "n": 30,
+      "answered": 0.971,
+      "density": 0.581,
+      "negativeDensity": 0.077,
+      "crossRate": 0.152,
+      "strongPositive": 0.432,
+      "strongNegative": 0.363,
+      "selfRate": 0.163,
+      "peerDistribution": [
+        0.446,
+        0.313,
+        0.105,
+        0.006,
+        0.038,
+        0,
+        0,
+        0.026,
+        0.03,
+        0,
+        0.03,
+        0,
+        0,
+        0,
+        0.006,
+        0
+      ],
+      "general": [
+        0,
+        0.045,
+        0.171,
+        0.461,
+        0.323
+      ],
+      "fun": [
+        0,
+        0.006,
+        0.1,
+        0.303,
+        0.591
+      ],
+      "alone": [
+        0.404,
+        0.256,
+        0.21,
+        0.048,
+        0.082
+      ],
+      "crt": [
+        0.316,
+        0.545,
+        0.123,
+        0.016
+      ],
+      "crtItems": [
+        0.578,
+        0.246,
+        0.016
+      ],
+      "mediator": 8.318,
+      "negativeMediator": 4.726,
+      "popular": 0.935,
+      "central": 0.825
+    },
+    {
+      "center": "3884",
+      "course": "5.º Primaria",
+      "group": "B",
+      "n": 27,
+      "answered": 0.95,
+      "density": 0.479,
+      "negativeDensity": 0.057,
+      "crossRate": 0.278,
+      "strongPositive": 0.452,
+      "strongNegative": 0.373,
+      "selfRate": 0.101,
+      "peerDistribution": [
+        0.508,
+        0.248,
+        0.092,
+        0.04,
+        0.046,
+        0.02,
+        0,
+        0.007,
+        0.023,
+        0,
+        0.016,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0.014,
+        0.061,
+        0.09,
+        0.421,
+        0.414
+      ],
+      "fun": [
+        0,
+        0,
+        0.056,
+        0.282,
+        0.662
+      ],
+      "alone": [
+        0.501,
+        0.268,
+        0.138,
+        0.045,
+        0.048
+      ],
+      "crt": [
+        0.231,
+        0.466,
+        0.287,
+        0.016
+      ],
+      "crtItems": [
+        0.681,
+        0.39,
+        0.016
+      ],
+      "mediator": 7.239,
+      "negativeMediator": 3.267,
+      "popular": 0.901,
+      "central": 0.802
+    },
+    {
+      "center": "3884",
+      "course": "5.º Primaria",
+      "group": "C",
+      "n": 27,
+      "answered": 0.926,
+      "density": 0.496,
+      "negativeDensity": 0.059,
+      "crossRate": 0.266,
+      "strongPositive": 0.44,
+      "strongNegative": 0.492,
+      "selfRate": 0.098,
+      "peerDistribution": [
+        0.554,
+        0.276,
+        0.054,
+        0.015,
+        0.047,
+        0,
+        0,
+        0,
+        0.016,
+        0,
+        0.023,
+        0,
+        0,
+        0.015,
+        0,
+        0
+      ],
+      "general": [
+        0.024,
+        0.049,
+        0.087,
+        0.498,
+        0.342
+      ],
+      "fun": [
+        0.017,
+        0,
+        0.084,
+        0.299,
+        0.6
+      ],
+      "alone": [
+        0.504,
+        0.285,
+        0.14,
+        0.023,
+        0.048
+      ],
+      "crt": [
+        0.32,
+        0.509,
+        0.155,
+        0.016
+      ],
+      "crtItems": [
+        0.542,
+        0.292,
+        0.033
+      ],
+      "mediator": 6.454,
+      "negativeMediator": 2.551,
+      "popular": 0.873,
+      "central": 0.819
+    },
+    {
+      "center": "3884",
+      "course": "6.º Primaria",
+      "group": "A",
+      "n": 26,
+      "answered": 0.936,
+      "density": 0.62,
+      "negativeDensity": 0.056,
+      "crossRate": 0.11,
+      "strongPositive": 0.451,
+      "strongNegative": 0.22,
+      "selfRate": 0.017,
+      "peerDistribution": [
+        0.637,
+        0.141,
+        0.094,
+        0.047,
+        0.034,
+        0.017,
+        0,
+        0,
+        0.017,
+        0,
+        0.013,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0,
+        0,
+        0.08,
+        0.579,
+        0.341
+      ],
+      "fun": [
+        0,
+        0,
+        0.108,
+        0.322,
+        0.57
+      ],
+      "alone": [
+        0.552,
+        0.189,
+        0.211,
+        0.048,
+        0
+      ],
+      "crt": [
+        0.147,
+        0.592,
+        0.211,
+        0.05
+      ],
+      "crtItems": [
+        0.775,
+        0.318,
+        0.07
+      ],
+      "mediator": 7.106,
+      "negativeMediator": 3.508,
+      "popular": 0.869,
+      "central": 0.804
+    },
+    {
+      "center": "3884",
+      "course": "6.º Primaria",
+      "group": "B",
+      "n": 29,
+      "answered": 0.937,
+      "density": 0.544,
+      "negativeDensity": 0.059,
+      "crossRate": 0.179,
+      "strongPositive": 0.44,
+      "strongNegative": 0.28,
+      "selfRate": 0.038,
+      "peerDistribution": [
+        0.454,
+        0.234,
+        0.165,
+        0.059,
+        0.007,
+        0.024,
+        0.02,
+        0.007,
+        0.024,
+        0.007,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0.008,
+        0,
+        0.119,
+        0.598,
+        0.275
+      ],
+      "fun": [
+        0,
+        0.008,
+        0.083,
+        0.337,
+        0.572
+      ],
+      "alone": [
+        0.512,
+        0.258,
+        0.192,
+        0.025,
+        0.013
+      ],
+      "crt": [
+        0.148,
+        0.578,
+        0.233,
+        0.041
+      ],
+      "crtItems": [
+        0.783,
+        0.322,
+        0.062
+      ],
+      "mediator": 7.092,
+      "negativeMediator": 2.446,
+      "popular": 0.896,
+      "central": 0.794
+    },
+    {
+      "center": "3884",
+      "course": "6.º Primaria",
+      "group": "C",
+      "n": 29,
+      "answered": 0.955,
+      "density": 0.604,
+      "negativeDensity": 0.074,
+      "crossRate": 0.231,
+      "strongPositive": 0.416,
+      "strongNegative": 0.194,
+      "selfRate": 0.07,
+      "peerDistribution": [
+        0.609,
+        0.182,
+        0.082,
+        0.071,
+        0,
+        0.017,
+        0,
+        0.007,
+        0.017,
+        0,
+        0,
+        0,
+        0.014,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0,
+        0.007,
+        0.136,
+        0.631,
+        0.226
+      ],
+      "fun": [
+        0,
+        0.007,
+        0.057,
+        0.309,
+        0.627
+      ],
+      "alone": [
+        0.501,
+        0.244,
+        0.23,
+        0.025,
+        0
+      ],
+      "crt": [
+        0.164,
+        0.61,
+        0.226,
+        0
+      ],
+      "crtItems": [
+        0.728,
+        0.326,
+        0.007
+      ],
+      "mediator": 7.339,
+      "negativeMediator": 3.608,
+      "popular": 0.915,
+      "central": 0.814
+    },
+    {
+      "center": "3884",
+      "course": "1.º ESO",
+      "group": "A",
+      "n": 28,
+      "answered": 0.977,
+      "density": 0.602,
+      "negativeDensity": 0.053,
+      "crossRate": 0.25,
+      "strongPositive": 0.422,
+      "strongNegative": 0.244,
+      "selfRate": 0.039,
+      "peerDistribution": [
+        0.687,
+        0.16,
+        0.031,
+        0.077,
+        0.008,
+        0,
+        0,
+        0.013,
+        0,
+        0,
+        0.008,
+        0.016,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0,
+        0.021,
+        0.142,
+        0.414,
+        0.423
+      ],
+      "fun": [
+        0,
+        0.013,
+        0.047,
+        0.295,
+        0.645
+      ],
+      "alone": [
+        0.513,
+        0.319,
+        0.131,
+        0.029,
+        0.008
+      ],
+      "crt": [
+        0.158,
+        0.519,
+        0.267,
+        0.056
+      ],
+      "crtItems": [
+        0.767,
+        0.362,
+        0.093
+      ],
+      "mediator": 8.031,
+      "negativeMediator": 3.267,
+      "popular": 0.933,
+      "central": 0.814
+    },
+    {
+      "center": "3884",
+      "course": "1.º ESO",
+      "group": "B",
+      "n": 25,
+      "answered": 0.942,
+      "density": 0.562,
+      "negativeDensity": 0.032,
+      "crossRate": 0.283,
+      "strongPositive": 0.453,
+      "strongNegative": 0.255,
+      "selfRate": 0.047,
+      "peerDistribution": [
+        0.607,
+        0.167,
+        0.089,
+        0.07,
+        0.008,
+        0.019,
+        0,
+        0.012,
+        0.012,
+        0,
+        0,
+        0.016,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0.008,
+        0.034,
+        0.116,
+        0.408,
+        0.434
+      ],
+      "fun": [
+        0,
+        0,
+        0.013,
+        0.271,
+        0.716
+      ],
+      "alone": [
+        0.558,
+        0.264,
+        0.128,
+        0.05,
+        0
+      ],
+      "crt": [
+        0.249,
+        0.398,
+        0.353,
+        0
+      ],
+      "crtItems": [
+        0.722,
+        0.382,
+        0
+      ],
+      "mediator": 8.538,
+      "negativeMediator": 2.579,
+      "popular": 0.868,
+      "central": 0.798
+    },
+    {
+      "center": "3884",
+      "course": "1.º ESO",
+      "group": "C",
+      "n": 31,
+      "answered": 0.948,
+      "density": 0.599,
+      "negativeDensity": 0.055,
+      "crossRate": 0.076,
+      "strongPositive": 0.428,
+      "strongNegative": 0.287,
+      "selfRate": 0.087,
+      "peerDistribution": [
+        0.622,
+        0.177,
+        0.093,
+        0.041,
+        0.011,
+        0,
+        0.007,
+        0.022,
+        0,
+        0,
+        0,
+        0.016,
+        0,
+        0,
+        0.011,
+        0
+      ],
+      "general": [
+        0,
+        0.023,
+        0.196,
+        0.435,
+        0.346
+      ],
+      "fun": [
+        0,
+        0.011,
+        0.091,
+        0.324,
+        0.574
+      ],
+      "alone": [
+        0.522,
+        0.241,
+        0.145,
+        0.073,
+        0.019
+      ],
+      "crt": [
+        0.282,
+        0.453,
+        0.25,
+        0.015
+      ],
+      "crtItems": [
+        0.649,
+        0.326,
+        0.022
+      ],
+      "mediator": 8.488,
+      "negativeMediator": 2.82,
+      "popular": 0.928,
+      "central": 0.824
+    },
+    {
+      "center": "3884",
+      "course": "2.º ESO",
+      "group": "A",
+      "n": 30,
+      "answered": 0.973,
+      "density": 0.548,
+      "negativeDensity": 0.05,
+      "crossRate": 0.251,
+      "strongPositive": 0.368,
+      "strongNegative": 0.357,
+      "selfRate": 0.02,
+      "peerDistribution": [
+        0.614,
+        0.172,
+        0.077,
+        0.027,
+        0.032,
+        0.039,
+        0.02,
+        0,
+        0.007,
+        0.012,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0,
+        0.041,
+        0.068,
+        0.585,
+        0.306
+      ],
+      "fun": [
+        0,
+        0,
+        0.061,
+        0.336,
+        0.603
+      ],
+      "alone": [
+        0.505,
+        0.336,
+        0.098,
+        0.041,
+        0.02
+      ],
+      "crt": [
+        0.106,
+        0.378,
+        0.419,
+        0.096
+      ],
+      "crtItems": [
+        0.839,
+        0.466,
+        0.201
+      ],
+      "mediator": 5.402,
+      "negativeMediator": 3.413,
+      "popular": 0.911,
+      "central": 0.779
+    },
+    {
+      "center": "3884",
+      "course": "2.º ESO",
+      "group": "B",
+      "n": 27,
+      "answered": 0.944,
+      "density": 0.566,
+      "negativeDensity": 0.04,
+      "crossRate": 0.212,
+      "strongPositive": 0.429,
+      "strongNegative": 0.39,
+      "selfRate": 0.1,
+      "peerDistribution": [
+        0.437,
+        0.174,
+        0.196,
+        0.088,
+        0.04,
+        0.02,
+        0.024,
+        0.02,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0.009,
+        0.009,
+        0.16,
+        0.566,
+        0.256
+      ],
+      "fun": [
+        0,
+        0,
+        0.033,
+        0.308,
+        0.659
+      ],
+      "alone": [
+        0.402,
+        0.346,
+        0.172,
+        0.05,
+        0.03
+      ],
+      "crt": [
+        0.111,
+        0.568,
+        0.278,
+        0.043
+      ],
+      "crtItems": [
+        0.815,
+        0.352,
+        0.086
+      ],
+      "mediator": 4.856,
+      "negativeMediator": 1.78,
+      "popular": 0.915,
+      "central": 0.869
+    },
+    {
+      "center": "3884",
+      "course": "2.º ESO",
+      "group": "C",
+      "n": 27,
+      "answered": 0.943,
+      "density": 0.58,
+      "negativeDensity": 0.027,
+      "crossRate": 0.2,
+      "strongPositive": 0.407,
+      "strongNegative": 0.272,
+      "selfRate": 0.038,
+      "peerDistribution": [
+        0.589,
+        0.195,
+        0.064,
+        0.014,
+        0.022,
+        0.059,
+        0.029,
+        0.028,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0.008,
+        0.048,
+        0.127,
+        0.498,
+        0.319
+      ],
+      "fun": [
+        0,
+        0,
+        0.069,
+        0.312,
+        0.619
+      ],
+      "alone": [
+        0.549,
+        0.254,
+        0.119,
+        0.048,
+        0.03
+      ],
+      "crt": [
+        0.274,
+        0.389,
+        0.314,
+        0.023
+      ],
+      "crtItems": [
+        0.68,
+        0.322,
+        0.086
+      ],
+      "mediator": 6.319,
+      "negativeMediator": 2.344,
+      "popular": 0.879,
+      "central": 0.744
+    },
+    {
+      "center": "3884",
+      "course": "3.º ESO",
+      "group": "A",
+      "n": 26,
+      "answered": 0.877,
+      "density": 0.495,
+      "negativeDensity": 0.051,
+      "crossRate": 0.301,
+      "strongPositive": 0.448,
+      "strongNegative": 0.545,
+      "selfRate": 0.029,
+      "peerDistribution": [
+        0.622,
+        0.234,
+        0.103,
+        0,
+        0.02,
+        0.007,
+        0.007,
+        0,
+        0,
+        0.007,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0.015,
+        0.074,
+        0.148,
+        0.464,
+        0.299
+      ],
+      "fun": [
+        0.015,
+        0.029,
+        0.085,
+        0.464,
+        0.407
+      ],
+      "alone": [
+        0.459,
+        0.249,
+        0.196,
+        0.082,
+        0.015
+      ],
+      "crt": [
+        0.092,
+        0.485,
+        0.371,
+        0.052
+      ],
+      "crtItems": [
+        0.845,
+        0.385,
+        0.152
+      ],
+      "mediator": 5.265,
+      "negativeMediator": 2.289,
+      "popular": 0.89,
+      "central": 0.8
+    },
+    {
+      "center": "3884",
+      "course": "3.º ESO",
+      "group": "B",
+      "n": 29,
+      "answered": 0.945,
+      "density": 0.488,
+      "negativeDensity": 0.052,
+      "crossRate": 0.34,
+      "strongPositive": 0.385,
+      "strongNegative": 0.547,
+      "selfRate": 0.015,
+      "peerDistribution": [
+        0.605,
+        0.215,
+        0.071,
+        0.061,
+        0,
+        0.014,
+        0.014,
+        0,
+        0.013,
+        0,
+        0,
+        0,
+        0,
+        0.007,
+        0,
+        0
+      ],
+      "general": [
+        0,
+        0.007,
+        0.244,
+        0.427,
+        0.322
+      ],
+      "fun": [
+        0,
+        0.015,
+        0.078,
+        0.345,
+        0.562
+      ],
+      "alone": [
+        0.454,
+        0.382,
+        0.135,
+        0.029,
+        0
+      ],
+      "crt": [
+        0.093,
+        0.339,
+        0.317,
+        0.251
+      ],
+      "crtItems": [
+        0.851,
+        0.59,
+        0.285
+      ],
+      "mediator": 7.625,
+      "negativeMediator": 3.11,
+      "popular": 0.871,
+      "central": 0.822
+    },
+    {
+      "center": "3884",
+      "course": "3.º ESO",
+      "group": "C",
+      "n": 29,
+      "answered": 0.904,
+      "density": 0.538,
+      "negativeDensity": 0.077,
+      "crossRate": 0.299,
+      "strongPositive": 0.471,
+      "strongNegative": 0.539,
+      "selfRate": 0.042,
+      "peerDistribution": [
+        0.559,
+        0.253,
+        0.117,
+        0,
+        0.023,
+        0.016,
+        0.016,
+        0,
+        0,
+        0.016,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0.008,
+        0.088,
+        0.125,
+        0.49,
+        0.29
+      ],
+      "fun": [
+        0.008,
+        0.017,
+        0.115,
+        0.41,
+        0.45
+      ],
+      "alone": [
+        0.438,
+        0.269,
+        0.21,
+        0.075,
+        0.008
+      ],
+      "crt": [
+        0.106,
+        0.415,
+        0.388,
+        0.092
+      ],
+      "crtItems": [
+        0.829,
+        0.425,
+        0.21
+      ],
+      "mediator": 5.677,
+      "negativeMediator": 3.235,
+      "popular": 0.912,
+      "central": 0.803
+    },
+    {
+      "center": "3884",
+      "course": "4.º ESO",
+      "group": "A",
+      "n": 25,
+      "answered": 0.917,
+      "density": 0.427,
+      "negativeDensity": 0.053,
+      "crossRate": 0.206,
+      "strongPositive": 0.458,
+      "strongNegative": 0.417,
+      "selfRate": 0.032,
+      "peerDistribution": [
+        0.742,
+        0.122,
+        0.046,
+        0.018,
+        0.047,
+        0.007,
+        0,
+        0.007,
+        0,
+        0,
+        0.011,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0,
+        0,
+        0.172,
+        0.49,
+        0.337
+      ],
+      "fun": [
+        0,
+        0,
+        0.108,
+        0.313,
+        0.579
+      ],
+      "alone": [
+        0.514,
+        0.247,
+        0.208,
+        0.019,
+        0.012
+      ],
+      "crt": [
+        0.11,
+        0.461,
+        0.303,
+        0.126
+      ],
+      "crtItems": [
+        0.835,
+        0.378,
+        0.233
+      ],
+      "mediator": 4.996,
+      "negativeMediator": 2.767,
+      "popular": 0.891,
+      "central": 0.773
+    },
+    {
+      "center": "3884",
+      "course": "4.º ESO",
+      "group": "B",
+      "n": 28,
+      "answered": 0.981,
+      "density": 0.466,
+      "negativeDensity": 0.035,
+      "crossRate": 0.418,
+      "strongPositive": 0.403,
+      "strongNegative": 0.451,
+      "selfRate": 0.007,
+      "peerDistribution": [
+        0.702,
+        0.209,
+        0.033,
+        0.013,
+        0.043,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0,
+        0,
+        0.183,
+        0.51,
+        0.307
+      ],
+      "fun": [
+        0,
+        0,
+        0.055,
+        0.322,
+        0.623
+      ],
+      "alone": [
+        0.443,
+        0.398,
+        0.152,
+        0.007,
+        0
+      ],
+      "crt": [
+        0.125,
+        0.412,
+        0.321,
+        0.142
+      ],
+      "crtItems": [
+        0.814,
+        0.447,
+        0.219
+      ],
+      "mediator": 4.925,
+      "negativeMediator": 1.695,
+      "popular": 0.969,
+      "central": 0.829
+    },
+    {
+      "center": "3884",
+      "course": "4.º ESO",
+      "group": "C",
+      "n": 31,
+      "answered": 0.923,
+      "density": 0.544,
+      "negativeDensity": 0.047,
+      "crossRate": 0.112,
+      "strongPositive": 0.352,
+      "strongNegative": 0.321,
+      "selfRate": 0.052,
+      "peerDistribution": [
+        0.69,
+        0.174,
+        0.074,
+        0.014,
+        0.009,
+        0.017,
+        0.009,
+        0,
+        0,
+        0,
+        0.014,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0,
+        0.03,
+        0.166,
+        0.568,
+        0.236
+      ],
+      "fun": [
+        0,
+        0.012,
+        0.064,
+        0.368,
+        0.556
+      ],
+      "alone": [
+        0.51,
+        0.274,
+        0.145,
+        0.034,
+        0.037
+      ],
+      "crt": [
+        0.121,
+        0.422,
+        0.242,
+        0.216
+      ],
+      "crtItems": [
+        0.787,
+        0.394,
+        0.371
+      ],
+      "mediator": 5.88,
+      "negativeMediator": 2.367,
+      "popular": 0.877,
+      "central": 0.802
+    },
+    {
+      "center": "3884",
+      "course": "1.º Bachillerato",
+      "group": "A",
+      "n": 30,
+      "answered": 0.987,
+      "density": 0.5,
+      "negativeDensity": 0.051,
+      "crossRate": 0.332,
+      "strongPositive": 0.396,
+      "strongNegative": 0.331,
+      "selfRate": 0.054,
+      "peerDistribution": [
+        0.695,
+        0.161,
+        0.034,
+        0.058,
+        0.013,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0.039,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0.007,
+        0.05,
+        0.139,
+        0.556,
+        0.248
+      ],
+      "fun": [
+        0,
+        0.018,
+        0.086,
+        0.385,
+        0.511
+      ],
+      "alone": [
+        0.341,
+        0.319,
+        0.301,
+        0.025,
+        0.014
+      ],
+      "crt": [
+        0.085,
+        0.306,
+        0.403,
+        0.206
+      ],
+      "crtItems": [
+        0.858,
+        0.624,
+        0.248
+      ],
+      "mediator": 5.041,
+      "negativeMediator": 2.551,
+      "popular": 0.979,
+      "central": 0.851
+    },
+    {
+      "center": "3884",
+      "course": "1.º Bachillerato",
+      "group": "B",
+      "n": 27,
+      "answered": 0.938,
+      "density": 0.54,
+      "negativeDensity": 0.043,
+      "crossRate": 0.127,
+      "strongPositive": 0.385,
+      "strongNegative": 0.407,
+      "selfRate": 0.059,
+      "peerDistribution": [
+        0.663,
+        0.171,
+        0.099,
+        0.029,
+        0.009,
+        0.009,
+        0,
+        0.009,
+        0,
+        0,
+        0.011,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0,
+        0.016,
+        0.213,
+        0.546,
+        0.225
+      ],
+      "fun": [
+        0,
+        0.016,
+        0.065,
+        0.361,
+        0.558
+      ],
+      "alone": [
+        0.493,
+        0.288,
+        0.16,
+        0.022,
+        0.037
+      ],
+      "crt": [
+        0.089,
+        0.394,
+        0.263,
+        0.254
+      ],
+      "crtItems": [
+        0.838,
+        0.433,
+        0.411
+      ],
+      "mediator": 6.094,
+      "negativeMediator": 1.888,
+      "popular": 0.887,
+      "central": 0.877
+    },
+    {
+      "center": "3884",
+      "course": "1.º Bachillerato",
+      "group": "C",
+      "n": 27,
+      "answered": 0.975,
+      "density": 0.507,
+      "negativeDensity": 0.051,
+      "crossRate": 0.398,
+      "strongPositive": 0.392,
+      "strongNegative": 0.287,
+      "selfRate": 0.008,
+      "peerDistribution": [
+        0.579,
+        0.242,
+        0.064,
+        0.067,
+        0.017,
+        0.007,
+        0,
+        0,
+        0.007,
+        0,
+        0.017,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0,
+        0.018,
+        0.116,
+        0.571,
+        0.295
+      ],
+      "fun": [
+        0,
+        0,
+        0.033,
+        0.323,
+        0.644
+      ],
+      "alone": [
+        0.425,
+        0.425,
+        0.124,
+        0.008,
+        0.018
+      ],
+      "crt": [
+        0.115,
+        0.433,
+        0.263,
+        0.19
+      ],
+      "crtItems": [
+        0.827,
+        0.424,
+        0.275
+      ],
+      "mediator": 5.488,
+      "negativeMediator": 2.555,
+      "popular": 0.96,
+      "central": 0.82
+    },
+    {
+      "center": "3884",
+      "course": "2.º Bachillerato",
+      "group": "A",
+      "n": 26,
+      "answered": 0.984,
+      "density": 0.509,
+      "negativeDensity": 0.042,
+      "crossRate": 0.319,
+      "strongPositive": 0.431,
+      "strongNegative": 0.524,
+      "selfRate": 0.034,
+      "peerDistribution": [
+        0.807,
+        0.093,
+        0.024,
+        0.022,
+        0.047,
+        0,
+        0,
+        0.007,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0,
+        0.019,
+        0.194,
+        0.483,
+        0.303
+      ],
+      "fun": [
+        0,
+        0.019,
+        0.108,
+        0.299,
+        0.574
+      ],
+      "alone": [
+        0.501,
+        0.283,
+        0.197,
+        0.007,
+        0.012
+      ],
+      "crt": [
+        0.078,
+        0.365,
+        0.335,
+        0.222
+      ],
+      "crtItems": [
+        0.88,
+        0.484,
+        0.337
+      ],
+      "mediator": 6.738,
+      "negativeMediator": 2.575,
+      "popular": 0.937,
+      "central": 0.807
+    },
+    {
+      "center": "3884",
+      "course": "2.º Bachillerato",
+      "group": "B",
+      "n": 29,
+      "answered": 0.988,
+      "density": 0.561,
+      "negativeDensity": 0.039,
+      "crossRate": 0.281,
+      "strongPositive": 0.352,
+      "strongNegative": 0.399,
+      "selfRate": 0.057,
+      "peerDistribution": [
+        0.662,
+        0.264,
+        0.043,
+        0.006,
+        0.006,
+        0,
+        0,
+        0.013,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0.006,
+        0
+      ],
+      "general": [
+        0,
+        0.025,
+        0.233,
+        0.561,
+        0.181
+      ],
+      "fun": [
+        0,
+        0.019,
+        0.063,
+        0.37,
+        0.548
+      ],
+      "alone": [
+        0.394,
+        0.426,
+        0.129,
+        0.032,
+        0.019
+      ],
+      "crt": [
+        0.164,
+        0.358,
+        0.252,
+        0.227
+      ],
+      "crtItems": [
+        0.757,
+        0.456,
+        0.328
+      ],
+      "mediator": 6.539,
+      "negativeMediator": 1.557,
+      "popular": 0.97,
+      "central": 0.891
+    },
+    {
+      "center": "3884",
+      "course": "2.º Bachillerato",
+      "group": "C",
+      "n": 29,
+      "answered": 0.925,
+      "density": 0.466,
+      "negativeDensity": 0.059,
+      "crossRate": 0.201,
+      "strongPositive": 0.375,
+      "strongNegative": 0.302,
+      "selfRate": 0.06,
+      "peerDistribution": [
+        0.593,
+        0.296,
+        0.055,
+        0.014,
+        0.014,
+        0,
+        0,
+        0,
+        0.007,
+        0,
+        0.021,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "general": [
+        0,
+        0.014,
+        0.187,
+        0.518,
+        0.281
+      ],
+      "fun": [
+        0,
+        0,
+        0.052,
+        0.394,
+        0.554
+      ],
+      "alone": [
+        0.429,
+        0.343,
+        0.169,
+        0.023,
+        0.037
+      ],
+      "crt": [
+        0.169,
+        0.481,
+        0.217,
+        0.133
+      ],
+      "crtItems": [
+        0.702,
+        0.37,
+        0.242
+      ],
+      "mediator": 5.346,
+      "negativeMediator": 2.678,
+      "popular": 0.904,
+      "central": 0.844
+    }
+  ]
+}

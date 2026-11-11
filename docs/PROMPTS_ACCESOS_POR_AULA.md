@@ -1,0 +1,15 @@
+# Administración sencilla: accesos por aula
+
+## Prompt de implementación
+
+Simplifica la administración existente de PBIS sin modificar el motor analítico, la normalización, la demo ni el aislamiento cifrado de las aulas. Al cargar un Excel compatible, identifica centro, curso y aula y propone automáticamente una cuenta por aula: 1ESOA, 4PRIMB, 2BACHC o 3ESOPDCI. Conserva siglas y evita colisiones sin unir aulas distintas. No pidas DNI ni crear las cuentas una a una. Orientación elige el centro, marca las aulas que tendrán acceso y un único permiso PDF para todas las cuentas, incluida orientación. La cuenta orientacion conserva acceso al centro completo.
+
+Genera contraseñas aleatorias distintas usando la fuente criptográfica actual. Cada nueva generación renueva las contraseñas docentes y conserva la de orientación. Al editar un proyecto, reutiliza la autorización cifrada anterior sin recuperar su contraseña. Produce un único ZIP con el proyecto cifrado .pbis y un Word DOCX estándar, legible en Windows y macOS, con cuentas docentes, contraseñas, aulas y permiso PDF. Ofrece también las dos descargas individuales para recuperarlas. El Word completo es para orientación; cada docente recibe únicamente su acceso. No incluyas la cuenta ni la contraseña de orientación en ninguna parte del Word. Mantén las credenciales solo en memoria y nunca las incluyas en telemetría, valoraciones ni archivos públicos del repositorio.
+
+En cuentas nuevas, la marca de agua de pantalla y PDF muestra el usuario de aula y el código de sesión; orientación sigue identificada como Equipo orientador, sin marca. Conserva la apertura de archivos antiguos con DNI. Para las cuentas nuevas, pide el DNI de quien descarga y úsalo como contraseña de apertura del PDF, solo en memoria: no lo incluyas en el texto, metadatos, nombre del archivo ni registros. No descargues copias sin cifrar. Mantén los registros de uso por cuenta, explicando en la documentación que una cuenta compartida no identifica a una persona física.
+
+## Prompt de revisión y pruebas
+
+Comprueba con datos sintéticos los formatos reales de los Excel de ejemplo, incluyendo Primaria, ESO, Bachillerato, PDC y siglas. Distingue un Excel con indicadores de una plantilla de matrícula: no prometas que esta última alimenta indicadores que no contiene. Prueba cuentas únicas, nombres estables al reordenar filas, aulas excluidas, centros homónimos, colisiones, contraseñas distintas, reapertura como orientación y renovación de accesos. Cada cuenta debe descifrar solo su aula y conservar los indicadores calculados sobre el centro.
+
+Valida el ZIP y su Word, permisos PDF activados/desactivados para todos, marcas de agua, archivos antiguos, errores recuperables, cambio de archivo/hoja/centro durante una lectura, doble pulsación y eliminación de referencias al cerrar. Revisa con teclado y tamaños móviles, mediante web local y file://. No realices envíos reales ni publiques datos o credenciales. Documenta qué sistemas operativos se han probado de verdad; HTML/DOCX/ZIP portables no equivalen a una prueba nativa en macOS.
