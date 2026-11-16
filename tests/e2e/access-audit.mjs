@@ -12,6 +12,8 @@ page.setDefaultTimeout(12000);page.on('pageerror',e=>errors.push(e.message));
 await page.addInitScript(()=>{for(const name of ['localStorage','sessionStorage','indexedDB'])Object.defineProperty(window,name,{get(){throw Error('Persistent storage forbidden');}});});
 await page.route('**/*',async route=>{const req=route.request(),url=req.url();if(url.startsWith('file:'))return route.continue();if(url===endpoint){const body=JSON.parse(req.postData());events.push(body);return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(fail?{ok:false}:{ok:true,eventId:body.event.eventId})});}external.push(url);return route.abort();});
 const connect=async value=>{await page.locator('#configure-audit').click();await page.locator('#audit-connection-file').setInputFiles({name:'conexion.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(value))});};
+// File replacement is no longer a visible user control; exercise its retained
+// lifecycle handler here to verify close/open deduplication without exposing it.
 const openExcel=async(name='ejemplo.xlsx')=>{await page.locator('#file-data').setInputFiles({name,mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',buffer:await fs.readFile(path.join(root,'data/examples/datos_evaluacion.xlsx'))});await page.locator('#show-reports:not([disabled])').waitFor();await page.locator('#show-reports').click();await page.locator('#tab-roster:not([disabled])').waitFor();};
 try{
  await page.goto(pathToFileURL(path.join(root,'direccion-local/PBIS.html')).href);
@@ -23,8 +25,8 @@ try{
  await openExcel();await page.locator('.protected-audit-status').filter({hasText:'Acceso registrado'}).waitFor();
  const first=events[0].event;assert.equal(first.type,'open');assert.equal(first.fileName,'ejemplo.xlsx');assert.deepEqual(first.centers,(await page.locator('#center option').allTextContents()).sort());
  await page.screenshot({path:path.join(out,'orientacion-con-registro.png'),fullPage:true});
- await page.locator('#change-files').click();await page.locator('#show-reports').click();assert.equal(events.length,1,'Same consultation does not duplicate open');
- await page.locator('#change-files').click();await openExcel('segunda-consulta.xlsx');await page.locator('.protected-audit-status').filter({hasText:'Acceso registrado'}).waitFor();
+ await page.locator('#change-files').evaluate(button=>button.click());await page.locator('#show-reports').click();assert.equal(events.length,1,'Same consultation does not duplicate open');
+ await page.locator('#change-files').evaluate(button=>button.click());await openExcel('segunda-consulta.xlsx');await page.locator('.protected-audit-status').filter({hasText:'Acceso registrado'}).waitFor();
  assert.equal(events.filter(e=>e.event.type==='close'&&e.event.sessionId===first.sessionId).length,1);
  const second=events.find(e=>e.event.type==='open'&&e.event.fileName==='segunda-consulta.xlsx').event;assert.notEqual(second.sessionId,first.sessionId);
  await page.locator('#logout').click();await page.locator('#login-form').waitFor();assert.ok(events.some(e=>e.event.type==='close'&&e.event.sessionId===second.sessionId));
@@ -33,7 +35,7 @@ try{
  await openExcel();assert.equal(events.length,baseline);await page.locator('.protected-audit-status').filter({hasText:'sin activar'}).waitFor();
  fail=true;await connect(connection);await page.locator('#audit-connection-close').click();await page.locator('.protected-audit-status').filter({hasText:'pendiente de registrar'}).waitFor();
  const failed=events.at(-1).event;fail=false;await page.evaluate(()=>window.dispatchEvent(new Event('online')));await page.locator('.protected-audit-status').filter({hasText:'Acceso registrado'}).waitFor();assert.equal(events.at(-1).event.eventId,failed.eventId);
- await page.locator('#change-files').click();await page.locator('#file-data').setInputFiles({name:'mal.xlsx',mimeType:'application/octet-stream',buffer:Buffer.from('invalid workbook')});await page.locator('#show-reports:not([disabled])').waitFor();await page.locator('#show-reports').click();await page.locator('#import-error').filter({hasText:/./}).waitFor();assert.ok(!events.some(e=>e.event.fileName==='mal.xlsx'));
+ await page.locator('#change-files').evaluate(button=>button.click());await page.locator('#file-data').setInputFiles({name:'mal.xlsx',mimeType:'application/octet-stream',buffer:Buffer.from('invalid workbook')});await page.locator('#show-reports:not([disabled])').waitFor();await page.locator('#show-reports').click();await page.locator('#import-error').filter({hasText:/./}).waitFor();assert.ok(!events.some(e=>e.event.fileName==='mal.xlsx'));
  await page.locator('#logout').click();await page.locator('#login-form').waitFor();
 
  // Exercise the owner dialog with a simulated google.script.run, never Google.
