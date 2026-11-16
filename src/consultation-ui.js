@@ -2,8 +2,10 @@
 (function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory();else root.PbisConsultationUI=factory();})(typeof globalThis==='undefined'?this:globalThis,function(){
 'use strict';
 const predicates={
+ bullying_self_completed:r=>r.respondio==='Sí'&&r.bullying_autorreporte==='Sí',
+ bullying_two_total:r=>(Number.isFinite(r.bullying_companeros_n)?r.bullying_companeros_n:0)+(r.bullying_autorreporte==='Sí'?1:0)>=2,
  bullying_declarado:r=>r.respondio!=='No'&&r.bullying_autorreporte==='Sí',
- bullying_companeros:r=>typeof r.bullying_companeros_n==='number'&&r.bullying_companeros_n>=2,
+ bullying_companeros:r=>typeof r.bullying_companeros_n==='number'&&r.bullying_companeros_n>=1,
  soledad:r=>r.respondio!=='No'&&r.soledad_frecuente==='Sí',
  sin_reciprocas:r=>r.amistad_reciproca_n===0,
  con_reciprocas:r=>r.amistad_reciproca_n>0,
@@ -13,7 +15,15 @@ const predicates={
 };
 predicates.popularidad_reportada=r=>r.popularidad_reportada_n>0;
 predicates.centralidad_reportada=r=>r.centralidad_reportada_n>0;
-const labels={bullying_declarado:'Declaran haber sufrido acoso',bullying_companeros:'Reciben al menos 2 menciones de acoso',soledad:'Indican soledad frecuente',sin_reciprocas:'Sin buenas relaciones mutuas registradas'};
+const labels={bullying_declarado:'Se autorreportan como víctimas de bullying',bullying_companeros:'Señalados por otros como víctimas de bullying',soledad:'Indican soledad frecuente',sin_reciprocas:'Sin buenas relaciones mutuas registradas'};
+Object.assign(labels,{bullying_self_completed:'Autorreporte · Alumnos que finalizan el cuestionario',bullying_two_total:'Dos o más nominaciones registradas, incluida la propia'});
+function bullyingHighlights(rows){
+ const completed=rows.filter(r=>r.respondio==='Sí');
+ const selfKnown=completed.some(r=>r.bullying_autorreporte==='Sí'||r.bullying_autorreporte==='No');
+ const nominationsKnown=rows.some(r=>Number.isFinite(r.bullying_companeros_n)||r.bullying_autorreporte==='Sí'||r.bullying_autorreporte==='No');
+ const metric=(key,base,available)=>{const count=available?rows.filter(predicates[key]).length:null;return {count,denominator:base,percent:count!==null&&base>0?100*count/base:null};};
+ return {bullying_self_completed:metric('bullying_self_completed',completed.length,selfKnown),bullying_two_total:metric('bullying_two_total',rows.length,nominationsKnown)};
+}
 Object.assign(labels,{con_reciprocas:'Con buenas relaciones mutuas registradas',sin_respuesta_relaciones:'Sin respuesta de relaciones',mediacion_positiva:'Con menciones de buena mediación',mediacion_negativa:'Con menciones de mala mediación'});
 Object.assign(labels,{popularidad_reportada:'Estudiantes señalados como populares',centralidad_reportada:'Estudiantes señalados como centrales'});
 const bullyingCategories=Object.freeze([
@@ -40,7 +50,7 @@ function bullyingDistribution(rows){
  for(const row of rows){const category=bullyingCategory(row);counts.set(category,counts.get(category)+1);}
  return {categories:bullyingCategories.map(c=>({...c,count:counts.get(c.key)}))};
 }
-function filter(rows,key){if(!Object.hasOwn(predicates,key))throw Error('Resultado no válido.');return rows.filter(predicates[key]);}
+function filter(rows,key,reach='school'){if(['con_reciprocas','sin_reciprocas','sin_respuesta_relaciones'].includes(key)){const field=reach==='class'?'amistad_clase_reciproca_n':'amistad_reciproca_n';return rows.filter(r=>key==='sin_respuesta_relaciones'?r.respondio==='No'||!Number.isFinite(r[field]):r.respondio!=='No'&&Number.isFinite(r[field])&&(key==='con_reciprocas'?r[field]>0:r[field]===0));}if(!Object.hasOwn(predicates,key))throw Error('Resultado no válido.');return rows.filter(predicates[key]);}
 function searchStudents(rows,query){
  const normalize=value=>String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').trim();
  const words=normalize(query).split(/\s+/).filter(Boolean);
@@ -129,6 +139,6 @@ function restoreReviews(payload,rows,store,source,reasons){
  }
  return checked.length;
 }
-return Object.freeze({filter,searchStudents,labels,mean,ranking,overview,relationshipRates,cognitiveBreakdown,bullyingCategory,bullyingDistribution,observed,exportReviews,restoreReviews});
+return Object.freeze({filter,searchStudents,labels,mean,ranking,overview,relationshipRates,cognitiveBreakdown,bullyingCategory,bullyingDistribution,bullyingHighlights,observed,exportReviews,restoreReviews});
 });
 

@@ -2,6 +2,7 @@
 from pathlib import Path
 import hashlib
 import json
+import re
 from zipfile import ZipFile, ZIP_DEFLATED
 
 ROOT_FILES = ['README.md', 'EMPIEZA_AQUI.md', 'COMPROBACIONES.md', 'PROMPTS.md',
@@ -36,6 +37,26 @@ def project_files(root):
             raise ValueError('Archivo de proyecto no disponible: ' + name)
     return sorted(files)
 
+def public_team_assets(root):
+    """Copy only the public team photos approved by the build manifest."""
+    root = Path(root).resolve()
+    manifest = json.loads((root / 'site-src/equipo-pbis/assets-manifest.json').read_text(encoding='utf-8'))
+    files = {}
+    for entry in manifest:
+        relative = entry['archivo']
+        if not re.fullmatch(r'assets/[a-z0-9-]+\.(?:jpg|png)', relative):
+            raise ValueError('Ruta de foto de equipo no admitida: ' + relative)
+        name = 'assets/equipo-pbis/' + Path(relative).name
+        source = root / 'site' / name
+        if source.is_symlink() or not source.resolve().is_relative_to(root / 'site'):
+            raise ValueError('Foto de equipo fuera de la distribución: ' + name)
+        data = source.read_bytes()
+        if hashlib.sha256(data).hexdigest() != entry['sha256']:
+            raise ValueError('Foto de equipo alterada: ' + name)
+        files[name] = data
+    return files
+
+
 def generated_files(root):
     root = Path(root)
     manifest = json.loads((root / 'site/downloads/manifest.json').read_text(encoding='utf-8'))
@@ -48,6 +69,7 @@ def generated_files(root):
               'guia.html', 'proyectos-protegidos.html', 'prompts-proyectos.html', 'metodologia.html', 'privacidad.html', 'opiniones.html',
               'feedback-datos.html', 'auditoria.html', 'prompts.html',
               'downloads/manifest.json', 'downloads/SHA256SUMS.txt']]
+    files += ['site/' + name for name in public_team_assets(root)]
     expected = {'PBIS-Windows.zip', 'PBIS-macOS.zip', 'PBIS-Linux.zip', 'PBIS-Universal.zip'}
     if {item['name'] for item in manifest['files']} != expected or len(manifest['files']) != len(expected):
         raise ValueError('Descargas no previstas.')

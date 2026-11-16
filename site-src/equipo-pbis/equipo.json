@@ -1,0 +1,170 @@
+[
+  {
+    "area": "Dirección",
+    "nombre_visible": "Pablo Brañas · PI",
+    "institucion": "Universidad Loyola",
+    "foto": "assets/pablo-branas.jpg",
+    "perfil": "https://loyolabehlab.org/members/pablo-branas/",
+    "origen_foto": "https://loyolabehlab.org/wordpress/wp-content/uploads/2019/09/pablo-peq-150x150.jpeg"
+  },
+  {
+    "area": "Dirección",
+    "nombre_visible": "Antonio Cabrales",
+    "institucion": "Universidad Carlos III de Madrid",
+    "foto": "assets/antonio-cabrales.png",
+    "perfil": "https://loyolabehlab.org/members/antonio-cabrales/",
+    "origen_foto": "https://loyolabehlab.org/wordpress/wp-content/uploads/2019/11/cabrales-e1572821235504-150x150.png"
+  },
+  {
+    "area": "Coordinación",
+    "nombre_visible": "María Castro",
+    "institucion": "Universidad Complutense de Madrid",
+    "foto": "assets/maria-castro.jpg",
+    "perfil": "https://mariacastroucm.com/quien-soy-maria-castro/",
+    "origen_foto": "Foto aportada por el usuario; incorporada al HTML"
+  },
+  {
+    "area": "Coordinación",
+    "nombre_visible": "Adriana García",
+    "institucion": "Universidad Loyola",
+    "foto": "assets/adriana-garcia.jpg",
+    "perfil": null,
+    "origen_foto": "Fotografía aportada por el usuario"
+  },
+  {
+    "area": "Coordinación",
+    "nombre_visible": "Pablo Luque",
+    "institucion": "Universidad Loyola",
+    "foto": "assets/pablo-luque.jpg",
+    "perfil": "https://loyolabehlab.org/members/pablo-luque-bueno/",
+    "origen_foto": "Foto aportada por el usuario; incorporada al HTML"
+  },
+  {
+    "area": "Cualitativo",
+    "nombre_visible": "Patricia Román",
+    "institucion": "Universidad Loyola",
+    "foto": "assets/patricia-roman.jpg",
+    "perfil": "https://loyolabehlab.org/members/patricia-roman/",
+    "origen_foto": "https://loyolabehlab.org/wordpress/wp-content/uploads/2019/09/patricia-roman-150x150.jpg"
+  },
+  {
+    "area": "Cualitativo",
+    "nombre_visible": "María José Vázquez",
+    "institucion": "Universidad Loyola",
+    "foto": "assets/maria-jose-vazquez.jpg",
+    "perfil": "https://loyolabehlab.org/members/maria-jose-vazquez/",
+    "origen_foto": "https://loyolabehlab.org/wordpress/wp-content/uploads/2019/09/maria-jose-vazquez-150x150.jpg"
+  },
+  {
+    "area": "Cualitativo",
+    "nombre_visible": "Pablo Lomas",
+    "institucion": "Universidad Loyola",
+    "foto": "assets/pablo-lomas.jpg",
+    "perfil": "https://loyolabehlab.org/members/pablo-montero/",
+    "origen_foto": "https://loyolabehlab.org/wordpress/wp-content/uploads/2022/01/Pablo-150x150.jpg"
+  },
+  {
+    "area": "Cualitativo",
+    "nombre_visible": "Isabel Benítez",
+    "institucion": "Universidad de Granada",
+    "foto": "assets/isabel-benitez.jpg",
+    "perfil": "https://loyolabehlab.org/members/isabel-benitez-baena/",
+    "origen_foto": "https://loyolabehlab.org/wordpress/wp-content/uploads/2020/02/EQaQR-rXUAEM2SP-150x150.jpg"
+  },
+  {
+    "area": "Cuantitativo",
+    "nombre_visible": "Tere García",
+    "institucion": "Universidad de Granada",
+    "foto": "assets/tere-garcia.jpg",
+    "perfil": "https://loyolabehlab.org/members/tere-garcia/",
+    "origen_foto": "https://loyolabehlab.org/wordpress/wp-content/uploads/2019/09/tere-garcia-150x150.jpg"
+  },
+  {
+    "area": "Cuantitativo",
+    "nombre_visible": "Mónica Vasco",
+    "institucion": "University of Southern California",
+    "foto": "assets/monica-vasco.jpg",
+    "perfil": "https://loyolabehlab.org/members/monica-vasco/",
+    "origen_foto": "https://loyolabehlab.org/wordpress/wp-content/uploads/2020/12/IMG_3510-150x150.jpg"
+  },
+  {
+    "area": "Cuantitativo",
+    "nombre_visible": "Jaromir Kovarik",
+    "institucion": "Universidad del País Vasco",
+    "foto": "assets/jaromir-kovarik.jpg",
+    "perfil": "https://loyolabehlab.org/members/jaromir-kovarik/",
+    "origen_foto": "https://loyolabehlab.org/wordpress/wp-content/uploads/2019/09/jaromik-150x150.jpg"
+  },
+  {
+    "area": "Cuantitativo",
+    "nombre_visible": "Atrika Rakotonjanahary",
+    "institucion": "Universidad Loyola",
+    "foto": "assets/atrika-rakotonjanahary.png",
+    "perfil": "https://loyolabehlab.org/members/rakotonjanahary-mamitiana-atrika/",
+    "origen_foto": "https://loyolabehlab.org/wordpress/wp-content/uploads/2024/02/Magis-150x150.png"
+  },
+  {
+    "area": "Software",
+    "nombre_visible": "Antonio Alfonso",
+    "institucion": "Universidad de Sevilla",
+    "foto": "assets/antonio-alfonso.png",
+    "perfil": "https://loyolabehlab.org/members/antonio-alfonso/",
+    "origen_foto": "https://loyolabehlab.org/wordpress/wp-content/uploads/2020/02/antonio-150x150.png"
+  },
+  {
+    "area": "Software",
+    "nombre_visible": "Ángel Sánchez",
+    "institucion": "Universidad Carlos III de Madrid",
+    "foto": "assets/angel-sanchez.png",
+    "perfil": "https://loyolabehlab.org/members/anxo-sanchez/",
+    "origen_foto": "https://loyolabehlab.org/wordpress/wp-content/uploads/2020/03/ANXO-150x150.png"
+  },
+  {
+    "area": "Software",
+    "nombre_visible": "Gladis Gonzales",
+    "institucion": "Universidad Loyola",
+    "foto": "assets/gladis-gonzales.jpg",
+    "perfil": "https://loyolabehlab.org/members/gladis-gonzales/",
+    "origen_foto": "https://loyolabehlab.org/wordpress/wp-content/uploads/2022/01/1.-Fotografia-Carnet-150x150.jpg"
+  },
+  {
+    "area": "Software",
+    "nombre_visible": "Guillermo Gómez",
+    "institucion": "Universidad Loyola",
+    "foto": "assets/guillermo-gomez.jpg",
+    "perfil": null,
+    "origen_foto": "Fotografía aportada por el usuario"
+  },
+  {
+    "area": "Software",
+    "nombre_visible": "Alberto Rey",
+    "institucion": "Universidad Loyola",
+    "foto": "assets/alberto-rey.jpg",
+    "perfil": "https://loyolabehlab.org/members/alberto-rey-fernandez-de-villalta/",
+    "origen_foto": "https://loyolabehlab.org/wordpress/wp-content/uploads/2025/11/WhatsApp-Image-2025-11-17-at-12.37.29.jpeg"
+  },
+  {
+    "area": "Software",
+    "nombre_visible": "Sebastián de Lara",
+    "institucion": "Universidad Loyola",
+    "foto": "assets/sebastian-de-lara.png",
+    "perfil": "https://loyolabehlab.org/members/sebastian-de-lara-perez-esparza/",
+    "origen_foto": "https://loyolabehlab.org/wordpress/wp-content/uploads/2024/01/Sebastian-150x150.png"
+  },
+  {
+    "area": "Diseño",
+    "nombre_visible": "Javi González",
+    "institucion": "The Gasp",
+    "foto": "assets/javi-gonzalez.jpg",
+    "perfil": "https://lanochedelosinvestigadores.fundaciondescubre.es/investigador/javi-gonzalez-jurado/",
+    "origen_foto": "https://lanochedelosinvestigadores.fundaciondescubre.es/files/2023/09/Diseno-sin-titulo-250x250.jpg"
+  },
+  {
+    "area": "Diseño",
+    "nombre_visible": "Adriana Gaviria",
+    "institucion": "Universidad Loyola",
+    "foto": "assets/adriana-gaviria.png",
+    "perfil": "https://loyolabehlab.org/members/adriana-gaviria/",
+    "origen_foto": "https://loyolabehlab.org/wordpress/wp-content/uploads/2023/05/Captura-de-pantalla-2023-05-11-a-las-13.59.20-150x150.png"
+  }
+]

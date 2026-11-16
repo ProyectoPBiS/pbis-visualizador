@@ -1,0 +1,107 @@
+[
+  {
+    "nombre": "Pablo Brañas",
+    "archivo": "assets/pablo-branas.jpg",
+    "sha256": "95babff7899780074020ba2f63b9262f2ba5576e3e9f621f3578a499dda083e3"
+  },
+  {
+    "nombre": "Antonio Cabrales",
+    "archivo": "assets/antonio-cabrales.png",
+    "sha256": "bbd027146aebd7c26d9911080414ae139f144e0ca080b49213ac096fb9c9e191"
+  },
+  {
+    "nombre": "María Castro",
+    "archivo": "assets/maria-castro.jpg",
+    "sha256": "fdbe33023c719d24c787354523f023e43cd6a8c4d5a021208a6f9d73a06716ee"
+  },
+  {
+    "nombre": "Adriana García",
+    "archivo": "assets/adriana-garcia.jpg",
+    "sha256": "3815711d652e9ecb46f5be710be7c791d75096693afaee4027a1b20c4a2c212c"
+  },
+  {
+    "nombre": "Pablo Luque",
+    "archivo": "assets/pablo-luque.jpg",
+    "sha256": "af670d676dfb1ddd5738dd2331b55e4b07b68134332c4004b28ade76cb2bbdf0"
+  },
+  {
+    "nombre": "Patricia Román",
+    "archivo": "assets/patricia-roman.jpg",
+    "sha256": "84dcd4b9aff8a6453ea056244cbb302b600b7eed22d1817224bc6e555f0cb15d"
+  },
+  {
+    "nombre": "María José Vázquez",
+    "archivo": "assets/maria-jose-vazquez.jpg",
+    "sha256": "30f8b885dc5ca7a7c561f05b6b9691a6c02d49ce0d7d3fed247c99da0544541a"
+  },
+  {
+    "nombre": "Pablo Lomas",
+    "archivo": "assets/pablo-lomas.jpg",
+    "sha256": "ffc9b57c238a0ec0dddee6ba02f86a6bf29f98b5c92e37b6440620ec8b869130"
+  },
+  {
+    "nombre": "Isabel Benítez",
+    "archivo": "assets/isabel-benitez.jpg",
+    "sha256": "9afa95e1096f4ddd299754f01e8acc6a77c5b729ea1a50f864c498c0538e9c66"
+  },
+  {
+    "nombre": "Tere García",
+    "archivo": "assets/tere-garcia.jpg",
+    "sha256": "aa6ecae330046a098f62f17e801f3c166cb599bfb82ab50dc2be263427a6e417"
+  },
+  {
+    "nombre": "Mónica Vasco",
+    "archivo": "assets/monica-vasco.jpg",
+    "sha256": "0f1c60a0b4ecb1483b939d3402a00826abc8cb6014ad903d15e4dd2f5d90ac14"
+  },
+  {
+    "nombre": "Jaromir Kovarik",
+    "archivo": "assets/jaromir-kovarik.jpg",
+    "sha256": "274ad23f4bb13f4554dcecea1b7ceafc1d4a644bdc558b926acb49038f8dbb35"
+  },
+  {
+    "nombre": "Atrika Rakotonjanahary",
+    "archivo": "assets/atrika-rakotonjanahary.png",
+    "sha256": "9f170a3d4687132d1575385dc8397183efe4cb9327ed736cbbdb6499f800581a"
+  },
+  {
+    "nombre": "Antonio Alfonso",
+    "archivo": "assets/antonio-alfonso.png",
+    "sha256": "f73a3497cee17372f557304ad219eca9d9a7402228114095f43574914e36477c"
+  },
+  {
+    "nombre": "Guillermo Gómez",
+    "archivo": "assets/guillermo-gomez.jpg",
+    "sha256": "e82306e98204ea94b19f89a3a740d4c44d6dd63149d24a4cbf5fb3c03a256a09"
+  },
+  {
+    "nombre": "Gladis Gonzales",
+    "archivo": "assets/gladis-gonzales.jpg",
+    "sha256": "fdeec06a258d49d4d1a8bd72c0edbae0a4112f1d9572c1ec8fa0eaa32fb9f65a"
+  },
+  {
+    "nombre": "Sebastián de Lara",
+    "archivo": "assets/sebastian-de-lara.png",
+    "sha256": "3ba992ed39ca98eb01f78e121a624790c129319f27733d88dc17f8672c74a191"
+  },
+  {
+    "nombre": "Alberto Rey",
+    "archivo": "assets/alberto-rey.jpg",
+    "sha256": "64a471517f599d70f8972ee1a1b7dd659193651b3de180d72dd18e3d1595a3af"
+  },
+  {
+    "nombre": "Ángel Sánchez",
+    "archivo": "assets/angel-sanchez.png",
+    "sha256": "e93006888c0a83004980a0fc9d769bd503c71c6eaa1591727491d013fdd64e76"
+  },
+  {
+    "nombre": "Javi González",
+    "archivo": "assets/javi-gonzalez.jpg",
+    "sha256": "c221332324faae1ff5122c375d718c5c6a2b1d9065dcbb085aa5ba57d46ead07"
+  },
+  {
+    "nombre": "Adriana Gaviria",
+    "archivo": "assets/adriana-gaviria.png",
+    "sha256": "0b6d246a5af22318e0d8d013c0b6e4c9f0f6be9e465dac3a514900e52794bea6"
+  }
+]

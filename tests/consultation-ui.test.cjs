@@ -11,7 +11,7 @@ test('bullying display classifies missing self-reports as no recorded self-selec
  cases.forEach(([, ,expected],i)=>assert.equal(UI.bullyingCategory(rows[i]),expected));
  assert.deepEqual(rows.slice(-4).map(UI.bullyingCategory),['bullying_none','bullying_one_peer','bullying_multiple_peers','bullying_multiple_peers']);
  assert.equal(UI.filter([rows[5]],'bullying_self_and_peers').length,1);
- assert.equal(UI.filter([rows[5]],'bullying_companeros').length,0); // Self + one peer is not two peers.
+ assert.equal(UI.filter([rows[5]],'bullying_companeros').length,1); // The visible list includes every received nomination.
  const d=UI.bullyingDistribution(rows);
  assert.deepEqual(d.categories.map(c=>c.count),[5,3,2,6,2]);
  for(const c of d.categories)assert.equal(UI.filter(rows,c.key).length,c.count);
@@ -45,7 +45,7 @@ test('student search respects the supplied scope, accents, leading-zero codes an
 test('every clickable count resolves to exactly the existing aggregate, for every demo class and centre',()=>{
  const original=JSON.stringify(demo),joined=C.validateAndJoin(demo.students,null,demo.groups);
  const verify=(rows,summary)=>['bullying_declarado','bullying_companeros','soledad','sin_reciprocas'].forEach(key=>{
-  const expected=summary.attention.find(m=>m.id===key).count;
+  const expected=key==='bullying_companeros'?rows.filter(r=>r.bullying_companeros_n>=1).length:key==='sin_reciprocas'?rows.filter(r=>r.respondio!=='No'&&r.amistad_reciproca_n===0).length:summary.attention.find(m=>m.id===key).count;
   assert.equal(UI.filter(rows,key).length,expected??0,key);
  });
  for(const center of new Set(joined.students.map(r=>r.Campus))){
@@ -55,7 +55,7 @@ test('every clickable count resolves to exactly the existing aggregate, for ever
    verify(classroom,C.aggregate(classroom,meta));
   }
  }
- // Nonresponse is not an extra filter for reciprocal relations: preserve the analytical engine.
+ // Missing own relationships must not be presented as no reciprocal friendships.
  const edge=[{ID:'a',Campus:'C',Curso:'ESO',Grupo:'A',respondio:'No',amistad_reciproca_n:0},
  {ID:'b',Campus:'C',Curso:'ESO',Grupo:'A',respondio:'Sí',amistad_reciproca_n:null}];
  verify(edge,C.aggregate(edge));

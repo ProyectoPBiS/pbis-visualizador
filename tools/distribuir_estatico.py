@@ -9,7 +9,7 @@ import re
 from urllib.parse import unquote, urlsplit
 from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
 
-from package_files import application_files
+from package_files import application_files, public_team_assets as team_assets
 
 SECTIONS = [
     ('proyectos', 'Proyectos protegidos', 'PROYECTOS_PROTEGIDOS.md', 'proyectos-protegidos.html'),
@@ -156,6 +156,7 @@ def static_files(root):
     }
     for license_name in ['LICENSE-qpdf.txt', 'LICENSE-d3.txt', 'LICENSE-space-grotesk.txt']:
         files['docs/' + license_name] = application[license_name]
+    files.update(team_assets(root))
     # The local download contains the same application and guide, once each.
     local_home = application['index.html'].decode('utf-8').replace('PBIS.html', 'app.html')
     for section, _, _, page in SECTIONS:

@@ -9,15 +9,16 @@ function app(dataRows=fixtures.students,username='orientacion'){
   set innerHTML(html){this.html=html;for(const [,id]of html.matchAll(/\bid="([^"]+)"/g))elements.set(id,new Element());}
   get innerHTML(){return this.html;}
   insertAdjacentHTML(_position,html){this.html+=html;for(const [,id]of html.matchAll(/\bid="([^"]+)"/g))elements.set(id,new Element());}
-  addEventListener(){} setAttribute(){} focus(){} querySelectorAll(){return [];} showModal(){} close(){}
+  addEventListener(){} setAttribute(){} focus(){} querySelectorAll(){return [];} querySelector(selector){return elements.get(selector.slice(1))||new Element();} showModal(){} close(){}
   closest(selector){return selector==='.usage-ack'?this:null;}
  }
  elements.set('root',new Element());elements.set('help',new Element());elements.set('close-help',new Element());
  const document={getElementById:id=>elements.get(id),querySelector:selector=>selector==='meta[name="pbis-distribution"]'?null:new Element(),querySelectorAll:()=>[],addEventListener(){},hidden:false};
- const books=[{sheets:[table('Datos',dataRows),table('Grupos',fixtures.groups)]}];
+ const classKeys=new Set(dataRows.map(r=>JSON.stringify([r.Campus||r.Centro,r.Curso,r.Grupo])));
+ const books=[{sheets:[table('Datos',dataRows),table('Grupos',fixtures.groups.filter(r=>classKeys.has(JSON.stringify([r.Campus||r.Centro,r.Curso,r.Grupo]))))]}];
  class Worker{postMessage(){const book=books.shift();queueMicrotask(()=>this.onmessage({data:book}));}terminate(){}}
  const context={document,PbisFeedbackModel:require('../src/feedback-model.js'),PbisConsultationUI:require('../src/consultation-ui.js'),PbisLinkedFeedback:require('../src/linked-feedback.js'),PbisProtected:require('../src/protected-project.js'),PbisCore:core,PbisStudentNetwork:require('../src/student-network.js'),PbisClassNetwork:require('../src/class-network.js'),PbisRosterReview:require('../src/roster-review.js'),PbisReviewBatch:require('../src/review-batch.js'),PBIS_PROFILES:JSON.parse(fs.readFileSync(path.join(root,'data/profiles.json'))),PbisFeedback:{reset(){},startSession(){},closeContext(){},sessionSnapshot(){return {opinions:[]}},hasPending(){return false}},Worker,Blob,URL:{createObjectURL:()=> 'blob:test',revokeObjectURL(){}},setTimeout(){return 1;},clearTimeout(){},setInterval(){},addEventListener(){},console};context.window=context;
- vm.runInNewContext(fs.readFileSync(path.join(root,'src/usage-terms.js'),'utf8'),context);vm.runInNewContext(fs.readFileSync(path.join(root,'src/app.js'),'utf8'),context);
+ for(const file of ['usage-terms.js','comparison.js','integration.js','private-charts.js','tutor-validation.js','app.js'])vm.runInNewContext(fs.readFileSync(path.join(root,'src',file),'utf8'),context);
  const el=id=>elements.get(id);
  el('username').value=username;el('password').value=context.PBIS_PROFILES.find(profile=>profile.username===username).password;el('login-terms').checked=true;el('login-form').onsubmit({preventDefault(){}});
  const file=async(kind,name)=>{el('file-'+kind).files=[{name,size:100,arrayBuffer:async()=>new ArrayBuffer(1)}];await el('file-'+kind).onchange();el('sheet-'+kind).value='Datos';};
@@ -27,7 +28,7 @@ test('app loads one .pbis file, uses embedded names and invalidates on replaceme
  const f=app();await f.file('data','datos.pbis');assert.equal(f.el('show-reports').disabled,false);
  assert.equal(f.el('file-key'),undefined);assert.equal(f.el('sheet-key'),undefined);
  f.el('show-reports').onclick();f.el('tab-student').onclick();
- assert.match(f.el('report-content').innerHTML,/Estudiante · 00001/);
+ assert.match(f.el('report-content').innerHTML,/<h2>00001<\/h2>/);
  f.el('file-data').files=[];await f.el('file-data').onchange();assert.equal(f.el('show-reports').disabled,true);
  assert.doesNotMatch(f.el('report-content').innerHTML,/Ficha de estudiante/);
 });
@@ -42,26 +43,25 @@ test('missing names remain codes, a missing value remains null and absent requir
  for(const row of rows)delete row.bienestar;
  assert.throws(()=>core.validateAndJoin(rows,null,fixtures.groups),/bienestar/);
 });
-test('embedded given and family names show surname initials throughout the app',async()=>{
+test('embedded given and family names show full names throughout the app',async()=>{
  const dataRows=fixtures.students.map(row=>row.ID==='00001'?{...row,Nombre:'María José',Apellidos:'García López'}:row);
  const f=app(dataRows);await f.file('data','datos.pbis');f.el('show-reports').onclick();
+ f.el('tab-group').onclick();
  f.el('course').onchange({target:{value:'4.º Primaria'}});
  f.el('group').onchange({target:{value:'A'}});
  f.el('tab-student').onclick();f.el('student').onchange({target:{value:'00001'}});
- assert.match(f.el('report-content').innerHTML,/María José G\. L\./);
- assert.doesNotMatch(f.el('report-content').innerHTML,/García López/);
- assert.match(f.el('filters').innerHTML,/María José G\. L\./);
- f.el('tab-roster').onclick();assert.match(f.el('report-content').innerHTML,/María José G\. L\./);
+ assert.match(f.el('report-content').innerHTML,/María José García López/);
+ assert.match(f.el('filters').innerHTML,/María José García López/);
+ f.el('tab-roster').onclick();assert.match(f.el('report-content').innerHTML,/María José García López/);
 });
-test('participation and network coverage share one footer after every report',async()=>{
+test('removed technical coverage footer stays absent from simplified reports',async()=>{
  const rows=fixtures.students.map(row=>({...row,red_centro_pendiente_pct:9}));
  const f=app(rows);await f.file('data','datos.pbis');f.el('show-reports').onclick();
  for(const tab of ['center','group','roster','student']){
   f.el('tab-'+tab).onclick();
   const html=f.el('report-content').innerHTML;
-  assert.match(html,/con respuesta registrada · Faltan respuestas sobre relaciones del 9 % del centro/);
-  assert.equal((html.match(/Faltan respuestas sobre relaciones/g)||[]).length,1);
-  assert.ok(html.indexOf('class="consultation-context"')>html.lastIndexOf('</article>'));
+  assert.doesNotMatch(html,/class="consultation-context"|Faltan respuestas sobre relaciones del 9 % del centro/);
+  if(['center','group'].includes(tab))assert.match(html,/han respondido al cuestionario/);
  }
 });
 test('export errors remain visible in every view and disappear when selecting another centre',async()=>{
@@ -89,17 +89,36 @@ test('orientation sees centre-wide totals while a class tutor has no centre tab'
  const f=app();assert.ok(f.el('tab-center'));
  await f.file('data','datos.pbis');f.el('show-reports').onclick();
  assert.equal(f.el('tab-center').disabled,false);f.el('tab-center').onclick();
- assert.match(f.el('report-content').innerHTML,/Ficha de centro/);
- assert.match(f.el('report-content').innerHTML,/Ficha de centro/);
+ assert.match(f.el('report-content').innerHTML,/Información general del colegio/);
+ assert.match(f.el('report-content').innerHTML,/Comparativas entre cursos y clases/);
  assert.doesNotMatch(f.el('report-content').innerHTML,/Comunidades de relaciones|Comunidades de relaciones del centro|Separación entre comunidades/);
  assert.match(f.el('report-content').innerHTML,/Mediador/);
  assert.match(f.el('filters').innerHTML,/Centro/);
  assert.doesNotMatch(f.el('filters').innerHTML,/>Curso</);
  f.el('tab-group').onclick();
  assert.doesNotMatch(f.el('report-content').innerHTML,/overview-structure|Separación entre comunidades|Desigualdad de buenas relaciones|Centralización del aula/);
- assert.match(f.el('report-content').innerHTML,/class-network/);
+ assert.match(f.el('report-content').innerHTML,/Ver red de la clase/);
+ f.el('open-current-network').onclick();assert.match(f.el('report-content').innerHTML,/class-network/);
  const tutor=app(fixtures.students,'tutoria4p');
  assert.equal(tutor.el('tab-center'),undefined);
+});
+
+test('orientation starts at Centro, tutoring at Aula, and a single centre needs no selector',async()=>{
+ const center=fixtures.students[0].Campus||fixtures.students[0].Centro;
+ const rows=fixtures.students.filter(r=>(r.Campus||r.Centro)===center);
+ const f=app(rows);await f.file('data','datos.pbis');f.el('show-reports').onclick();
+ assert.match(f.el('report-content').innerHTML,/Información general del colegio/);
+ assert.equal(f.el('center'),undefined);assert.equal(f.el('filters').hidden,true);
+ assert.equal(f.el('filters').innerHTML,'');assert.equal(f.el('tab-review'),undefined);
+ for(const label of ['Aula','Estudiantes','Red de relaciones'])assert.ok(f.el('root').innerHTML.includes('<span>'+label+'</span>'));
+ assert.doesNotMatch(f.el('root').innerHTML,/<span>Clase<\/span>|<span>Alumnos<\/span>|Valoración del tutor/);
+ f.el('tab-group').onclick();assert.equal(f.el('filters').hidden,false);
+ assert.match(f.el('filters').innerHTML,/id="course"/);assert.doesNotMatch(f.el('filters').innerHTML,/id="center"/);
+ const tutor=app(rows,'tutoria4p');await tutor.file('data','datos.pbis');tutor.el('show-reports').onclick();
+ assert.doesNotMatch(tutor.el('report-content').innerHTML,/Información general del colegio/);
+ assert.match(tutor.el('filters').innerHTML,/id="course"/);assert.equal(tutor.el('tab-center'),undefined);
+ const multiple=app();await multiple.file('data','datos.pbis');multiple.el('show-reports').onclick();
+ assert.equal(multiple.el('filters').hidden,false);assert.ok(multiple.el('center'));
 });
 test('pilot account listing stays removed while tutor sees its course in both centers',async()=>{
  const orientacion=app();

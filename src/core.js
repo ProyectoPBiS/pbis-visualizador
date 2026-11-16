@@ -13,6 +13,7 @@
   const COUNT_COLUMNS = Object.freeze(['amistad_recibida_n', 'amistad_declarada_n', 'amistad_reciproca_n', 'rechazo_recibido_n', 'rechazo_declarado_n', 'rechazo_reciproco_n', 'bienestar_suma', 'mediacion_n', 'bullying_companeros_n']);
   const GROUP_SCORE_COLUMNS = Object.freeze(['pos_bullying_declarado', 'pos_bullying_companeros', 'pos_soledad', 'pos_densidad_rechazo', 'pos_sin_reciprocas', 'pos_separacion', 'pos_desigualdad', 'pos_centralizacion']);
   const STRUCTURE_COLUMNS = Object.freeze(['modularidad', 'gini_popularidad', 'centralizacion_eigenvector']);
+  const DEMOGRAPHIC_COLUMNS = Object.freeze(['demografia_neae','demografia_migrante','demografia_nueva_incorporacion']);
   const BAD_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
   const own = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
   const known = value => value !== null && value !== undefined;
@@ -148,7 +149,13 @@
       row.mediacion_negativa_n = parseNumber(row.mediacion_negativa_n, 'mediacion_negativa_n', true, 0, nominationMaximum);
       row.centralidad_reportada_n = parseNumber(row.centralidad_reportada_n, 'centralidad_reportada_n', true, 0, nominationMaximum);
       row.popularidad_reportada_n = parseNumber(row.popularidad_reportada_n, 'popularidad_reportada_n', true, 0, nominationMaximum);
-      for (const field of ['amistad_clase_declarada_n','rechazo_clase_declarada_n']) if (own(row,field)) row[field]=parseNumber(row[field],field,true,0,size-1);
+      for (const field of ['amistad_clase_declarada_n','rechazo_clase_declarada_n','amistad_clase_recibida_n','amistad_clase_reciproca_n','rechazo_clase_recibido_n','rechazo_clase_reciproco_n']) if (own(row,field)) row[field]=parseNumber(row[field],field,true,0,size-1);
+      for (const field of DEMOGRAPHIC_COLUMNS) {
+        const value=row[field];
+        if (value==null||value==='') row[field]=null;
+        else if(typeof value==='boolean') row[field]=value;
+        else {const result=yesNo(value,field);row[field]=result===null?null:result==='Sí';}
+      }
       for (const type of ['amistad', 'rechazo']) {
         const reciprocal = type === 'amistad' ? row.amistad_reciproca_n : row.rechazo_reciproco_n;
         const declared = type === 'amistad' ? row.amistad_declarada_n : row.rechazo_declarado_n;
@@ -420,5 +427,5 @@
     return parts.slice(0, -2).join(' ') + ' ' + initial(parts.at(-2)) + ' ' + initial(parts.at(-1));
   }
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[character]));
-  return Object.freeze({MIN_BULLYING_PEERS, hasPeerBullyingSignal, normalizeGroup, validateAndJoin, aggregate, aggregateCenter, studentNetwork, scopeRows, happiness, displayName, consultationContext, COURSE_ORDER, SCORE_COLUMNS, COUNT_COLUMNS, GROUP_SCORE_COLUMNS, STRUCTURE_COLUMNS, compareCourses, sortCourses, escapeHtml});
+  return Object.freeze({MIN_BULLYING_PEERS, hasPeerBullyingSignal, normalizeGroup, validateAndJoin, aggregate, aggregateCenter, studentNetwork, scopeRows, happiness, displayName, consultationContext, COURSE_ORDER, SCORE_COLUMNS, COUNT_COLUMNS, GROUP_SCORE_COLUMNS, STRUCTURE_COLUMNS, DEMOGRAPHIC_COLUMNS, compareCourses, sortCourses, escapeHtml});
 }));

@@ -1,0 +1,42 @@
+#pbis-equipo{--cream:#f7f2ec;--ink:#2c221d;--coral:#dd694b;--line:#e5d9cf;--secondary:#68584e;background:var(--cream);color:var(--ink);font-family:inherit;padding:46px 52px 48px;box-sizing:border-box;width:100%;}
+#pbis-equipo *{box-sizing:border-box}#pbis-equipo h2,#pbis-equipo h3,#pbis-equipo h4,#pbis-equipo p{margin:0}#pbis-equipo h2{font-size:48px;font-weight:700;line-height:1.12;letter-spacing:-1.8px}#pbis-equipo h2 span{color:var(--coral)}#pbis-equipo .intro{font-size:15px;line-height:1.8;color:var(--secondary);max-width:620px;margin-top:20px}#pbis-equipo .team-heading{padding-bottom:38px}#pbis-equipo .section{display:grid;grid-template-columns:175px minmax(0,1fr);gap:24px;padding:28px 0;border-top:1px solid var(--line)}#pbis-equipo .section h3{font-size:17px;font-weight:600;color:var(--coral);line-height:1.4;padding-top:3px}#pbis-equipo .people{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px;row-gap:25px}#pbis-equipo .person{min-width:0}#pbis-equipo .person h4{font-size:15px;line-height:1.5;font-weight:600;overflow-wrap:anywhere}#pbis-equipo .person p{font-size:12px;line-height:1.6;color:var(--secondary);margin-top:4px}#pbis-equipo .direction h4{font-size:19px}#pbis-equipo .direction .person:first-child h4{font-weight:700}#pbis-equipo .coordination .people{grid-template-columns:repeat(3,minmax(0,1fr));column-gap:20px}#pbis-equipo .last{padding-bottom:0}
+@media(max-width:760px){#pbis-equipo{padding:35px 28px}#pbis-equipo .section{grid-template-columns:135px minmax(0,1fr);gap:18px}#pbis-equipo .coordination .people{grid-template-columns:repeat(2,minmax(0,1fr))}#pbis-equipo h2{font-size:40px}}
+@media(max-width:530px){#pbis-equipo{padding:28px 20px}#pbis-equipo h2{font-size:34px}#pbis-equipo .section{grid-template-columns:1fr;gap:19px;padding:24px 0}#pbis-equipo .people,#pbis-equipo .coordination .people{column-gap:17px;row-gap:20px}#pbis-equipo .direction h4{font-size:16px}#pbis-equipo .person h4{font-size:14px}#pbis-equipo .intro{font-size:14px}}
+@media(max-width:360px){#pbis-equipo .people,#pbis-equipo .coordination .people{grid-template-columns:1fr}}
+
+
+
+#pbis-equipo{padding:58px 52px 64px}
+#pbis-equipo .section{grid-template-columns:155px minmax(0,1fr);padding:34px 0}
+#pbis-equipo .people,#pbis-equipo .coordination .people{grid-template-columns:repeat(3,minmax(0,1fr));gap:28px 25px}
+#pbis-equipo .direction .people{grid-template-columns:repeat(3,minmax(0,1fr));max-width:none}
+#pbis-equipo .portrait{display:block;width:130px;height:130px;object-fit:cover;border-radius:50%;margin-bottom:17px;background:#e9ded3}
+#pbis-equipo .direction .portrait{width:130px;height:130px}
+#pbis-equipo .person{display:flex;flex-direction:column;align-items:flex-start}
+#pbis-equipo .person-info{display:flex;flex-direction:column;flex:1;width:100%}
+#pbis-equipo .person h4{font-size:15px;line-height:1.5;font-weight:500}
+#pbis-equipo .direction h4{font-size:15px}
+#pbis-equipo .person p{margin-bottom:15px;min-height:38px}
+#pbis-equipo .profile-link{display:inline-flex;align-items:center;gap:14px;align-self:flex-start;margin-top:auto;padding:10px 16px;border:1px solid #dd694b;border-radius:24px;color:#6e3020;text-decoration:none;font-size:12px;font-weight:600;min-height:44px;transition:background .15s}
+#pbis-equipo .profile-link:hover{background:#efd7ca}
+#pbis-equipo .profile-link:focus-visible{outline:3px solid #2c221d;outline-offset:3px}
+#pbis-equipo .initials{display:flex;justify-content:center;align-items:center;color:#796858}
+#pbis-equipo .initials span{font-size:25px;font-weight:500}
+#pbis-equipo .profile-note{font-size:11px;color:#796858;margin-top:auto;padding-top:12px}
+#pbis-equipo .face-crop,#pbis-equipo .maria-crop,#pbis-equipo .alberto-crop{overflow:hidden}
+#pbis-equipo .alberto-crop img{width:100%;height:100%;max-width:none;object-fit:cover;object-position:center top;transform:scale(1.3);transform-origin:54% 0%;border-radius:0;margin:0}
+#pbis-equipo .face-crop img{width:100%;height:100%;max-width:none;object-fit:cover;object-position:center top;transform:scale(1.55);transform-origin:50% 0%;border-radius:0;margin:0}
+#pbis-equipo .maria-crop img{width:100%;height:100%;max-width:none;object-fit:cover;object-position:center top;transform:scale(1.6);transform-origin:48% 43%;border-radius:0;margin:0}
+@media(max-width:850px){#pbis-equipo .section{grid-template-columns:130px minmax(0,1fr)}#pbis-equipo .people,#pbis-equipo .coordination .people,#pbis-equipo .direction .people{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){#pbis-equipo{padding:30px 22px}#pbis-equipo .section{grid-template-columns:1fr;gap:25px}#pbis-equipo .portrait,#pbis-equipo .direction .portrait{width:112px;height:112px}#pbis-equipo .direction h4{font-size:15px}#pbis-equipo .people,#pbis-equipo .coordination .people{gap:28px 18px}}
+@media(max-width:350px){#pbis-equipo .people,#pbis-equipo .coordination .people,#pbis-equipo .direction .people{grid-template-columns:1fr}}
+
+/* Integración: heredar la tipografía oficial de la web anfitriona. */
+#pbis-equipo{font-family:inherit;max-width:1180px;margin-inline:auto;scroll-margin-top:110px}
+
+/* Use host font, without the host headings’ tight tracking on names. */
+#pbis-equipo h3,#pbis-equipo h4{font-family:inherit;letter-spacing:normal}
+
+/* Encuadre de Pablo: rostro ligeramente abajo y a la derecha. */
+#pbis-equipo .pablo-crop{overflow:hidden}
+#pbis-equipo .pablo-crop img{display:block;width:100%;height:100%;max-width:none;object-fit:cover;object-position:center 25%;transform:translateX(3%) scale(1.08);margin:0}

@@ -21,7 +21,11 @@ class PackagingTests(unittest.TestCase):
         self.assertEqual(sorted(name for name in files if name.endswith('.xlsx')), [
             'data/examples/datos_evaluacion.xlsx', 'data/examples/llave_evaluacion.xlsx'])
         self.assertFalse(any(name.startswith('outputs/') for name in files))
-        self.assertEqual(len(pack.generated_files(ROOT)), 34)
+        generated = pack.generated_files(ROOT)
+        manifest = json.loads((ROOT / 'site-src/equipo-pbis/assets-manifest.json').read_text(encoding='utf-8'))
+        self.assertEqual(len(generated), 34 + len(manifest))
+        for entry in manifest:
+            self.assertIn('site/assets/equipo-pbis/' + Path(entry['archivo']).name, generated)
 
     def test_application_package_contains_one_app_and_no_source_data_or_service(self):
         files = pack.application_files(ROOT)

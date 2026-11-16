@@ -22,7 +22,7 @@ const demo=completeDemo(root);
 const config="window.PBIS_HOME='index.html';\nwindow.PBIS_DEMO_ACCOUNT="+await read('data/demo-account.json')+";\nwindow.PBIS_PROFILES="+await read('data/profiles.json')+';\nwindow.PBIS_PARSER='+JSON.stringify(parser)+';\nwindow.PBIS_FEEDBACK='+JSON.stringify(feedback)+';\nwindow.PBIS_BATCH='+JSON.stringify(batch)+';\nwindow.PBIS_FEEDBACK_WORKER='+JSON.stringify(feedbackWorker)+';';
 const pdfCryptoWorker=await read('vendor/qpdf.js')+'\nconst PBIS_QPDF_WASM='+JSON.stringify((await fs.readFile(path.join(root,'vendor/qpdf.wasm'))).toString('base64'))+';\n'+await read('src/pdf-crypto-worker.js');
 const termsScript='window.PBIS_TERMS_TEXT='+JSON.stringify(await read('docs/CONDICIONES_USO.md'))+';\n'+await read('src/usage-terms.js');
-const scripts=[config+'\nwindow.PBIS_PDF_CRYPTO_WORKER='+JSON.stringify(pdfCryptoWorker)+';',termsScript,await read('src/brand.js'),await read('src/consultation-ui.js'),await read('src/core.js'),await read('src/raw-wave1.js'),await read('src/protected-project.js'),await read('src/access-audit.js'),await read('src/audit-connection.js'),await read('src/project-accounts.js'),await read('src/project-admin.js'),await read('src/student-network.js'),await read('src/class-network.js'),await read('src/roster-review.js'),await read('src/review-batch.js'),await read('src/linked-feedback.js'),await read('src/feedback-model.js'),await read('src/feedback.js'),await read('vendor/jspdf.umd.min.js'),await read('src/pdf-crypto.js'),await read('src/pdf-export.js'),await read('src/app.js')].map(safeScript);
+const scripts=[config+'\nwindow.PBIS_PDF_CRYPTO_WORKER='+JSON.stringify(pdfCryptoWorker)+';',termsScript,await read('src/brand.js'),await read('src/consultation-ui.js'),await read('src/core.js'),await read('src/raw-wave1.js'),await read('src/protected-project.js'),await read('src/access-audit.js'),await read('src/audit-connection.js'),await read('src/project-accounts.js'),await read('src/project-admin.js'),await read('src/student-network.js'),await read('src/class-network.js'),await read('src/roster-review.js'),await read('src/review-batch.js'),await read('src/linked-feedback.js'),await read('src/feedback-model.js'),await read('src/feedback.js'),await read('vendor/jspdf.umd.min.js'),await read('src/pdf-crypto.js'),await read('src/pdf-export.js'),await read('src/comparison.js'),await read('src/integration.js'),await read('src/private-charts.js'),await read('src/app.js')].map(safeScript);
 const policy="default-src 'none'; script-src 'wasm-unsafe-eval' "+scripts.map(s=>"'sha256-"+hash(s)+"'").join(' ')+"; style-src 'unsafe-inline'; img-src data:; worker-src blob:; child-src blob:; connect-src "+connectPolicy(batch)+" https://script.google.com https://script.googleusercontent.com; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";
 const css=await read('src/app.css')+'\n'+await read('src/feedback.css')+'\n'+await read('src/protected-project.css')+'\n'+await read('src/relaunch.css');
 const offlineDemoConfig=safeScript('window.PBIS_DEMO_DATA='+JSON.stringify(demo)+';');
@@ -32,16 +32,25 @@ const html=(await read('src/app.html')).replace('<!--CSP-->',()=>`<meta http-equ
 await put('release/PBIS.html',html);
 const legalDocs=[['avisoLegal','Aviso legal y condiciones','CONDICIONES_USO.md'],['privacidad','Privacidad','PRIVACIDAD.md'],['cookies','Cookies y almacenamiento','COOKIES.md']];
 const legalDialogs=(await Promise.all(legalDocs.map(async([id,title,file])=>`<dialog class="legal-dialog" id="${id}" aria-labelledby="${id}-title"><div class="legal-top"><h2 id="${id}-title">${title}</h2><button type="button" data-close aria-label="Cerrar ${title.toLowerCase()}">Cerrar ×</button></div><div class="legal-body">${markdown(await read('docs/'+file))}</div></dialog>`))).join('\n');
+// Team is public editorial content, kept separate from school data and calculations.
+const teamSection=await read('site-src/equipo-pbis/equipo-pbis.html');
+const teamManifest=JSON.parse(await read('site-src/equipo-pbis/assets-manifest.json'));
+const teamAssets=await Promise.all(teamManifest.map(async entry=>{
+ if(!/^assets\/[a-z0-9-]+\.(?:jpg|png)$/.test(entry.archivo))throw Error('Ruta de foto de equipo no admitida.');
+ const data=await fs.readFile(path.join(root,'site-src/equipo-pbis',entry.archivo));
+ if(createHash('sha256').update(data).digest('hex')!==entry.sha256)throw Error('Foto de equipo alterada: '+entry.archivo);
+ return {url:'assets/equipo-pbis/'+path.posix.basename(entry.archivo),data,mime:entry.archivo.endsWith('.png')?'image/png':'image/jpeg'};
+}));
 const awaitableFavicon=await read('site-src/assets/pbis-favicon.svg');
-const homeTemplate=(await read('site-src/index.html')).replace('<!--PBIS_LEGAL_DIALOGS-->',()=>legalDialogs).replace('<!--PBIS_FAVICON-->',()=>`<link rel="icon" href="data:image/svg+xml;base64,${Buffer.from(awaitableFavicon).toString('base64')}">`);
+const homeTemplate=(await read('site-src/index.html')).replace('<!--PBIS_TEAM_SECTION-->',()=>teamSection).replace('<!--PBIS_LEGAL_DIALOGS-->',()=>legalDialogs).replace('<!--PBIS_FAVICON-->',()=>`<link rel="icon" href="data:image/svg+xml;base64,${Buffer.from(awaitableFavicon).toString('base64')}">`);
 const fontStyles=(await Promise.all([400,500,600,700].map(async weight=>`@font-face{font-family:'Space Grotesk';font-style:normal;font-weight:${weight};font-display:swap;src:url(data:font/ttf;base64,${(await fs.readFile(path.join(root,'vendor/space-grotesk-'+weight+'.ttf'))).toString('base64')}) format('truetype')}`))).join('\n');
-const cssFile=fontStyles+'\n'+await read('site-src/site.css'),jsFile=await read('vendor/d3.v7.8.5.min.js')+'\n'+await read('site-src/site.js')+'\n'+await read('site-src/contact.js');
+const cssFile=fontStyles+'\n'+await read('site-src/site.css')+'\n'+await read('site-src/equipo-pbis/equipo-pbis.css'),jsFile=await read('vendor/d3.v7.8.5.min.js')+'\n'+await read('site-src/site.js')+'\n'+await read('site-src/contact.js');
 const imageBytes=await fs.readFile(path.join(root,'site-src/assets/ficha-grupo-ejemplo.png'));
 // One presentation for web and local use. Embed resources so the downloaded
 // home does not need a server or Internet; only optional web links go online.
 const publicBase='https://proyectopbis.github.io/pbis-visualizador/';
 const homePolicy="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src data:; connect-src https://formspree.io/f/mvkgydrn; form-action https://formspree.io/f/mvkgydrn; base-uri 'none'; object-src 'none'";
-const localHome=(await read('site-src/local-home.html'))
+let localHome=(await read('site-src/local-home.html'))
  .replace('<!--PBIS_SHARED_HOME-->',()=>homeTemplate)
  .replace('<!--PBIS_HOME_CSP-->',()=>`<meta http-equiv="Content-Security-Policy" content="${homePolicy.replace("script-src 'self'","script-src 'sha256-"+hash(safeScript(jsFile))+"'")}">`)
  .replace('<link rel="stylesheet" href="site.css">',()=>`<style>${cssFile}</style>`)
@@ -51,6 +60,7 @@ const localHome=(await read('site-src/local-home.html'))
  .replaceAll('href="DEMO.html#guia"','href="PBIS.html#demo"').replaceAll('href="DEMO.html#demo"','href="PBIS.html#demo"')
  .replace(/href="((?:downloads\/|assets\/)[^"]+|opiniones\.html)"/g,(_,url)=>`href="${publicBase}${url}"`)
  .replace('</div>\n    </section>\n    <section id="ayuda"','</div>\n      <p class="download-connection-note">Esta copia ya funciona en tu equipo. Las nuevas descargas y la documentación web requieren conexión.</p>\n    </section>\n    <section id="ayuda"');
+for(const asset of teamAssets)localHome=localHome.replaceAll('src="'+asset.url+'"','src="data:'+asset.mime+';base64,'+asset.data.toString('base64')+'"');
 await put('release/index.html',localHome);
 // Local operator tools: never part of site/ or the four centre downloads.
 // This separates UI only; Google still controls access to the private registry.
@@ -77,6 +87,8 @@ await put('site/index.html',home);await put('site/site.css',cssFile);await put('
 // Preserve the captured report as a binary asset; text normalization would corrupt it.
 await fs.mkdir(path.join(root,'site/assets'),{recursive:true});
 await fs.copyFile(path.join(root,'site-src/assets/ficha-grupo-ejemplo.png'),path.join(root,'site/assets/ficha-grupo-ejemplo.png'));
+await fs.mkdir(path.join(root,'site/assets/equipo-pbis'),{recursive:true});
+for(const asset of teamAssets)await put('site/'+asset.url,asset.data);
 function escape(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function markdown(text){
  const inline=s=>escape(s).replace(/\[([^\]]+)\]\((https:\/\/[^\s)]+)\)/g,'<a href="$2" rel="noreferrer">$1</a>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/`([^`]+)`/g,'<code>$1</code>');

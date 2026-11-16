@@ -1,6 +1,8 @@
 # Importación Wave 1: implementación vigente
 
-Revisión técnica del 16 de octubre de 2026. Describe el código actual; no modifica fórmulas ni normalización. La referencia de interpretación es [METODOLOGIA.md](METODOLOGIA.md).
+Revisión local del 15 de noviembre de 2026. La referencia de interpretación es [METODOLOGIA.md](METODOLOGIA.md). Esta copia no se ha publicado.
+
+Las parejas redes1/redes2, beliefs1/beliefs2 y las tres parejas cognitivas se resuelven mediante su contenido: se utiliza la variante contestada, independientemente del día, mes o asignación aleatoria. Si ambas tienen respuesta se notifica una incoherencia; no se mezclan. Los tiempos de entrada por sí solos no acreditan respuesta.
 
 ## Entrada y nombres
 
@@ -26,9 +28,9 @@ Un cero observado no se sustituye por dato ausente ni al contrario. Una lista va
 
 Las redes incompletas conservan los vínculos observados e informan de las respuestas pendientes. Una centralidad sin convergencia o sin solución única permanece sin calcular. La ausencia de respuesta propia no impide recibir menciones.
 
-La ficha individual muestra el recuento recibido de menciones de acoso; los resúmenes de aula y centro cuentan estudiantes con al menos dos menciones válidas. Numeradores y denominadores se recomponen con registros individuales, no promediando porcentajes de aulas. Las reglas de admisión de menciones se conservan en el importador y en sus pruebas.
+La ficha individual muestra el recuento recibido de nominaciones de bullying. «Señalados por otros» cuenta alumnos con al menos una nominación de otra persona. Se conservan todas las nominaciones, también las emitidas por alguien que señala a 15 o más compañeros; ese caso genera un aviso, no una exclusión. Numeradores y denominadores se recomponen con registros individuales. La comparativa de cero, una o dos o más nominaciones incluye la propia y no establece grados de gravedad.
 
-Bienestar suma las dos preguntas positivas codificadas de 0 a 4 y `4 − soledad`; la suma de 0 a 12 se expresa de 0 a 10 y requiere las tres respuestas. Se conservan las respuestas originales. El Test de impulsividad presenta únicamente los aciertos CRT de la ruta Par/Impar, de 0 a 3, y la media del aula con resultados completos.
+Bienestar suma las dos preguntas positivas codificadas de 0 a 4 y `4 − soledad`; la suma de 0 a 12 se expresa de 0 a 10 y requiere las tres respuestas. Se conservan las respuestas originales. El Test cognitivo presenta los aciertos de las tres respuestas efectivamente contestadas, de 0 a 3, su desglose y la media del aula con resultados completos.
 
 ## Ejemplos y comprobaciones
 

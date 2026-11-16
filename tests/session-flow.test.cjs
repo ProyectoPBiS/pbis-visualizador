@@ -21,7 +21,8 @@ function fixture({failSend=false,data=demo,waitForSend=null,distribution=null,pr
  const table=(name,rows)=>{const headers=[...new Set(rows.flatMap(row=>Object.keys(row)))];return {name,rows:[headers,...rows.map(row=>headers.map(h=>row[h]??null))]};};
  class Worker{postMessage(){queueMicrotask(()=>this.onmessage({data:{sheets:[table('Datos',data.students),table('Grupos',data.groups)]}}));}terminate(){}}
  const context={Date:Clock,document,Worker,Blob,AbortController,URL:{createObjectURL:()=> 'blob:test',revokeObjectURL(){}},console,setTimeout(){return 1},clearTimeout(){},setInterval(fn){interval=fn;},addEventListener(type,fn){listeners[type]=fn;},location:{hash:'',protocol,assign:url=>navigations.push(url)},PBIS_HOME:'index.html',PBIS_PROFILES:profiles,PBIS_DEMO_DATA:demo,PBIS_BATCH:{endpoint:'https://test.invalid/form'},PbisProtected:require('../src/protected-project.js'),PbisCore:require('../src/core.js'),PbisStudentNetwork:require('../src/student-network.js'),PbisClassNetwork:require('../src/class-network.js'),PbisRosterReview:require('../src/roster-review.js'),PbisConsultationUI:require('../src/consultation-ui.js'),PbisFeedbackModel:{...require('../src/feedback-model.js'),classCode:async()=> 'AULA-test',newId:()=> require('node:crypto').randomUUID()},PBIS_FEEDBACK:{version:'0.10.17',recipient:'pbis_usuario@outlook.es'},PbisLinkedFeedback:require('../src/linked-feedback.js'),PbisReviewBatch:{studentCode:async(c,id)=>'coded-'+id,create:value=>({...value,message:'batch-test'})},PbisFeedback:{reset(){resets++;opinions=[];demoMode=false},open(value){feedbackTarget=value.scope==='app'?value:value.target},startSession(_role,{demo=false}={}){demoMode=demo},closeContext(){},sessionSnapshot:()=>({sessionCode:'00000000-0000-4000-8000-000000000001',opinions}),hasPending:()=>false,acknowledge(){opinions=[];}},fetch:async(url,options)=>{fetches.push({url,options});if(waitForSend)await waitForSend;return {ok:!failSend,status:failSend?500:200,json:async()=>({ok:!failSend})}}};
- context.window=context;vm.runInNewContext(read('src/usage-terms.js'),context);vm.runInNewContext(read('src/app.js'),context);
+ context.history={state:null,replaceState(value){this.state=value;},pushState(value){this.state=value;}};
+ context.window=context;for(const file of ['usage-terms.js','comparison.js','integration.js','private-charts.js','tutor-validation.js','app.js'])vm.runInNewContext(read('src/'+file),context);
  const el=id=>elements.get(id);
  const login=(username,password=profiles.find(p=>p.username===username).password)=>{el('username').value=username;el('password').value=password;el('login-terms').checked=true;el('login-form').onsubmit({preventDefault(){}});};
  const upload=async()=>{el('file-data').files=[{name:'datos.pbis',size:100,arrayBuffer:async()=>new ArrayBuffer(1)}];await el('file-data').onchange();el('sheet-data').value='Datos';el('show-reports').onclick();};
@@ -34,25 +35,39 @@ function fixture({failSend=false,data=demo,waitForSend=null,distribution=null,pr
  };
 
  const addAppOpinion=(sheet,section,rating,comment,kind='opinion')=>{opinions.push(context.PbisFeedbackModel.makeAppOpinion({scope:'app',sessionCode:'00000000-0000-4000-8000-000000000001',role:'tutor',sheet,section,rating,comment,kind,version:'0.10.17'}));context.PBIS_UPDATE_CLOSE?.();};
- return {el,login,upload,addOpinion,addAppOpinion,feedbackTarget:()=>feedbackTarget,fetches,navigations,demoMode:()=>demoMode,resets:()=>resets,listeners,tick:ms=>{now+=ms;return interval();},setFailSend:value=>{failSend=value;},setDraftCount:value=>{context.PbisFeedback.draftCount=()=>value;}};
+ return {el,login,upload,addOpinion,addAppOpinion,historyState:()=>({...context.history.state}),feedbackTarget:()=>feedbackTarget,fetches,navigations,demoMode:()=>demoMode,resets:()=>resets,listeners,tick:ms=>{now+=ms;return interval();},setFailSend:value=>{failSend=value;},setDraftCount:value=>{context.PbisFeedback.draftCount=()=>value;}};
 }
-test('class circle opens only a current-class student and stays after the expanded indicators',async()=>{
+
+test('browser back restores an authorized list but never restores a previous session',async()=>{
+ const f=fixture();f.login('tutoria1eso');await f.upload();
+ f.el('tab-roster').onclick();const saved=f.historyState(),list=f.el('report-content').innerHTML;
+ f.el('tab-student').onclick();assert.notEqual(f.el('report-content').innerHTML,list);
+ f.listeners.popstate({state:saved});assert.equal(f.el('report-content').innerHTML,list);
+ await f.el('logout').onclick();f.login('tutoria2eso');await f.upload();
+ const current=f.el('report-content').innerHTML;f.listeners.popstate({state:saved});
+ assert.equal(f.el('report-content').innerHTML,current);
+ assert.notEqual(f.historyState().pbisGeneration,saved.pbisGeneration);
+});
+test('class network toggles connections without opening a student profile',async()=>{
  for(const username of ['orientacion','tutoria1eso']){
   const f=fixture();f.login(username);await f.upload();
-  const html=f.el('report-content').innerHTML;
+  f.el('tab-network').onclick();const html=f.el('report-content').innerHTML;
   const currentCourse=username==='orientacion'?'4.º Primaria':'1.º ESO';assert.equal((html.match(/data-class-student=/g)||[]).length,demo.students.filter(r=>r.Campus==='Centro 3705'&&r.Curso===currentCourse&&r.Grupo==='A').length);
-  assert.ok(html.indexOf('class-network-heading')>html.indexOf('Información complementaria'));
-  const click=id=>f.el('report-content').listeners.click({preventDefault(){},target:{closest:selector=>selector==='a[data-class-student]'?{dataset:{classStudent:id}}:null}});
-  click('not-in-this-class');assert.match(f.el('report-content').innerHTML,/Ficha de aula/);
+  assert.match(html,/class-network-heading/);
+  const select={value:''},status={textContent:''};
+  const nodes=[...html.matchAll(/data-class-student="([^"]+)"/g)].map(m=>({dataset:{classStudent:m[1]},classList:{toggle(){}}}));
+  const panel={querySelector:q=>q==='[data-class-network-highlight]'?select:status,querySelectorAll:q=>q==='[data-class-student]'?nodes:[]};
+  const click=id=>f.el('report-content').listeners.click({preventDefault(){},target:{closest:selector=>selector==='a[data-class-student]'?{dataset:{classStudent:id},closest:()=>panel}:null}});
+  click('not-in-this-class');assert.match(f.el('report-content').innerHTML,/class-network-heading/);
   const id=html.match(/data-class-student="([^"]+)"/)[1];click(id);
-  assert.match(f.el('report-content').innerHTML,/Resumen de la ficha/);assert.ok(f.el('filters').innerHTML.includes('value="'+id+'" selected'));
-  assert.doesNotMatch(f.el('report-content').innerHTML,/class-network-heading/);
+  assert.equal(select.value,id);assert.equal(f.el('report-content').innerHTML,html);
+  click(id);assert.equal(select.value,'');assert.equal(f.el('report-content').innerHTML,html);
   assert.equal(f.fetches.length,0);
  }
 });
 test('every account signs in, loads its exact course scope and signs out without data leaking into the next session',async()=>{
  const f=fixture();
- f.login('orientacion','1234');assert.ok(f.el('file-data'));assert.equal(f.el('admin-project'),undefined);await f.upload();assert.match(f.el('import-error').textContent,/No tienes permisos/);assert.doesNotMatch(f.el('report-content').innerHTML,/Ficha de aula/);await f.el('logout').onclick();
+ f.login('orientacion','1234');assert.ok(f.el('file-data'));assert.equal(f.el('admin-project'),undefined);await f.upload();assert.match(f.el('import-error').textContent,/No tienes permisos/);assert.doesNotMatch(f.el('report-content').innerHTML,/overview-report/);await f.el('logout').onclick();
  for(const p of profiles.filter(p=>!p.group)){
   f.login(p.username);assert.equal(f.el('open-accounts'),undefined);assert.equal(f.el('accounts-dialog'),undefined);assert.equal(f.el('open-demo'),undefined);assert.equal(f.el('start-tour'),undefined);assert.equal(f.el('load-demo'),undefined);
   await f.upload();assert.match(f.el('import-status').textContent,new RegExp(`${p.role==='orientador'?1512:168} estudiantes`));
@@ -65,7 +80,7 @@ test('every account signs in, loads its exact course scope and signs out without
 test('demo is independent of accounts, cannot import a file, and closing brand never sends practice feedback',async()=>{
  const f=fixture();f.login('demo','DEMO26');await f.el('load-demo').onclick();assert.equal(f.demoMode(),true);
  assert.equal(f.el('open-accounts'),undefined);assert.equal(f.el('start-tour'),undefined);assert.equal(f.el('open-demo'),undefined);assert.equal(f.el('change-files'),undefined);
- assert.ok(f.el('tab-center'));assert.match(f.el('report-content').innerHTML,/Ficha de aula/);
+ assert.ok(f.el('tab-center'));assert.match(f.el('report-content').innerHTML,/overview-report/);
  f.el('file-data').files=[{name:'not-allowed.pbis',size:100,arrayBuffer:()=>{throw Error('Demo must never read uploaded files')}}];await f.el('file-data').onchange();
  await f.addOpinion();assert.equal(f.el('logout').textContent,'Cerrar sesión');await f.el('brand').onclick();
  assert.deepEqual(f.navigations,['index.html']);assert.equal(f.fetches.length,0);assert.equal(f.demoMode(),false);assert.ok(f.el('login-form'));
@@ -73,7 +88,7 @@ test('demo is independent of accounts, cannot import a file, and closing brand n
 });
 test('demo credentials enter directly with simulated data and no guide overlay',async()=>{
  const f=fixture();await f.login('demo','DEMO26');
- assert.equal(f.demoMode(),true);assert.match(f.el('report-content').innerHTML,/Ficha de aula/);
+ assert.equal(f.demoMode(),true);assert.match(f.el('report-content').innerHTML,/overview-report/);
  assert.equal(f.el('tour-panel'),undefined);assert.equal(f.fetches.length,0);
 });
 
@@ -82,7 +97,7 @@ test('initial form accepts arbitrary credentials repeatedly but grants no access
  for(let i=0;i<7;i++){
   f.login(i%2?'orientacion':'12345678Z','CualquierClave'+i);
   assert.ok(f.el('file-data'));assert.equal(f.el('admin-project'),undefined);assert.equal(f.el('open-protected'),undefined);
-  assert.doesNotMatch(f.el('report-content').innerHTML,/Ficha de aula/);
+  assert.doesNotMatch(f.el('report-content').innerHTML,/overview-report/);
   await f.upload();assert.match(f.el('import-error').textContent,/No tienes permisos/);
   assert.equal(f.el('show-reports').disabled,true);assert.equal(f.fetches.length,0);
   await f.el('change-access').onclick();assert.ok(f.el('login-form'));
@@ -90,7 +105,7 @@ test('initial form accepts arbitrary credentials repeatedly but grants no access
 });
 test('one demo button opens the fixture without credentials and logout sends nothing',async()=>{
  const f=fixture();assert.doesNotMatch(f.el('root').innerHTML,/DEMO26/);
- await f.el('start-tour-login').onclick();assert.match(f.el('report-content').innerHTML,/Ficha de aula/);
+ await f.el('start-tour-login').onclick();assert.match(f.el('report-content').innerHTML,/overview-report/);
  assert.equal(f.el('tour-panel'),undefined);assert.match(f.el('filters').innerHTML,/value="1.º ESO" selected/);
  await f.el('logout').onclick();assert.ok(f.el('login-form'));assert.equal(f.fetches.length,0);
 });
@@ -141,8 +156,8 @@ test('PDC sign-in loads the exact group in each center and can open individual c
   assert.match(f.el('filters').innerHTML,p.group==='PDC I'?/value="PDCI" selected/:/value="PDC II" selected/);
   assert.doesNotMatch(f.el('filters').innerHTML,/>A<\/option>|>B<\/option>|>C<\/option>/);
   assert.match(f.el('filters').innerHTML,/Centro 3705/);assert.match(f.el('filters').innerHTML,/Centro 3884/);
-  f.el('tab-roster').onclick();assert.match(f.el('report-content').innerHTML,/Lista de aula/);
-  f.el('tab-student').onclick();assert.match(f.el('report-content').innerHTML,/Resumen de la ficha/);
+  f.el('tab-roster').onclick();assert.match(f.el('report-content').innerHTML,/roster-table/);
+  f.el('tab-student').onclick();assert.match(f.el('report-content').innerHTML,/student-reference-grid/);
   await f.el('logout').onclick();assert.ok(f.el('login-form'));assert.equal(f.fetches.length,0);
  }
 });
@@ -153,7 +168,7 @@ test('PDC credentials cannot fall back to other groups, and renamed accounts rej
  }
  f.login('tutoria3esopdci');await f.upload();
  assert.match(f.el('import-error').textContent,/curso o aula asignados/);
- assert.doesNotMatch(f.el('report-content').innerHTML,/Ficha de aula/);
+ assert.doesNotMatch(f.el('report-content').innerHTML,/overview-report/);
 });
 
 test('sending locks editing until the result; a failed request restores the consultation',async()=>{
@@ -243,11 +258,11 @@ test('an offline app-feedback close retains all contributions and retries the id
 });
 test('count navigation does not expand the selected classroom or expose the centre to tutoring',async()=>{
  const f=fixture();f.login('tutoria1eso');await f.upload();
- const button={dataset:{result:'bullying_companeros'}};
+ const button={dataset:{result:'bullying_two_total'}};
  f.el('report-content').listeners.click({target:{closest:selector=>selector==='button[data-result]'?button:null}});
  const html=f.el('report-content').innerHTML;
- assert.equal((html.match(/<tr data-student-id=/g)||[]).length,demo.students.filter(r=>r.Campus==='Centro 3705'&&r.Curso==='1.º ESO'&&r.Grupo==='A'&&r.bullying_companeros_n>=2).length);
- assert.match(html,/Reciben al menos 2 menciones de acoso/);
+ assert.equal((html.match(/<tr data-student-id=/g)||[]).length,demo.students.filter(r=>r.Campus==='Centro 3705'&&r.Curso==='1.º ESO'&&r.Grupo==='A'&&(r.bullying_companeros_n+(r.bullying_autorreporte==='Sí'?1:0))>=2).length);
+ assert.match(html,/Dos o más nominaciones registradas, incluida la propia/);
  assert.equal(f.el('tab-center'),undefined);
 });
 
@@ -264,33 +279,33 @@ test('each bullying category opens the matching authorized list for tutoring and
    const html=f.el('report-content').innerHTML;
    const shown=[...html.matchAll(/<tr data-student-id="([^"]+)"/g)].map(m=>m[1]).sort();
    assert.deepEqual(shown,UI.filter(members,key).map(r=>r.ID).sort(),username+' '+key);
-   assert.match(html,isCenter?/Lista del centro/:/Lista de aula/);
+   assert.match(html,isCenter?/roster-table/:/roster-table/);
   }
   assert.equal(f.fetches.length,0);
  }
 });
 
 
-test('student list includes outgoing bullying, distinct one/two colours and equivalent mobile labels',async()=>{
+test('student list keeps the requested indicators, distinct one/two colours and mobile labels',async()=>{
  const f=fixture();f.login('demo','DEMO26');await f.el('load-demo').onclick();f.el('tab-roster').onclick();
  const html=f.el('report-content').innerHTML;
- assert.match(html,/Menciones de acoso declaradas/);assert.match(html,/data-roster-sort="bullying_out"/);assert.match(html,/roster-cell-label/);assert.match(html,/roster-sort-select/);
+ assert.match(html,/Nominaciones recibidas de bullying/);assert.doesNotMatch(html,/data-roster-sort="bullying_out"/);assert.match(html,/roster-cell-label/);assert.match(html,/roster-sort-select/);
  assert.match(html,/class-value tone-single[^>]*>1</);assert.match(html,/class-value tone-danger[^>]*>[2-9]</);
  assert.match(html,/No respondió/);assert.doesNotMatch(html,/data-surprise/);
 });
 
 test('centre result lists identify every classroom and offer scoped search, without duplicating it in classroom lists',async()=>{
  const f=fixture();f.login('orientacion');await f.upload();f.el('tab-center').onclick();
- const button={dataset:{result:'bullying_companeros'}};
+ const button={dataset:{result:'bullying_two_total'}};
  f.el('report-content').listeners.click({target:{closest:selector=>selector==='button[data-result]'?button:null}});
  const centerHtml=f.el('report-content').innerHTML;
- assert.match(centerHtml,/Lista del centro/);assert.match(centerHtml,/id="roster-search"/);
+ assert.match(centerHtml,/roster-table/);assert.match(centerHtml,/id="roster-search"/);
  assert.doesNotMatch(f.el('filters').innerHTML,/id="course"|id="group"/);
  assert.match(centerHtml,/class="roster-class">4.º Primaria · Aula A/);
  assert.match(centerHtml,/class="roster-class">2.º Bachillerato · Aula C/);
  assert.equal((centerHtml.match(/class="roster-class"/g)||[]).length,(centerHtml.match(/<tr data-student-id=/g)||[]).length);
  f.el('center').onchange({target:{value:'Centro 3884'}});
- assert.match(f.el('report-content').innerHTML,/Lista del centro/);assert.match(f.el('report-content').innerHTML,/Centro 3884/);
+ assert.match(f.el('report-content').innerHTML,/roster-table/);assert.match(f.el('report-content').innerHTML,/Centro 3884/);
  assert.doesNotMatch(f.el('filters').innerHTML,/id="course"|id="group"/);
  f.el('tab-roster').onclick();assert.doesNotMatch(f.el('report-content').innerHTML,/class="roster-class"/);
  assert.equal(f.fetches.length,0);
@@ -322,10 +337,10 @@ test('all five displayed categories open exact, disjoint lists in every demo cla
    f.el('report-content').listeners.click({target:{closest:s=>s==='button[data-result]'?button:null}});
    const html=f.el('report-content').innerHTML,ids=[...html.matchAll(/<tr data-student-id="([^"]+)"/g)].map(m=>m[1]);
    assert.deepEqual(ids.slice().sort(),buckets[key].slice().sort(),scope+' '+key+' membership');
-   assert.equal(ids.length,counts[key]);assert.match(html,scope==='center'?/Lista del centro/:/Lista de aula/);
+   assert.equal(ids.length,counts[key]);assert.match(html,scope==='center'?/roster-table/:/roster-table/);
    assert.match(html,/<input id="roster-search"[^>]*value=""/,'The category opens unfiltered');
    allIds.push(...ids);f.el('clear-result').onclick();
-   assert.match(f.el('report-content').innerHTML,scope==='center'?/Ficha de centro/:/Ficha de aula/);
+   assert.match(f.el('report-content').innerHTML,scope==='center'?/Información general del colegio/:/overview-report/);
   }
   assert.equal(new Set(allIds).size,rows.length);assert.deepEqual(allIds.sort(),rows.map(r=>r.ID).sort());
   assert.equal(Object.values(counts).reduce((a,b)=>a+b,0),rows.length);
@@ -353,6 +368,7 @@ test('nonempty one-peer and self-only lists work alongside missing self-reports 
  targets.forEach((r,i)=>Object.assign(r,{bullying_autorreporte:cases[i][0],bullying_companeros_n:cases[i][1]}));
  const absent=rows.find(r=>r.respondio==='No');absent.bullying_companeros_n=1;
  const f=fixture({data});f.login('orientacion');await f.upload();assert.equal(f.el('import-error').textContent,'');
+ f.el('tab-group').onclick();
  f.el('course').onchange({target:{value:'1.º ESO'}});f.el('group').onchange({target:{value:'A'}});
  for(const scope of ['group','center'])for(let i=0;i<cases.length;i++){
   f.el('tab-'+scope).onclick();const key=cases[i][2],report=f.el('report-content').innerHTML;
@@ -373,8 +389,8 @@ test('individual previous and next fully update the selected student within the 
  const first=selected();assert.ok(first);
  const initial=f.el('report-content').innerHTML;
  f.el('next-student').onclick();const next=selected();assert.ok(next);assert.notEqual(next,first);
- assert.notEqual(f.el('report-content').innerHTML,initial);assert.match(f.el('report-content').innerHTML,new RegExp('Código '+next));
- assert.ok(f.el('report-content').innerHTML.includes('student-network-details'));assert.doesNotMatch(f.el('report-content').innerHTML,/<details[^>]*\bopen\b/);
+ assert.notEqual(f.el('report-content').innerHTML,initial);assert.ok(f.el('report-content').innerHTML.includes(demo.students.find(r=>r.ID===next).Nombre));
+ assert.ok(!f.el('report-content').innerHTML.includes('student-network-details'));assert.doesNotMatch(f.el('report-content').innerHTML,/<details[^>]*\bopen\b/);
  const current=demo.students.find(r=>r.ID===next),original=demo.students.find(r=>r.ID===first);
  assert.equal(current.Campus,original.Campus);assert.equal(current.Curso,original.Curso);assert.equal(current.Grupo,original.Grupo);
  f.el('previous-student').onclick();assert.equal(selected(),first);assert.equal(f.el('report-content').innerHTML,initial);
@@ -408,4 +424,13 @@ test('non-participation controls preserve a reason through navigation and send i
  assert.equal(bundle.parts[0].records[0].studentId,absent.ID);assert.equal(bundle.parts[0].records[0].nonParticipationReason,'absent_day');
  assert.equal(bundle.parts[1].records[0].comment,'La lista se entiende bien');
  assert.doesNotMatch(payload.feedback_json,/"Nombre"|password|bullying_companeros_n/);
+});
+
+test('PDF buttons restore authorized pupil reports for tutors and retain school report for orientation',async()=>{
+ const tutor=fixture();tutor.login('tutoria1eso');await tutor.upload();
+ assert.match(tutor.el('report-content').innerHTML,/Descargar Informe PDF General de la Clase/);
+ assert.match(tutor.el('report-content').innerHTML,/export-pdf-students/);
+ tutor.el('tab-student').onclick();assert.match(tutor.el('report-content').innerHTML,/id="export-pdf"/);
+ const orientador=fixture();orientador.login('orientacion');await orientador.upload();
+ assert.match(orientador.el('report-content').innerHTML,/Descargar Informe PDF del Colegio/);
 });

@@ -1,13 +1,30 @@
 /* Conversion of the final PBIS Wave 1 export. Pure, local and deterministic. */
 (function(root,factory){'use strict';if(typeof module==='object'&&module.exports)module.exports=factory();else root.PbisWave1=factory();}(typeof globalThis!=='undefined'?globalThis:this,function(){
 'use strict';
-const needed=['Usuario Id','Alumno Id','Estudio','Curso','Grupo','dia','eredes1','redes1','eredes2','redes2','ebeliefs1','beliefs1','ebeliefs2','beliefs2','carrera1','carrera2','emilia1','emilia2','library1','library2','egeneral','general','efun','fun','ealone','alone','ebullying','bullying','emediador','mediador'];
+const needed=['Usuario Id','Alumno Id','Estudio','Curso','Grupo','redes1','redes2','beliefs1','beliefs2','carrera1','carrera2','emilia1','emilia2','library1','library2','general','fun','alone','bullying','mediador'];
 const scoreFields=['popularidad','sociabilidad','reciprocidad_amistad','acierto_amistad','rechazo_recibido','rechazo_declarado','reciprocidad_rechazo','acierto_rechazo','bienestar','centralidad','mediacion'];
 const countFields=['amistad_recibida_n','amistad_declarada_n','amistad_reciproca_n','rechazo_recibido_n','rechazo_declarado_n','rechazo_reciproco_n','bienestar_suma','mediacion_n','bullying_companeros_n'];
-const MAX_BULLYING_OTHERS=15;
 const clean=v=>v===null||v===undefined?'':String(v).trim();
 const answer=v=>clean(v).replace(/^.*?\s->\s*/,'').trim();
 const normalized=v=>clean(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+// The survey has used several independent assignment mechanisms over time.
+// The response itself selects the variant; route metadata must never discard it.
+function responseField(raw,base){
+ const fields=[base+'1',base+'2'].filter(field=>!!answer(raw[field]));
+ if(fields.length>1)throw Error('Hay dos versiones contestadas de '+base+'. No se pueden combinar automáticamente.');
+ return fields[0]||null;
+}
+function demographics(raw,warnings){
+ const column=value=>normalized(value).replace(/[\s_-]+/g,'');
+ const yesNo=value=>normalized(value)==='si'?true:normalized(value)==='no'?false:null;
+ const newcomer=value=>['2','3'].includes(value)?true:['0','1'].includes(value)?false:yesNo(value);
+ const field=(parse,...aliases)=>{
+  const values=new Set(Object.keys(raw).filter(key=>aliases.some(alias=>column(key)===column(alias))).map(key=>parse(answer(raw[key]))).filter(value=>value!==null));
+  if(values.size>1){warnings.push('Hay campos contradictorios de '+aliases.join(' / ')+'. El alumnado afectado queda sin clasificar en esa comparación.');return null;}
+  return values.size?[...values][0]:null;
+ };
+ return {demografia_neae:field(yesNo,'SAL_1','NEAE'),demografia_migrante:field(yesNo,'SAL_2','INMIGRANTE'),demografia_nueva_incorporacion:field(newcomer,'SAL_3','NUEVA INCORPORACIÓN')};
+}
 const score=(a,b)=>a===null||a===undefined||!b?null:Math.round(100*a/b)/10;
 function course(v){const s=clean(v),n=s.match(/([1-6])\s*[^\w\d]*\s*(primaria|eso|bachillerato)/i);if(n)return n[1]+'.º '+(n[2].toLowerCase()==='eso'?'ESO':n[2].toLowerCase()==='primaria'?'Primaria':'Bachillerato');throw Error('Curso no reconocido en la base Wave 1.');}
 function isWave1(rows){return Array.isArray(rows)&&rows.length>0&&needed.every(h=>Object.prototype.hasOwnProperty.call(rows[0],h));}
@@ -26,7 +43,7 @@ function selections(value,known,field,byId,selfId){
 }
 // In this questionnaire, proceeding past bullying requires choosing somebody
 // or "Nadie". An entry timestamp alone does not establish that it was answered.
-function bullyingKnown(raw){return !!answer(raw.bullying)||['fqbullying','stopbullying','conductas','mediador'].some(field=>!!answer(raw[field]));}
+function bullyingKnown(raw){return !!answer(raw.bullying)||!!clean(raw.end)||['fqbullying','stopbullying','conductas','mediador'].some(field=>!!answer(raw[field]));}
 function nominations(item,field,known,byId){
   const result=selections(item.raw[field],known||!!answer(item.raw[field]),field,byId,item.id);
   // This explicit export error invalidates the question, not the whole record.
@@ -35,14 +52,12 @@ function nominations(item,field,known,byId){
   return result;
 }
 function frequency(value,known,field){if(!known)return null;const options=['nunca','casi nunca','algunas veces','casi siempre','siempre'];const s=normalized(answer(value));if(!s)return null;const i=options.indexOf(s);if(i<0)throw Error('Respuesta desconocida en '+field+'.');return i;}
-function crtItems(raw,route){
- if(route!=='par'&&route!=='impar')return [null,null,null];
- const suffix=route==='par'?'1':'2';
- const responses=['carrera','emilia','library'].map(field=>normalized(answer(raw[field+suffix])).replace(/[\s.!?¡¿]+$/g,'').trim());
+function crtItems(raw){
+ const responses=['carrera','emilia','library'].map(base=>{const field=responseField(raw,base);return normalized(field?answer(raw[field]):'').replace(/[\s.!?¡¿]+$/g,'').trim();});
  const correct=[/^(?:2|2[ºª°]|segund[ao])$/.test(responses[0]),/^(?:emilia|se llama emilia|la tercera hija se llama emilia)$/.test(responses[1]),/^(?:47|47 dias|dia 47|el dia 47)$/.test(responses[2])];
  return correct.map((value,i)=>responses[i]?Number(value):null);
 }
-function crtScore(raw,route){const items=crtItems(raw,route);return items.some(v=>v===null)?null:items.reduce((a,b)=>a+b,0);}
+function crtScore(raw){const items=crtItems(raw);return items.some(v=>v===null)?null:items.reduce((a,b)=>a+b,0);}
 function classify(list){for(const x of list)if(!/^(muy )?(buena|mala) relaci.n$/.test(x.label))throw Error('Categoría de relación no reconocida.');return {positive:new Set(list.filter(x=>/^(buena|muy buena) relaci.n$/.test(x.label)).map(x=>x.id)),negative:new Set(list.filter(x=>/^(mala|muy mala) relaci.n$/.test(x.label)).map(x=>x.id))};}
 function gini(values){if(!values.length)return null;const sum=values.reduce((a,b)=>a+b,0);if(!sum)return 0;let diff=0;for(const a of values)for(const b of values)diff+=Math.abs(a-b);return diff/(2*values.length*sum);}
 // Local numerical algorithms. Definitions: R/igraph 2.3.3, seed 20261010.
@@ -165,10 +180,9 @@ function convert(rows){
    for(const x of items){
      x.issues=[];
      x.course=course(x.raw.Curso);x.group=clean(x.raw.Grupo);if(!x.group)throw Error('Falta Grupo en una fila.');
-     const route=answer(x.raw.dia);if(route&&!/^(par|impar)$/i.test(route))throw Error('La ruta dia debe ser Par o Impar.');x.route=route.toLowerCase();
-     const relField=x.route==='par'?'redes1':'redes2',predField=x.route==='par'?'beliefs1':'beliefs2';
-     x.rel=x.route?nominations(x,relField,!!clean(x.raw['e'+relField]),centerIds):null;
-     x.pred=x.route?nominations(x,predField,!!clean(x.raw['e'+predField]),centerIds):null;
+     const relField=responseField(x.raw,'redes'),predField=responseField(x.raw,'beliefs');
+     x.rel=relField?nominations(x,relField,true,centerIds):null;
+     x.pred=predField?nominations(x,predField,true,centerIds):null;
      x.med=nominations(x,'mediador',!!clean(x.raw.emediador),centerIds);
      x.bull=selections(x.raw.bullying,bullyingKnown(x.raw),'bullying',centerIds,x.id);
      x.central=selections(x.raw.central,!!answer(x.raw.central),'central',centerIds,x.id);
@@ -179,10 +193,10 @@ function convert(rows){
    }
    const incoming=(field,id)=>items.filter(x=>x[field]&&x.id!==id&&x[field].has(id)).length;
    const medIncoming=(id,positive)=>items.filter(x=>x.med&&x.id!==id&&x.med.some(y=>y.id===id&&(positive?/^(muy )?buena mediaci.n$/.test(y.label):/^(muy )?mala mediaci.n$/.test(y.label)))).length;
-   // Filter emitters across the whole centre, before counting incoming links.
-   // Keep the original ballot intact: self-reports and other measures still use it.
-   const bullSources=items.filter(x=>x.bull!==null&&x.bull.filter(y=>y.id!==x.id).length<=MAX_BULLYING_OTHERS);
-   const bullExcluded=items.filter(x=>x.bull!==null).length-bullSources.length;
+   // School reports retain every ballot, including extensive selections.
+   // The UI may flag >=15 distinct peers, but does not remove their nominations.
+   const bullSources=items.filter(x=>x.bull!==null);
+   const bullExcluded=0;
    const bullIncoming=id=>bullSources.filter(x=>x.id!==id&&x.bull.some(y=>y.id===id)).length;
    const hasRel=items.some(x=>x.rel!==null),hasMed=items.some(x=>x.med!==null),hasBull=bullSources.length>0;
    const relComplete=items.every(x=>x.rel!==null),medComplete=items.every(x=>x.med!==null),bullComplete=items.every(x=>x.bull!==null);
@@ -206,7 +220,8 @@ function convert(rows){
      const raw=x.raw, id=x.id, rawNames=[clean(givenColumn&&raw[givenColumn]),clean(familyColumn&&raw[familyColumn])].filter(Boolean).join(' ');
      const started=clean(raw.start)||[x.rel,x.pred,x.med,x.bull,x.central,x.popular].some(value=>value!==null)||['general','fun','alone','carrera1','carrera2','emilia1','emilia2','library1','library2'].some(field=>!!answer(raw[field]));
      const row={ID:id,Centro:'Centro '+study,Curso:x.course,Grupo:x.group,Nombre:rawNames||null,respondio:clean(raw.end)?'Sí':started?null:'No',ambito_nominaciones:'centro',n_centro:n,red_centro_completa:relComplete,red_centro_pendiente_pct:pendingNetwork,centralidad_sin_convergencia:x.structure.eigen.status==='no_convergence',centralidad_estado:x.structure.eigen.status,ambito_centralidad:'clase',metodo_centralidad:'eigenvector_sum_v1',red_clase_pendiente_pct:x.classPending,escala_indicadores:'centro_observado_v1',Tratamiento:/^m/i.test(clean(raw.Sexo))?'alumna':'alumno',incidencias_calculo:x.issues.map(field=>field==='mediador'?'mediación':field.startsWith('beliefs')?'predicciones':'relaciones')};
-     row.bullying_filtro_max_otros=MAX_BULLYING_OTHERS;
+     Object.assign(row,demographics(raw,warnings));
+     row.bullying_filtro_max_otros=null;
      row.bullying_filtro_excluidos_n=bullExcluded;
      row.bullying_filtro_admitidos_n=bullSources.length;
      for(const f of [...scoreFields,...countFields])row[f]=null;
@@ -226,12 +241,12 @@ function convert(rows){
      row.centralidad_reportada_n=centralSources.length?centralSources.filter(source=>source.central.some(target=>target.id===id)).length:null;
      const popularSources=items.filter(source=>source.id!==id&&source.popular!==null);
      row.popularidad_reportada_n=popularSources.length?popularSources.filter(source=>source.popular.some(target=>target.id===id)).length:null;
-     // Own selection is separate; keep the original outgoing count even when its ballot is filtered for incoming totals.
+     // Own selection is separate from distinct other recipients.
      row.bullying_declarado_n=x.bull===null?null:x.bull.filter(target=>target.id!==id).length;
      row.identifica_apoyo=x.med===null?null:x.med.length?'Sí':'No';row.bullying_autorreporte=x.bull===null?null:x.bull.some(y=>y.id===id)?'Sí':'No';
      for(const [field,source] of [['bullying_frecuencia','fqbullying'],['bullying_dificultad','stopbullying'],['bullying_situaciones','conductas']])row[field]=answer(raw[source])||null;
-     row.crt_aciertos=crtScore(raw,x.route);
-     crtItems(raw,x.route).forEach((value,i)=>{row['crt_'+['carrera','emilia','biblioteca'][i]+'_acierto']=value;});
+     row.crt_aciertos=crtScore(raw);
+     crtItems(raw).forEach((value,i)=>{row['crt_'+['carrera','emilia','biblioteca'][i]+'_acierto']=value;});
      const happiness=[['felicidad_centro','general','egeneral'],['felicidad_diversion','fun','efun'],['felicidad_soledad','alone','ealone']];for(const [dest,field,event] of happiness)row[dest]=frequency(raw[field],!!clean(raw[event])||!!answer(raw[field]),field);
      row.soledad_frecuente=row.felicidad_soledad===null?null:row.felicidad_soledad>=3?'Sí':'No';
      if(happiness.every(([dest])=>row[dest]!==null))row.bienestar_suma=row.felicidad_centro+row.felicidad_diversion+4-row.felicidad_soledad;
@@ -249,6 +264,9 @@ function convert(rows){
        row.amistad_clase_recibida_n=structure.incoming[i];
        row.amistad_clase_declarada_n=structure.outgoing[i];
        row.amistad_clase_reciproca_n=structure.reciprocal[i];
+       row.rechazo_clase_recibido_n=groupItems.some(x=>x.neg!==null)?groupItems.filter(x=>x.id!==row.ID&&x.neg?.has(row.ID)).length:null;
+       const person=groupItems[i];
+       row.rechazo_clase_reciproco_n=person.neg?[...person.neg].filter(id=>groupItems.some(peer=>peer.id===id&&peer.neg?.has(person.id))).length:null;
      });
      const gin=structure.gini,cent=structure.centralization,modularity=structure.modularity;
      groups.push({Centro:'Centro '+study,Curso:representative.course,Grupo:representative.group,red_centro_completa:relComplete,red_centro_pendiente_pct:pendingNetwork,red_clase_completa:groupItems.every(x=>x.pos!==null),red_clase_pendiente_pct:representative.classPending,estructura_red:'clase_r_igraph_2.3.3_v1',escala_grupo:'centro_observado_v1',gini_popularidad:gin,pos_desigualdad:score(gin,1),centralizacion_eigenvector:cent,pos_centralizacion:score(cent,1),pos_separacion:modularity===null?null:score(Math.max(0,modularity),1),modularidad:modularity});

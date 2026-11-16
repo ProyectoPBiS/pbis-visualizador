@@ -32,21 +32,20 @@ test('public output excludes standalone data and key workbooks and server files'
  assert.ok(JSON.parse(read('site/downloads/manifest.json')).files.every(f=>f.name.endsWith('.zip')));
 });
 
-test('browser and offline HTML contain the tested Wave 1 reader with the same nomination filter',()=>{
+test('browser and offline HTML contain the same tested route-independent Wave 1 reader',()=>{
  const source=read('src/raw-wave1.js').replace(/\r\n?/g,'\n');
- assert.match(source,/MAX_BULLYING_OTHERS=15/);
+ assert.match(source,/function responseField\(raw,base\)/);
+ assert.doesNotMatch(source,/MAX_BULLYING_OTHERS/);
  for(const file of ['site/DEMO.html','site/PBIS.html','release/PBIS.html']){
    const scripts=[...read(file).matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
    assert.ok(scripts.includes(source),file+' must contain the exact tested reader');
    assert.ok(scripts.includes(read('src/core.js').replace(/\r\n?/g,'\n')),file+' must contain the exact tested aggregation engine');
-   assert.doesNotMatch(read(file),/Señalamientos de acoso: se excluyen|más de 15 personas|respuestas excluidas en el centro/,file+' must omit the removed note');
+   assert.doesNotMatch(read(file),/Señalamientos de acoso: se excluyen/,file+' must not claim that school nominations are excluded');
  }
 });
 
-test('published documentation and packaged checks omit the removed methodological note',()=>{
- for(const file of ['site/metodologia.html','docs/METODOLOGIA.md','COMPROBACIONES.md']){
-  assert.doesNotMatch(read(file),/más de \*{0,2}15|hasta 15 menciones|respuestas se han excluido|límites de 15\/16/);
- }
+test('methodology explains that school nominations are retained',()=>{
+ for(const file of ['site/metodologia.html','docs/METODOLOGIA.md'])assert.match(read(file),/Se conservan todas las nominaciones/);
 });
 
 test('web and offline releases embed only the current inclusive accounts with both PDC profiles',()=>{

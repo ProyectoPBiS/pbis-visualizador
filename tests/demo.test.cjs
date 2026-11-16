@@ -19,7 +19,7 @@ test('realistic demo is deterministic, imports the raw synthetic survey and keep
  const peerBallots=raw.filter(r=>r.bullying).map(r=>({id:r['Usuario Id'],peers:r.bullying.split(' | ').filter(id=>id!=='Nadie'&&id!==r['Usuario Id'])}));
  for(const row of data.students){
   const source=by.get(row.ID),all=row.relaciones_red||[];
-  assert.equal(row.bullying_companeros_n,peerBallots.filter(b=>b.id!==row.ID&&b.peers.length<=15&&b.peers.includes(row.ID)).length);
+  assert.equal(row.bullying_companeros_n,peerBallots.filter(b=>b.id!==row.ID&&b.peers.includes(row.ID)).length);
   if(row.respondio==='No'){assert.equal(row.relaciones_red,null);assert.equal(row.bienestar_suma,null);assert.equal(row.bullying_autorreporte,null);continue;}
   assert.equal(row.felicidad_centro+row.felicidad_diversion+4-row.felicidad_soledad,row.bienestar_suma);
   const crt=['carrera','emilia','biblioteca'].map(k=>row['crt_'+k+'_acierto']);assert.equal(row.crt_aciertos,crt.includes(null)?null:crt.reduce((a,b)=>a+b,0));

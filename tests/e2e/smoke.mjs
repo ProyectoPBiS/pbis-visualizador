@@ -25,7 +25,7 @@ const workbook=X.read(fs.readFileSync(path.join(root,'data/examples/datos_evalua
 const sourceStudents=C.validateAndJoin(X.utils.sheet_to_json(workbook.Sheets.Datos),null,X.utils.sheet_to_json(workbook.Sheets.Grupos)).students;
 const classRows=demoData.students.filter(s=>s.Centro==='Centro 3705'&&s.Curso==='1.º ESO'&&s.Grupo==='A');
 const classIds=new Set(classRows.map(s=>s.ID));
-const expectedMentionIds=classRows.filter(s=>s.bullying_companeros_n>=2).map(s=>s.ID).sort();
+const expectedMentionIds=classRows.filter(s=>(s.bullying_companeros_n||0)+(s.bullying_autorreporte==='Sí'?1:0)>=2).map(s=>s.ID).sort();
 // Independent expectation: one same-sign mutual pair, no unilateral/mixed pairs.
 const expectedEdges=[];
 for(let i=0;i<classRows.length;i++)for(let j=i+1;j<classRows.length;j++){
@@ -52,7 +52,7 @@ try{
  await demo(origin+'/PBIS.html');
  for(const width of [1360,390,320]){
   await page.setViewportSize({width,height:1000});await page.locator('#tab-group').click();
-  await page.locator('[data-result="bullying_companeros"]').click();
+  await page.locator('[data-result="bullying_two_total"]').click();
   assert.equal(await page.locator('.roster-table tbody tr').count(),expectedMentionIds.length);
   assert.deepEqual((await page.locator('.roster-table tbody tr[data-student-id]').evaluateAll(nodes=>nodes.map(n=>n.dataset.studentId))).sort(),expectedMentionIds);
   if(width<=720)await page.locator('#roster-sort-select').selectOption('bullying_peers');
@@ -66,8 +66,9 @@ try{
   const before=await signature();assert.deepEqual([...before].sort(),[...expectedEdges].sort());
   await toggle.click();assert.equal(await panel.locator('.class-network-ring').count(),1);await toggle.click();assert.deepEqual(await signature(),before);
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
-  await panel.locator('[data-class-student="00253"]').click();assert.match(await page.locator('#back-to-roster').innerText(),/Volver a la red/);
-  await page.locator('#back-to-roster').click();assert.equal(await page.locator('#tab-network').getAttribute('aria-selected'),'true');
+  await panel.locator('[data-class-student="00253"]').click();assert.equal(await panel.locator('[data-class-network-highlight]').inputValue(),'00253');
+  assert.equal(await panel.locator('[data-class-student="00253"].is-selected').count(),1);
+  await panel.locator('[data-class-student="00253"]').click();assert.equal(await panel.locator('[data-class-network-highlight]').inputValue(),'');assert.equal(await page.locator('#tab-network').getAttribute('aria-selected'),'true');
 
  }
  await page.locator('#logout').click();assert.equal(sent.length,0);
@@ -97,7 +98,7 @@ try{
  await page.goto(origin+'/PBIS.html');await login(profiles.find(p=>p.role==='orientador'));
  await page.locator('#file-data').setInputFiles(samplePath);await page.locator('#sheet-data').selectOption('Datos');await page.locator('#show-reports').click();
  await page.locator('#tab-roster:enabled').waitFor();await page.locator('#tab-roster').click();
- await page.locator('#center').selectOption(absent.Centro);await page.locator('#course').selectOption(absent.Curso);await page.locator('#group').selectOption(absent.Grupo);
+ if(await page.locator('#center').count())await page.locator('#center').selectOption(absent.Centro);await page.locator('#course').selectOption(absent.Curso);await page.locator('#group').selectOption(absent.Grupo);
  const reasonRow=page.locator(`tr[data-student-id="${absent.ID}"]`),reason=reasonRow.locator('[data-roster-reason]');
  assert.equal(await page.locator('tr:not(.roster-no-response) [data-roster-reason]').count(),0);
  await reasonRow.locator('details > summary').click();await reason.selectOption('other');

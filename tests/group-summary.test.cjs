@@ -6,7 +6,7 @@ const feedbackHelper=source.slice(source.indexOf('function appFeedbackButton(sec
 const start=source.indexOf('function centerReport(rows){'),end=source.indexOf('function groupReport(rows,meta){',start);
 const dataset=C.validateAndJoin(demo.students,null,demo.groups),selection={center:'Centro 3705',course:'1.º ESO',group:'A'};
 let centerAllowed=true;
-const render=new Function('window','C','G','dataset','selection','canViewCenter','reportHero','networkCoverageNote','E','number','percent',feedbackHelper+source.slice(start,end)+';return overviewReport;')(
+const render=new Function('window','C','G','dataset','selection','canViewCenter','reportHero','networkCoverageNote','E','number','percent','const relationshipReach="school";'+feedbackHelper+source.slice(start,end)+';return overviewReport;')(
  {PbisConsultationUI:UI,PbisFeedbackModel:require('../src/feedback-model.js')},C,{view:()=>'<section>Red del aula</section>'},dataset,selection,()=>centerAllowed,(title,subtitle,type)=>`<header>${title} · ${subtitle} · ${type}</header>`,()=>'',v=>String(v),v=>Number(v).toLocaleString('es-ES',{maximumFractionDigits:1}),v=>Number(v).toFixed(1)+' %');
 const center=dataset.students.filter(r=>r.Campus===selection.center),rows=center.filter(r=>r.Curso===selection.course&&r.Grupo===selection.group);
 test('class and centre show six cards from the retained measures, clickable counts and no teacher review',()=>{
@@ -16,16 +16,16 @@ test('class and centre show six cards from the retained measures, clickable coun
   assert.equal((html.match(/class="overview-card /g)||[]).length,6);
   for(const key of ['con_reciprocas','sin_reciprocas','sin_respuesta_relaciones','popularidad_reportada','centralidad_reportada','mediacion_positiva']){
    const control=html.match(new RegExp('<button[^>]*data-result="'+key+'"[^>]*>[\\s\\S]*?</button>'))?.[0];
-   if(control)assert.ok(control.includes('<small>de '+members.length+'</small>'),key);
+   if(control)assert.match(control,/count-arrow/,key);
   }
-  for(const item of aggregate.attention.filter(x=>['bullying_declarado','bullying_companeros','sin_reciprocas'].includes(x.id))){assert.ok(html.includes('data-result="'+item.id+'"'));assert.ok(html.includes('<strong>'+item.count));}
+  for(const key of ['bullying_self_completed','bullying_two_total','sin_reciprocas']){const control=html.match(new RegExp('<button[^>]*data-result="'+key+'"[^>]*>[\\s\\S]*?</button>'))?.[0];assert.ok(control);assert.ok(control.includes('<strong>'+UI.filter(members,key,isCenter?'school':'class').length));}
   assert.doesNotMatch(html,/Me sorprende|Valoración docente|data-surprise|asignar categoría|bullying_unclassified|overview-pending/);
   assert.equal(UI.bullyingDistribution(members).categories.reduce((sum,c)=>sum+c.count,0),members.length);
   assert.ok(html.includes('Top 3 centrales'));
-  assert.equal(html.includes('Red del aula'),!isCenter);
+  assert.equal(html.includes('Red del aula'),false,'The network is reached through its own tab');
   const distribution=UI.bullyingDistribution(members);
   for(const category of distribution.categories){assert.ok(html.includes(`data-result="${category.key}"`));assert.ok(html.includes(category.description));}
-  assert.match(html,/Se autorreportan/);assert.match(html,/Señalados por otros/);assert.match(html,/Con dos o más menciones de compañeros/);
+  assert.match(html,/Alumnos que se autorreportan/);assert.match(html,/Alumnos con dos o más nominaciones/);assert.doesNotMatch(html,/Con dos o más menciones de compañeros/);
   assert.match(html,/compañeros opinan que es el más popular de la clase/);assert.match(html,/compañeros opinan que es el más central de la clase/);assert.doesNotMatch(html,/de centralidad calculada en su aula/);
   assert.doesNotMatch(html,/overview-structure|Separación entre comunidades|Centralización del aula/);
  }
@@ -58,4 +58,14 @@ test('unanswered students stay in the distribution while aggregate response deno
  assert.doesNotMatch(html,/asignar categoría|bullying_unclassified/);
  assert.equal(rows.find(r=>r.respondio==='No').bullying_autorreporte,null);
  assert.deepEqual(rows,original);
+});
+
+test('relationship reach is fixed by the view, including students with friends only outside their class',()=>{
+ const custom=[{ID:'scope-test',Campus:selection.center,Curso:selection.course,Grupo:selection.group,respondio:'Sí',amistad_reciproca_n:1,amistad_clase_reciproca_n:0,amistad_declarada_n:1,rechazo_declarado_n:0}];
+ for(const isCenter of [true,false]){
+  const html=render(custom,null,isCenter);
+  assert.doesNotMatch(html,/data-relationship-reach/);
+  const control=html.match(/<button[^>]*data-result="sin_reciprocas"[^>]*>[\s\S]*?<\/button>/)[0];
+  assert.ok(control.includes('<strong>'+(isCenter?0:1)));
+ }
 });

@@ -1,52 +1,66 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
-const PDF=require('../src/pdf-export.js'),C=require('../src/core.js'),P=require('../src/protected-project.js');
+const PDF=require('../src/pdf-export.js'),P=require('../src/protected-project.js');
 const data=require('./protected-fixture.cjs').data();
 const orient=PDF.identity({role:'orientador'}),selection={center:'Centro 4826',course:'1.º ESO',group:'A',student:'S1'};
-test('student PDF carries the same permission note in its relationship summary and network page',()=>{
- const N=require('../src/student-network.js');
- const scoped=data.students.filter(r=>r.Grupo==='A');
- const networkNote=N.permissionNote(C.studentNetwork(scoped,'S1'),true);
- assert.ok(networkNote);
- const before=JSON.stringify(data),report=PDF.model({view:'student',selection,students:scoped,groups:data.groups,identity:orient,networkNote});
- assert.equal(report.networkNote,networkNote);
- assert.ok(report.sections.find(s=>s.title==='Relaciones').note.includes(networkNote));
- const full=PDF.model({view:'student',selection,...data,identity:orient});
- assert.equal(full.networkNote,'');
- assert.doesNotMatch(JSON.stringify(full),/no tienes permiso para ver/);
- assert.equal(JSON.stringify(data),before);
-});
 test('PDF identity preserves masking, demo and orientation; never silently omits a teacher mark',()=>{
  assert.equal(PDF.identity({role:'tutor',protectedProject:true,maskedDni:'1*3**6*8Z',sessionCode:'abcdefgh-1234'}).watermark,'1*3**6*8Z · abcdefgh');
  assert.equal(PDF.identity({role:'tutor',username:'12345678Z',sessionCode:'abcdef'}).watermark,'1*3**6*8Z · abcdef');
- assert.equal(orient.watermark,null);assert.equal(orient.header,'Equipo orientador');
- assert.equal(PDF.identity({demo:true}).watermark,'DATOS SIMULADOS');
- assert.throws(()=>PDF.identity({role:'tutor',username:'a'}),/sesión/);
- assert.throws(()=>PDF.identity({role:'tutor',protectedProject:true,maskedDni:'12345678Z',sessionCode:'abc'}),/marca/);
+ assert.equal(orient.watermark,null);assert.equal(PDF.identity({demo:true}).watermark,'DATOS SIMULADOS');
+ assert.throws(()=>PDF.identity({role:'tutor',username:'a'}),/sesión/);assert.throws(()=>PDF.identity({role:'tutor',protectedProject:true,maskedDni:'12345678Z',sessionCode:'abc'}),/marca/);
 });
-test('PDF uses exact existing centre aggregates and unchanged individual scales',()=>{
- const m=PDF.model({view:'center',selection,...data,identity:orient});
- const g=C.aggregateCenter(data.students);
- assert.equal(m.sections[0].cards[1].score,g.attention.find(x=>x.id==='bullying_companeros').score);
- const before=JSON.stringify(data),s=PDF.model({view:'student',selection,...data,identity:orient});
- const crt=s.sections.find(x=>x.title==='Test de impulsividad');assert.equal(crt.cards[0].answer,'3 / 3');
- assert.ok(crt.cards[0].detail.includes('Media del aula: 3 / 3'));
- assert.equal(s.sections.find(x=>x.title==='Posición en la red').cards[1].score,data.students[0].centralidad);
- assert.equal(JSON.stringify(data),before);
+test('individual model uses reported nominations, full names and shared phrasing',()=>{
+ const input=structuredClone(data);Object.assign(input.students[0],{Nombre:'Ana Nombre Compuesto Apellido Segundo',popularidad_reportada_n:2,centralidad_reportada_n:1,popularidad:9.9,centralidad:8.7,felicidad_soledad:3,bullying_companeros_n:2});
+ const before=JSON.stringify(input),s=PDF.model({view:'student',selection,...input,identity:orient});
+ assert.equal(s.title,'Ana Nombre Compuesto Apellido Segundo');assert.doesNotMatch(s.scope,/Código/);
+ const crt=s.sections.find(x=>x.title==='Test cognitivo');assert.equal(crt.cards[0].answer,'3 / 3');assert.match(crt.cards[0].detail,/Media de la clase: 3 \/ 3/);assert.equal(crt.cards[1].answer,'Acierto');
+ const p=s.sections.find(x=>x.title==='Posición y mediación');assert.match(p.cards[0].answer,/2 compañeros opinan que es el más popular de la clase/);assert.match(p.cards[1].answer,/1 compañero opina que es el más central de la clase/);assert.doesNotMatch(JSON.stringify(p),/9,9|8,7/);
+ const wellbeing=s.sections.find(x=>x.title==='Bienestar');assert.match(wellbeing.parts.map(p=>p.text).join(''),/y casi siempre se ha sentido solo/);assert.ok(wellbeing.parts.some(p=>p.text==='casi siempre'&&p.tone==='negative'));
+ const b=s.sections.find(x=>x.title==='Bullying');assert.equal(b.cards[1].answer,'Sí, 2 compañeros');assert.match(b.questions[2].question,/tu colegio/);assert.equal(s.networkNote,'');assert.equal(JSON.stringify(input),before);
 });
 test('PDF retains zero versus unanswered and missing values',()=>{
- const students=structuredClone(data.students);Object.assign(students[0],{respondio:'No',bullying_autorreporte:null,bullying_companeros_n:0,crt_aciertos:null,felicidad:null});
- const m=PDF.model({view:'student',selection,students,groups:data.groups,identity:orient});
- assert.equal(m.sections[0].cards[0].answer,'No ha respondido');assert.equal(m.sections[0].cards[1].answer,'0');
- assert.equal(m.sections.find(x=>x.title==='Bienestar').cards[0].answer,'Sin datos');
- assert.equal(m.sections.find(x=>x.title==='Test de impulsividad').cards[0].answer,'Sin datos');
+ const students=structuredClone(data.students);Object.assign(students[0],{respondio:'No',bullying_autorreporte:null,bullying_companeros_n:0,crt_aciertos:null,crt_carrera_acierto:null,felicidad:null,felicidad_centro:null,felicidad_diversion:null,felicidad_soledad:null});
+ const m=PDF.model({view:'student',selection,students,groups:data.groups,identity:orient});assert.equal(m.testStatus,'NO HA REALIZADO EL TEST');const b=m.sections.find(s=>s.title==='Bullying');assert.equal(b.cards[0].answer,'Sin dato');assert.equal(b.cards[1].answer,'No');
+ assert.equal(m.sections.find(x=>x.title==='Bienestar').cards[0].answer,'Sin datos');assert.equal(m.sections.find(x=>x.title==='Test cognitivo').cards[0].answer,'Sin datos');assert.equal(m.sections.find(x=>x.title==='Test cognitivo').cards[1].answer,'Sin respuesta');
 });
-test('teacher PDF consumes only its decrypted compartment; preserved centre-based counts',async()=>{
- const aulas=P.classes(data),built=await P.build({data,center:'Centro 4826',accounts:[{username:'orientacion',password:'FRJ508'},{username:'12345678Z',password:'Toro05Leon',allowed:[aulas[0].key]}]});
- const opened=await P.open(built.text,'12345678Z','Toro05Leon');
- const identity=PDF.identity({role:'tutor',protectedProject:true,maskedDni:opened.grant.maskedDni,sessionCode:'session1'});
- const m=PDF.model({view:'student',selection,...opened.data,identity});
- assert.equal(m.sections.find(x=>x.title==='Relaciones').cards[0].answer,String(data.students[0].amistad_recibida_n));
- assert.ok(!JSON.stringify(m).includes('Bruno'));
- assert.throws(()=>PDF.model({view:'center',selection,...opened.data,identity}),/centro completo/);
- assert.throws(()=>PDF.model({view:'student',selection:{...selection,student:'S4'},...opened.data,identity}),/autorizada/);
+test('class general PDF and student bundle differ; bundle reuses individual model',()=>{
+ const general=PDF.model({view:'group',selection,...data,identity:orient});assert.equal(general.roster.length,3);assert.ok(general.sections.find(s=>s.title==='Resumen de la clase').cards[0].detail.startsWith('Media del colegio:'));
+ const bundle=PDF.model({view:'group',mode:'students',selection,...data,identity:orient});assert.equal(bundle.students.length,3);assert.equal(bundle.roster,undefined);assert.deepEqual(bundle.students[0],PDF.model({view:'student',selection,...data,identity:orient}));
+ const classRel=general.sections.find(s=>s.title==='Relaciones de amistad y negativas'),schoolRel=PDF.model({view:'group',relationshipReach:'school',selection,...data,identity:orient}).sections.find(s=>s.title==='Relaciones de amistad y negativas');assert.equal(classRel.scope,'Dentro de su clase');assert.notEqual(schoolRel.cards[0].answer,classRel.cards[0].answer);
+});
+test('teacher PDF consumes only its decrypted compartment and never invents school averages',async()=>{
+ const aulas=P.classes(data),built=await P.build({data,center:'Centro 4826',accounts:[{username:'orientacion',password:'FRJ508'},{username:'12345678Z',password:'Toro05Leon',allowed:[aulas[0].key]}]});const opened=await P.open(built.text,'12345678Z','Toro05Leon');
+ const identity=PDF.identity({role:'tutor',protectedProject:true,maskedDni:opened.grant.maskedDni,sessionCode:'session1'}),m=PDF.model({view:'student',selection,...opened.data,identity});assert.equal(m.sections.find(x=>x.title==='Relaciones de amistad y negativas').cards[0].answer,String(data.students[0].amistad_recibida_n));assert.ok(!JSON.stringify(m).includes('Bruno'));
+ const group=PDF.model({view:'group',selection,...opened.data,identity});assert.ok(group.sections.find(s=>s.title==='Resumen de la clase').cards.every(c=>!c.detail.includes('colegio')));const bundle=PDF.model({view:'group',mode:'students',selection,...opened.data,identity});assert.equal(bundle.students.length,3);assert.ok(!JSON.stringify(bundle).includes('Bruno'));
+ assert.throws(()=>PDF.model({view:'center',selection,...opened.data,identity}),/centro completo/);assert.throws(()=>PDF.model({view:'student',selection:{...selection,student:'S4'},...opened.data,identity}),/autorizada/);
+});
+test('PDF renderer ignores networks, retains encryption delegation and cancels stale exports',async()=>{
+ const previous=global.window;let protectedCount=0;
+ global.window={jspdf:require('../vendor/jspdf.umd.min.js'),PbisPdfCrypto:{normalizeDni:value=>{assert.equal(value,'test-password');return value;},protect:async(bytes,password,{current})=>{assert.equal(password,'test-password');assert.equal(current(),true);assert.ok(Buffer.from(bytes).subarray(0,4).equals(Buffer.from('%PDF')));protectedCount++;return new Blob([bytes],{type:'application/pdf'});}}};
+ try{
+  const report=PDF.model({view:'group',mode:'students',selection,...data,identity:orient});
+  const network={get source(){throw Error('A removed network must never be rasterized');}};
+  const blob=await PDF.generate(report,{password:'test-password',network});assert.equal(blob.type,'application/pdf');assert.equal(protectedCount,1);
+  await assert.rejects(PDF.generate(report,{password:'test-password',current:()=>false}),/consulta ha cambiado/);assert.equal(protectedCount,1);
+ }finally{global.window=previous;}
+});
+
+test('school report reuses web comparisons and excludes other centres',()=>{
+ const bridge=require('../src/private-charts.js'),cmp=require('../src/comparison.js'),integration=require('../src/integration.js');
+ const input=structuredClone(data);input.students.forEach((s,i)=>Object.assign(s,{demografia_neae:i===0?true:i===1?null:false,demografia_nueva_incorporacion:i<2,demografia_migrante:i===2}));
+ const source=structuredClone(input.students);input.students.push({...source[0],ID:'OUTSIDE',Campus:'Other centre',Nombre:'Outside Person'});
+ const report=PDF.model({view:'center',selection,...input,identity:orient});
+ assert.equal(report.roster.length,source.length);assert.ok(!JSON.stringify(report).includes('Outside Person'));
+ assert.ok(report.sections.find(s=>s.title==='Resumen del colegio'));assert.ok(report.sections.find(s=>s.title==='Resumen del colegio').cards.every(c=>!c.detail.includes('Media del colegio')));
+ assert.deepEqual(report.schoolCharts.relations,bridge.comparisonRows(source));
+ assert.deepEqual(report.schoolCharts.bullying,cmp.sortBullying(cmp.bullyingRows(bridge.model(source)),'any',true));
+ const neae=report.schoolCharts.integrations.find(g=>g.group==='neae').metrics.find(m=>m.key==='mutual');
+ assert.equal(neae.missing,1);assert.deepEqual(neae.rows,integration.summarize(bridge.model(source),'neae','mutual').rows);
+});
+
+test('school report preserves missing bullying rather than presenting it as no nominations',()=>{
+ const input=structuredClone(data);input.students.forEach(s=>{s.bullying_companeros_n=null;s.bullying_autorreporte=null;});
+ const report=PDF.model({view:'center',selection,...input,identity:orient});
+ assert.equal(report.schoolCharts.distributionAvailable,false);
+ assert.ok(report.schoolCharts.bullying.every(d=>!d.available));
+ assert.ok(report.schoolCharts.integrations.every(g=>g.metrics.find(m=>m.key==='bullying').available===false));
 });

@@ -24,16 +24,15 @@ const expanded=new Function('reading','section','metric','detail',`${source.slic
 const base={ID:'00001',Curso:'4.º Primaria',Grupo:'A',Nombre:'Ana M.',respondio:'Sí',bullying_autorreporte:'No',bullying_companeros_n:0,amistad_recibida_n:16,amistad_declarada_n:6,amistad_reciproca_n:3,rechazo_recibido_n:0,rechazo_declarado_n:0,popularidad:5.9,centralidad:10,felicidad:7.5,felicidad_centro:3,felicidad_diversion:3,felicidad_soledad:1,mediacion_n:7,mediacion:2.6};
 
 
-test('reference summary presents six cards and only the star inside the closed disclosure',()=>{
- const html=studentReport(base),more=html.indexOf('<details class="expanded-details student-network-details">');
+test('reference summary presents six cards, bullying first, without an individual network',()=>{
+ const html=studentReport(base);
  const titles=['Bullying','Relaciones de amistad y negativas','Posición','Bienestar','Mediador','Test cognitivo'];
  assert.deepEqual([...html.matchAll(/<h3>(.*?)<\/h3>/g)].map(m=>m[1]),titles);
- for(const title of titles)assert(html.indexOf('<h3>'+title+'</h3>')<more);
- assert.match(html.slice(more),/^<details[^>]*><summary>Ver más información[^]*<\/summary><section class="student-network">Red en estrella<\/section><\/details>/);
+ assert.match(html,/student-network/);
  assert.doesNotMatch(html,/Indicadores ampliados|Acierto de predicciones|Test de impulsividad/);
- assert.equal((html.match(/class="student-network"/g)||[]).length,1);
  assert.match(html,/id="previous-student"[^>]*disabled/);assert.match(html,/id="next-student"[^>]*disabled/);
 });
+
 test('reported position never substitutes calculated centrality, preserves ties and distinguishes missing from zero',()=>{
  for(const n of [0,1,4,null]){
   const row={...base,centralidad_reportada_n:n},html=studentReport(row,[row,{...base,ID:'2',centralidad_reportada_n:4}]);
@@ -62,16 +61,16 @@ test('bullying keeps each source and original answer separate, formats selection
 });
 test('nonrespondents retain received information, without inventing their answers',()=>{
  const html=studentReport({...base,Nombre:null,respondio:'No',crt_aciertos:3,crt_carrera_acierto:1,bullying_companeros_n:2,bullying_autorreporte:'Sí',bullying_frecuencia:'Una vez'});
- assert.match(html,/Estudiante · 00001/);assert.match(html,/no ha realizado el test/);
+ assert.match(html,/00001/);assert.match(html,/no ha realizado el test/);
  assert.match(html,/¿Se nombra como víctima\?<\/span><strong>Sin dato/);assert.match(html,/Sí, 2 compañeros/);
  assert.match(html,/No hay respuestas de bienestar/);assert.match(html,/<dd>Sin respuesta<\/dd>/);
  assert.doesNotMatch(html,/<dd>Una vez<\/dd>|answer-correct|NaN|Infinity/);
 });
 test('wellbeing uses the original loneliness response, and reports incomplete items honestly',()=>{
  const html=studentReport({...base,Nombre:'Ana <b>',felicidad_centro:3,felicidad_diversion:4,felicidad_soledad:0});
- assert.match(html,/Ana &lt;b&gt; se ha sentido <strong>casi siempre<\/strong> bien/);
- assert.match(html,/divertido <strong>siempre<\/strong>/);assert.match(html,/<strong>nunca<\/strong> se ha sentido solo\/a/);
- const partial=studentReport({...base,felicidad_centro:null});assert.match(partial,/Sin respuesta sobre cómo se ha sentido/);assert.match(partial,/<strong>casi nunca<\/strong> se ha sentido solo\/a/);
+ assert.match(html,/Ana &lt;b&gt; <strong class="wellbeing-word-positive">casi siempre<\/strong> se ha sentido bien/);
+ assert.match(html,/<strong class="wellbeing-word-positive">siempre<\/strong> se ha divertido/);assert.match(html,/<strong class="wellbeing-word-positive">nunca<\/strong> se ha sentido solo\/a/);
+ const partial=studentReport({...base,felicidad_centro:null});assert.match(partial,/Sin respuesta sobre cómo se ha sentido/);assert.match(partial,/<strong class="wellbeing-word-positive">casi nunca<\/strong> se ha sentido solo\/a/);
 });
 test('cognitive test shows total, each available result and the mean of valid respondents',()=>{
  const row={...base,crt_aciertos:2,crt_carrera_acierto:0,crt_emilia_acierto:1,crt_biblioteca_acierto:1};
@@ -86,4 +85,18 @@ test('mediation and relation counts use singular wording and keep both mediation
  const html=studentReport({...base,amistad_recibida_n:1,rechazo_recibido_n:1,mediacion_n:1,mediacion_negativa_n:0});
  assert.match(html,/1 compañero señala tener una buena relación/);assert.match(html,/1 compañero señala tener una mala relación/);
  assert.match(html,/Opinan que sí<\/span><strong>1 compañero/);assert.match(html,/Opinan que no<\/span><strong>0 compañeros/);
+});
+
+test('all 216 frequency and missing-response combinations use grammatical clauses in web and PDF',()=>{
+ const PDF=require('../src/pdf-export.js');
+ const values=[null,0,1,2,3,4],words=['nunca','casi nunca','algunas veces','casi siempre','siempre'];
+ for(const a of values)for(const b of values)for(const c of values){
+  const row={...base,Campus:'Test',felicidad_centro:a,felicidad_diversion:b,felicidad_soledad:c};
+  const web=studentReport(row).replace(/<[^>]*>/g,'');
+  const pdf=PDF.model({view:'student',selection:{center:'Test',course:row.Curso,group:row.Grupo,student:row.ID},students:[row],identity:PDF.identity({demo:true}),demo:true}).sections.find(s=>s.title==='Bienestar').parts.map(p=>p.text).join('');
+  for(const text of [web,pdf]){
+   for(const [v,clause] of [[a,'se ha sentido bien en el colegio'],[b,'se ha divertido con sus amigos'],[c,'se ha sentido solo/a']])if(v!==null)assert.ok(text.includes(words[v]+' '+clause),text);
+   assert.doesNotMatch(text,/se ha (sentido|divertido) (nunca|casi nunca)|undefined/);
+  }
+ }
 });

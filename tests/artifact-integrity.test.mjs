@@ -13,11 +13,16 @@ test('release verification rejects checksum corruption and unexpected public fil
   t.after(()=>fs.rmSync(temp,{recursive:true,force:true}));
   for(const folder of ['site','release'])fs.cpSync(new URL('../'+folder,import.meta.url),path.join(temp,folder),{recursive:true});
   fs.copyFileSync(new URL('../package.json',import.meta.url),path.join(temp,'package.json'));
+  fs.mkdirSync(path.join(temp,'site-src/equipo-pbis'),{recursive:true});
+  fs.copyFileSync(new URL('../site-src/equipo-pbis/assets-manifest.json',import.meta.url),path.join(temp,'site-src/equipo-pbis/assets-manifest.json'));
   const sums=path.join(temp,'site/downloads/SHA256SUMS.txt'),original=fs.readFileSync(sums);
   fs.writeFileSync(sums,'invalid');assert.throws(()=>verifyRelease(temp),/SHA256SUMS/);
   fs.writeFileSync(sums,original);fs.writeFileSync(path.join(temp,'site/private.json'),'{}');
   assert.throws(()=>verifyRelease(temp),/público no previsto/);
   fs.unlinkSync(path.join(temp,'site/private.json'));
+  const portrait=path.join(temp,'site/assets/equipo-pbis/pablo-branas.jpg'),portraitOriginal=fs.readFileSync(portrait);
+  fs.writeFileSync(portrait,'changed');assert.throws(()=>verifyRelease(temp),/Foto de equipo alterada/);
+  fs.writeFileSync(portrait,portraitOriginal);
   fs.copyFileSync(new URL('../data/examples/llave_evaluacion.xlsx',import.meta.url),path.join(temp,'site/downloads/llave_evaluacion.xlsx'));
   assert.throws(()=>verifyRelease(temp),/público no previsto/,'Even a synthetic key must not become a public download again.');
 });

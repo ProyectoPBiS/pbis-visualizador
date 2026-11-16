@@ -2,7 +2,7 @@
 
 ## Dos formatos de entrada
 
-**Users (Wave 1):** se interpretan los recorridos Par/Impar y se calculan los indicadores en el navegador. Las menciones abarcan todo el centro identificado por su código de estudio. Las autoselecciones se excluyen de buenas relaciones, malas relaciones y mediación; la autoselección en acoso define «Declara haber sufrido acoso».
+**Users (Wave 1):** se toma la versión efectivamente contestada de cada pareja de preguntas (redes, beliefs y las tres preguntas cognitivas), sin depender del día, del mes ni de cómo se asignó el recorrido. Dos respuestas en una misma pareja se notifican como incoherencia y no se combinan automáticamente. Una marca de entrada a la pregunta no acredita una respuesta. Los indicadores se calculan en el navegador. Las menciones abarcan todo el centro identificado por su código de estudio. Las autoselecciones se excluyen de buenas relaciones, malas relaciones y mediación; la autoselección en bullying define el autorreporte.
 
 **Datos (indicadores):** se validan y muestran los valores suministrados. No se inventan respuestas o relaciones ausentes. El diccionario del archivo debe explicar su método y ámbito de cálculo.
 
@@ -18,9 +18,7 @@ Relaciones mutuas (reciprocidad): relaciones declaradas en ambos sentidos / rela
 
 Las medidas de red usan los vínculos observados. Cuando faltan respuestas relacionales se indica el porcentaje de la red pendiente; los resultados pueden cambiar cuando se complete. Una ausencia no se interpreta como respuesta «No». La centralidad describe la posición estructural y no es un juicio sobre la persona.
 
-La red de estudiante representa menciones entrantes y salientes; el color distingue buenas y malas relaciones, y el grosor su intensidad. El detalle de cada relación permite comprobar la dirección. Si el archivo solo contiene recuentos, no se puede reconstruir quién nombró a quién.
-
-La presentación sigue la red de ISAT: estudiante en el centro, tarjetas alrededor y dos flechas separadas cuando hay menciones en ambos sentidos. Azul indica buena o muy buena relación; rojo, mala o muy mala. Las categorías «Muy» tienen mayor grosor. Las tarjetas muestran nombre con apellidos abreviados, o código si no hay nombre, y abren la ficha correspondiente. Un borde discontinuo distingue otras aulas. Los controles +, − y Ajustar amplían el dibujo, incluso en móvil. No se muestran personas fuera del alcance del perfil. Esta visualización no cambia los recuentos ni utiliza predicciones como relaciones observadas.
+En esta revisión se retiran las redes individuales de la ficha y de los PDF. Se conserva la red de clase existente. Si el archivo solo contiene recuentos, no se puede reconstruir quién nombró a quién; las predicciones tampoco se convierten en relaciones observadas. La red única de todo el colegio queda pendiente, y el acceso desde colegio se identifica como «Ver red por clase».
 
 La centralidad de eigenvector de Wave 1 y de la demo se calcula **dentro del aula** (centro, curso y aula), con la definición `eigenvectorf_class` de la réplica R: matriz A + Aᵀ de buenas relaciones. Cada mención vale uno; una relación recíproca suma dos. «Buena» y «Muy buena» cuentan igual para este cálculo. El mayor eigenvector vale 1 y se presenta multiplicado por 10, con un decimal. Los recuentos principales de menciones siguen incluyendo todo el centro; no son el grado interno del aula.
 
@@ -30,23 +28,27 @@ La centralización de aula utiliza esos mismos eigenvectors: suma de (1 − eige
 
 Las comunidades se detectan con Louvain sobre las buenas relaciones OR: una arista si hay mención de buena relación en cualquiera de los sentidos, resolución 1, semilla 20261010 y orden de filas del archivo. La modularidad Q corresponde a esa partición. El motor se contrasta con R/igraph 2.3.3; se fija también el generador aleatorio y el orden de visita, porque la semilla sola no asegura iguales particiones entre bibliotecas. Una nueva versión, un orden de registros distinto o empates pueden cambiar la partición. Véanse [eigenvector](https://r.igraph.org/reference/eigen_centrality.html) y [Louvain](https://r.igraph.org/reference/cluster_louvain.html).
 
-La variante OR del eigenvector se conserva separada como `centralidad_eigenvector_or` para auditoría. No se confunde con la variante SUM de la ficha. Los campos antiguos `pbis_eigenvector_class` de la réplica R usan OR y, por tanto, no son la nueva escala SUM de la ficha. Los archivos Datos previamente calculados conservan su definición de origen.
+La variante OR del eigenvector se conserva separada como `centralidad_eigenvector_or` para auditoría. No se confunde con la variante SUM del motor. Los campos antiguos `pbis_eigenvector_class` de la réplica R usan OR. Los archivos Datos previamente calculados conservan su definición de origen. La ficha simplificada utiliza las nominaciones directas a las preguntas de popularidad y centralidad; no sustituye esas respuestas por eigenvector.
 
 ## Bienestar y test
 
 Bienestar: experiencia en el centro y diversión (0–4), más soledad invertida (4 − respuesta). La suma de 0 a 12 se expresa de 0 a 10. Las tres respuestas originales se muestran sin invertir. El índice requiere las tres respuestas válidas.
 
-El **Test de impulsividad** presenta únicamente el total de aciertos de las tres preguntas CRT, de 0 a 3, y la media de respuestas completas del aula. En esta exportación las respuestas correctas son segundo lugar, Emilia y día 47. Una prueba incompleta se muestra sin puntuación. No permite diagnosticar impulsividad ni clasificar capacidades.
+El **Test cognitivo** presenta el total de aciertos de las tres preguntas CRT, de 0 a 3, su desglose y la media de respuestas completas del aula. En esta exportación las respuestas correctas son segundo lugar, Emilia y día 47. Una prueba incompleta se muestra sin puntuación total; cada pregunta conserva su respuesta disponible. No permite diagnosticar impulsividad ni clasificar capacidades.
 
 ## Centro y aula
 
 Los porcentajes de respuestas personales usan solo las respuestas válidas. Se distingue la respuesta personal sobre acoso de las menciones de otras personas: pueden referirse al mismo estudiante y no se suman.
 
-El **recuento de estudiantes con menciones de acoso** cuenta estudiantes que reciben **2 o más menciones válidas de personas distintas**. En centro y aula, el porcentaje es ese recuento dividido por los estudiantes con recuento recibido conocido en el ámbito, multiplicado por 100. El denominador no se limita a quienes emiten respuestas admitidas. En la lista y la ficha de estudiante se conserva el número recibido, incluido 1; ese caso no entra en el numerador de los resúmenes. La ficha de estudiante conserva las señales descriptivas del recuento recibido y de la declaración de acoso por separado.
+Los destacados de Centro y Aula usan dos bases distintas. **Autorreporte** cuenta alumnado que se autorreporta y finaliza, dividido entre todo el alumnado que finaliza. **Dos o más nominaciones** cuenta alumnado con al menos dos nominaciones registradas, incluida la propia una vez, dividido entre todo el alumnado registrado; incluye personas sin participación o con cuestionario sin terminar. Sus listados corresponden a esos numeradores. Se conservan todas las nominaciones; no se descartan las emitidas por quien selecciona a muchas personas. En las comparativas aparece un aviso cuando una misma respuesta señala a 15 o más compañeros distintos.
+
+Las barras de bullying por clase y por grupos distinguen ninguna, una y dos o más nominaciones registradas, incluyendo la propia una sola vez. Ninguna incluye alumnado sin respuesta propia y sin nominaciones recibidas; no demuestra ausencia de bullying. Si falta cobertura de la pregunta no se presenta como un resultado favorable conocido. El reparto en cinco categorías conserva por separado quién nomina: Ninguna, 1(C), 1(A), 2+(C), 2+(C+A).
+
+El selector Colegio/Clase del bloque de relaciones determina conjuntamente el alcance de los recuentos, medias y listas asociadas. Las comparativas entre clases de relaciones cuentan vínculos dentro de cada clase; las comparativas NEAE, nueva incorporación y origen migrante consideran vínculos escolares. Desconocido en estas clasificaciones no equivale a No.
 
 Los archivos Datos y la demo clásica contienen recuentos ya calculados. Las escalas normalizadas de menciones de acoso se recalculan desde esos recuentos; las posiciones comparativas antiguas de ese indicador no se reutilizan.
 
-En este cuestionario Wave 1, una lista de acoso vacía se interpreta como **Nadie** si hay una respuesta posterior a frecuencia, posibilidad de detener el acoso, conductas o mediación: avanzar requería responder a acoso. Una marca horaria de entrada, por sí sola, no confirma una respuesta. Sin lista ni respuesta posterior, el dato queda pendiente y se excluye del denominador. La autoselección exige que coincida el ID completo, no una parte del código.
+En este cuestionario Wave 1, una lista de acoso vacía se interpreta como **Nadie** si hay una respuesta posterior a frecuencia, posibilidad de detener el acoso, conductas o mediación, o consta la finalización del cuestionario. Una marca horaria de entrada, por sí sola, no confirma una respuesta. Sin lista ni esas evidencias, el dato queda pendiente y se excluye del denominador de autorreporte. La autoselección exige que coincida el ID completo, no una parte del código.
 
 Una respuesta que contiene **Error en relación** es un error de exportación. Esa pregunta queda pendiente, sin asignar categorías a sus menciones; se conservan las demás preguntas del registro y las fichas muestran el aviso. Los vínculos válidos recibidos de otras personas siguen contando. Las respuestas explícitas no se descartan por faltar su marca horaria de entrada.
 

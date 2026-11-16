@@ -35,7 +35,7 @@ try{
  await page.locator('#tab-roster').click();assert.equal(await page.locator('tr[data-student-id]').count(),3);assert.ok(!(await page.locator('#report-content').textContent()).includes('Bruno'));
  assert.equal(await page.locator('#tab-review').count(),0);assert.equal(reviews.length,0);
  await page.screenshot({path:path.join(output,'proyecto-docente.png'),fullPage:true});
- await page.locator('#tab-roster').click();await page.locator('.student-link').first().click();await page.locator('.expanded-details > summary').click();assert.ok(await page.locator('.student-network').count());
+ await page.locator('#tab-roster').click();await page.locator('.student-link').first().click();await page.locator('.student-reference-grid').waitFor();assert.equal(await page.locator('.student-network').count(),1);
  for(const width of [390,320]){await page.setViewportSize({width,height:900});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'mobile report width '+width);}
  await page.screenshot({path:path.join(output,'proyecto-movil.png'),fullPage:true});await logout();assert.equal(await page.locator('.protected-watermark').count(),0);assert.ok(events.some(e=>e.event.type==='close'));
  await page.setViewportSize({width:1360,height:960});await open('87654321X','Lince72Delfin');await page.locator('#tab-roster:not([disabled])').waitFor();await page.locator('#tab-roster').click();assert.ok((await page.locator('#report-content').textContent()).includes('Bruno'));assert.ok(!(await page.locator('#report-content').textContent()).includes('Ana'));await logout();

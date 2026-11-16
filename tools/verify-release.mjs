@@ -35,6 +35,13 @@ export function verifyRelease(directory=root){
     }
   }
   const allowed=new Set(['.nojekyll','cookies.html','condiciones.html','index.html','PBIS.html','DEMO.html','demo-data.json','site.css','site.js','assets/ficha-grupo-ejemplo.png','guia.html','proyectos-protegidos.html','prompts-proyectos.html','privacidad.html','metodologia.html','opiniones.html','feedback-datos.html','auditoria.html','prompts.html','downloads/manifest.json','downloads/SHA256SUMS.txt',...names.map(name=>'downloads/'+name)]);
+  const teamAssets=JSON.parse(read('site-src/equipo-pbis/assets-manifest.json'));
+  for(const asset of teamAssets){
+    if(!/^assets\/[a-z0-9-]+\.(?:jpg|png)$/.test(asset.archivo))throw new Error('Ruta de equipo no admitida.');
+    const name='assets/equipo-pbis/'+path.posix.basename(asset.archivo);
+    allowed.add(name);
+    if(sha(read('site/'+name))!==asset.sha256)throw new Error('Foto de equipo alterada: '+name);
+  }
   function walk(relative=''){
     for(const entry of fs.readdirSync(path.join(directory,'site',relative),{withFileTypes:true})){
       const name=path.posix.join(relative,entry.name);

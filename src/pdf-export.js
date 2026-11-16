@@ -1,10 +1,10 @@
 /* Local PDF edition. Reuses the consultation's aggregates; never opens source books.
- * Native PDF text and page watermarks, with the current scoped SVG as an image.
+ * Native PDF text and page watermarks; reports contain no networks.
  * No persistence, network, credentials, feedback or source-file attachment. */
 (function(root,factory){
-  if(typeof module==='object'&&module.exports)module.exports=factory(require('./core.js'));
-  else root.PbisPdf=factory(root.PbisCore);
-})(typeof window==='undefined'?globalThis:window,function(C){
+  if(typeof module==='object'&&module.exports)module.exports=factory(require('./core.js'),require('./consultation-ui.js'));
+  else root.PbisPdf=factory(root.PbisCore,root.PbisConsultationUI);
+})(typeof window==='undefined'?globalThis:window,function(C,UI){
   'use strict';
   const known=x=>typeof x==='number'&&Number.isFinite(x);
   const number=x=>known(x)?x.toLocaleString('es-ES',{maximumFractionDigits:1}):'Sin datos';
@@ -28,7 +28,7 @@
     const label=clean(account)+' · '+clean(sessionCode).slice(0,8);
     return {header:'Copia de '+label,watermark:label};
   }
-  function model({view,selection,students,groups,identity:mark,demo=false,networkNote=''}){
+  function model({view,selection,students,groups=[],identity:mark,demo=false,mode='general',relationshipReach=view==='group'?'class':'school'}){
     if(!['center','group','student'].includes(view))throw Error('Selecciona una ficha de centro, aula o estudiante.');
     if(!mark?.header||(!mark.watermark&&mark.header!=='Equipo orientador'))throw Error('El PDF requiere una identificación válida.');
     if(view==='center'&&mark.header!=='Equipo orientador'&&!demo)throw Error('Esta cuenta no puede descargar el centro completo.');
@@ -38,81 +38,113 @@
     if(!rows.length)throw Error('No hay datos autorizados para esta selección.');
     const r=classroom.find(r=>r.ID===selection.student);
     if(view==='student'&&!r)throw Error('El estudiante no está en esta aula autorizada.');
-    const info=C.consultationContext(rows,groups),meta=groups.find(g=>classKey(g)===classKey(rows[0]));
-    const sections=[];
-    const section=(title,cards,note='',tone='blue')=>sections.push({title,cards,note,tone});
-    const card=(question,answer,detail='')=>({question,answer:String(answer),detail});
-    const scoreCard=(question,value,detail='')=>({...card(question,scale(value),detail),score:value,maximum:10});
-    if(view==='student'){
-      section('Señales de acoso escolar',[
-        card('¿Declara haber sufrido acoso?',r.respondio==='No'?'No ha respondido':r.bullying_autorreporte??'Datos insuficientes'),
-        card('¿Cuántas menciones de acoso recibe?',number(r.bullying_companeros_n), 'Menciones de otras personas; se conserva el recuento individual completo.')
-      ],'Las dos fuentes pueden coincidir. Son señales para contrastar, no un diagnóstico.','red');
-      const freq=x=>['Nunca','Casi nunca','Algunas veces','Casi siempre','Siempre'][x]||'Sin datos';
-      section('Bienestar',[
-        scoreCard('¿Cuál es su índice de bienestar?',r.felicidad,'Durante la última semana.'),
-        card('¿Con qué frecuencia se ha sentido bien en el centro?',freq(r.felicidad_centro)),
-        card('¿Con qué frecuencia ha disfrutado con sus amistades?',freq(r.felicidad_diversion)),
-        card('¿Con qué frecuencia ha sentido soledad?',freq(r.felicidad_soledad))
-      ],'El índice combina las tres respuestas e invierte la de soledad. Suma 0-12, expresada de 0 a 10.');
-      const mutual=x=>known(x.amistad_reciproca_n)&&x.amistad_declarada_n>0?100*x.amistad_reciproca_n/x.amistad_declarada_n:null;
-      section('Relaciones',[
-        card('¿Cuántas buenas relaciones recibe?',number(r.amistad_recibida_n),'Media del aula: '+number(mean(classroom.map(x=>x.amistad_recibida_n)))),
-        card('¿Cuántas malas relaciones recibe?',number(r.rechazo_recibido_n),'Media del aula: '+number(mean(classroom.map(x=>x.rechazo_recibido_n)))),
-        card('¿Cuántas buenas relaciones son mutuas?',r.amistad_declarada_n===0?'No aplicable · 0 relaciones declaradas':ratio(r.amistad_reciproca_n,r.amistad_declarada_n)+(known(mutual(r))?' · '+number(mutual(r))+' %':''),'Media del aula: '+(known(mean(classroom.map(mutual)))?number(mean(classroom.map(mutual)))+' %':'Sin datos'))
-      ],'Buenas relaciones incluye buena y muy buena relación; malas relaciones incluye mala y muy mala relación.'+(networkNote?' '+networkNote:''));
-      const centralityMissing={no_edges:'Sin buenas relaciones en esta red',non_unique:'Sin un resultado único',no_convergence:'Cálculo pendiente'};
-      section('Posición en la red',[
-        scoreCard('¿Qué puntuación tiene en buenas relaciones recibidas?',r.popularidad),
-        {...scoreCard('¿Cuál es su centralidad?',r.centralidad,(r.ambito_centralidad==='clase'?'Calculada dentro del aula.':'Ámbito indicado en el archivo.')+(r.red_clase_pendiente_pct>0?' Falta por completar el '+number(r.red_clase_pendiente_pct)+' % de las respuestas relacionales del aula.':'')),answer:known(r.centralidad)?scale(r.centralidad):centralityMissing[r.centralidad_estado]||'Sin datos'}
-      ]);
-      section('Mediación',[
-        card('¿Cuántas menciones de buena mediación recibe?',number(r.mediacion_negativa_n==null?null:r.mediacion_n)),
-        card('¿Cuántas menciones de mala mediación recibe?',number(r.mediacion_negativa_n))
-      ],'Buena y mala mediación incluyen muy buena y muy mala, respectivamente. Una persona puede recibir ambas.');
-      if(Object.hasOwn(r,'crt_aciertos')){
-        const scores=classroom.map(x=>x.crt_aciertos).filter(x=>known(x)&&x>=0&&x<=3);
-        section('Test de impulsividad',[{...card('¿Cuántas de las tres preguntas acertó?',scale(r.crt_aciertos,3),'Media del aula: '+scale(mean(scores),3)+' · '+scores.length+' respuestas válidas.'),score:r.crt_aciertos,maximum:3}],'Este resultado no diagnostica impulsividad.');
-      }
-      const prediction=kind=>r['pred_'+kind+'_n']===0?'No aplicable · Sin predicciones declaradas':ratio(r['pred_'+kind+'_aciertos'],r['pred_'+kind+'_n'])+' predicciones correctas';
-      section('Más indicadores',[
-        scoreCard('Buenas relaciones declaradas',r.sociabilidad,'Recuento: '+number(r.amistad_declarada_n)),
-        {...scoreCard('Acierto de predicciones de buenas relaciones',r.acierto_amistad,prediction('amistad')),answer:r.acierto_amistad==null&&r.pred_amistad_n===0?'No aplicable':scale(r.acierto_amistad)},
-        scoreCard('Malas relaciones declaradas',r.rechazo_declarado,'Recuento: '+number(r.rechazo_declarado_n)),
-        {...scoreCard('Malas relaciones mutuas',r.reciprocidad_rechazo,r.rechazo_declarado_n===0?'Sin relaciones declaradas':ratio(r.rechazo_reciproco_n,r.rechazo_declarado_n)),answer:r.reciprocidad_rechazo==null&&r.rechazo_declarado_n===0?'No aplicable':scale(r.reciprocidad_rechazo)},
-        {...scoreCard('Acierto de predicciones de malas relaciones',r.acierto_rechazo,prediction('rechazo')),answer:r.acierto_rechazo==null&&r.pred_rechazo_n===0?'No aplicable':scale(r.acierto_rechazo)}
-      ]);
-    }else{
-      const g=view==='center'?C.aggregateCenter(rows):C.aggregate(rows,meta);
-      const metric=id=>{const a=g.attention.find(a=>a.id===id);return {...card(a.title,ratio(a.count,a.denominator)+(known(a.percent)?' · '+number(a.percent)+' %':''),a.description),score:a.score,maximum:10};};
-      section('Señales de acoso escolar',[metric('bullying_declarado'),metric('bullying_companeros')],'Las dos fuentes pueden coincidir; no se suman. Son señales para contrastar, no un diagnóstico.','red');
-      section('Bienestar',[metric('soledad')],'Soledad frecuente: casi siempre o siempre durante la última semana.');
-      section('Relaciones',[metric('sin_reciprocas'),metric('densidad_rechazo')],'Recuentos basados en las respuestas disponibles.');
-      if(view==='group')section('Comunidades de relaciones',[
-        card('¿Cuántas comunidades se observan?',g.communities?g.communities.length:'Sin datos',g.communities?g.communities.map(c=>`${String(c.name).replace(/^Red (\d+)$/,'Comunidad $1')}: ${c.count}`).join(' · '):'No hay información suficiente para identificar agrupaciones.'),
-        {...scoreCard('Separación entre comunidades',meta?.pos_separacion),answer:meta?.pos_separacion==null&&meta?.red_clase_completa===false?'Faltan respuestas':scale(meta?.pos_separacion)},
-        {...scoreCard('Desigualdad de buenas relaciones recibidas',meta?.pos_desigualdad),answer:meta?.pos_desigualdad==null&&meta?.red_centro_completa===false?'Faltan respuestas':scale(meta?.pos_desigualdad)},
-        {...scoreCard('Centralización del aula',meta?.pos_centralizacion),answer:meta?.pos_centralizacion==null&&meta?.red_centro_completa===false?'Faltan respuestas':scale(meta?.pos_centralizacion)}
-      ],'Tener varias comunidades no implica conflicto.');
-      section('Mediación y convivencia',[
-        card('¿Cuántos estudiantes reciben menciones de buena mediación?',ratio(g.mediators.count,g.mediators.denominator)),
-        card('¿Cuántos estudiantes reciben menciones de mala mediación?',ratio(g.negativeMediators.count,g.negativeMediators.denominator))
-      ],'Al menos una mención de otras personas. Una persona puede recibir menciones de buena y mala mediación.');
-      if(g.coverageComplete===false)sections.unshift({title:'Cobertura del archivo',cards:[card('¿Qué parte del centro contiene?',ratio(g.n,g.expected)+' estudiantes')],note:'',tone:'blue'});
+    const title=view==='student'?fullName(r):view==='center'?selection.center:selection.course+' '+selection.group;
+    const report={type:view==='student'?'Ficha del alumno':view==='center'?'Informe del colegio':mode==='students'?'Fichas del alumnado':'Informe general de la clase',title,
+      scope:selection.center+(view==='student'?' · '+r.Curso+' '+r.Grupo:''),context:[],identity:mark,sections:[],view,mode,networkNote:'',
+      filename:'PBIS-'+(view==='group'&&mode==='students'?'alumnos':view)+'-'+(view==='student'?r.ID:selection.center+(view==='group'?'-'+selection.course+'-'+selection.group:'')).replace(/[^a-z0-9_-]/gi,'_')+'.pdf'};
+    if(view==='group'&&mode==='students'){
+      report.students=classroom.slice().sort((a,b)=>fullName(a).localeCompare(fullName(b),'es',{numeric:true})).map(s=>model({view:'student',selection:{...selection,student:s.ID},students,groups,identity:mark,demo,relationshipReach}));
+      return report;
     }
-    const warnings=[];
-    const pending=rows[0].red_centro_pendiente_pct;
-    if(known(pending)&&pending>0)warnings.push('Falta por completar el '+number(pending)+' % de las respuestas relacionales del centro.');
-    if(center.some(x=>x.incidencias_calculo?.length))warnings.push('Hay respuestas con errores de relación pendientes de revisión; no se cuentan como ceros.');
-    if(center.some(x=>x.centralidad_sin_convergencia===true))warnings.push('La centralidad no ha convergido en parte del centro.');
-    const title=view==='student'?name(r):view==='center'?selection.center:selection.course+' · '+selection.group;
-    const type={center:'Ficha de centro',group:'Ficha de aula',student:'Ficha de estudiante'}[view];
-    return {type,title,scope:selection.center+(view==='student'?' · '+r.Curso+' · '+r.Grupo+' · Código '+r.ID:''),
-      context:[info.periods.length?info.periods.join(' · '):'Periodo no indicado',`${info.answered} de ${info.total} con respuesta registrada · ${info.unanswered} sin respuesta · ${info.unknown} con estado desconocido`,
-        'Ámbito de las menciones: '+({centro:'todo el centro',aula:'el aula'}[info.nominationScope]||'según el archivo')+(info.undatedClasses?' · '+info.undatedClasses+' aulas sin periodo indicado.':''),
-        ...(info.periods.length>1?['Hay varios periodos; este resumen no compara su evolución.']:[]),...warnings],
-      identity:mark,sections,networkNote:view==='student'?networkNote:'',filename:'PBIS-'+view+'-'+(view==='student'?r.ID:selection.center+(view==='group'?'-'+selection.course+'-'+selection.group:'')).replace(/[^a-z0-9_-]/gi,'_')+'.pdf'};
+    const card=(question,answer,detail='')=>({question,answer:String(answer),detail});
+    const section=(title,cards,extra={})=>report.sections.push({title,cards,...extra});
+    const validFrequency=v=>Number.isInteger(v)&&v>=0&&v<=4;
+    const freq=v=>validFrequency(v)?['nunca','casi nunca','algunas veces','casi siempre','siempre'][v]:'sin respuesta';
+    const frequency=(v,reverse=false)=>({text:freq(v),emphasis:true,tone:!known(v)||v===2?'neutral':(reverse?v<=1:v>=3)?'positive':'negative'});
+    const self=s=>s.respondio==='No'?'Sin dato':s.bullying_autorreporte??'Sin dato';
+    const peers=s=>known(s.bullying_companeros_n)?s.bullying_companeros_n===0?'No':'Sí, '+number(s.bullying_companeros_n)+' '+(s.bullying_companeros_n===1?'compañero':'compañeros'):'Sin dato';
+    const positiveClaim=(value,claim)=>known(value)?number(value)+' '+(value===1?'compañero opina':'compañeros opinan')+' que '+claim:'Sin dato';
+    if(view==='student'){
+      report.testStatus=r.respondio==='No'?'NO HA REALIZADO EL TEST':r.respondio!=='Sí'?'TEST INCOMPLETO':'';
+      const reciprocal=known(r.amistad_reciproca_n)&&r.amistad_declarada_n>0?100*r.amistad_reciproca_n/r.amistad_declarada_n:null;
+      section('Relaciones de amistad y negativas',[
+        card('Amistades recibidas',number(r.amistad_recibida_n)),
+        card('Rechazos recibidos',number(r.rechazo_recibido_n)),
+        card('Amistades recíprocas',known(reciprocal)?number(reciprocal)+' %':r.amistad_declarada_n===0?'0 elecciones':'Sin dato',ratio(r.amistad_reciproca_n,r.amistad_declarada_n)),
+        card('Amistades declaradas',number(r.amistad_declarada_n)),
+        card('Relaciones negativas declaradas',number(r.rechazo_declarado_n))
+      ]);
+      section('Posición y mediación',[
+        card('Popularidad',positiveClaim(r.popularidad_reportada_n,'es el más popular de la clase')),
+        card('Centralidad',positiveClaim(r.centralidad_reportada_n,'es el más central de la clase')),
+        card('Buen mediador',positiveClaim(r.mediacion_n,'es un buen mediador')),
+        card('Mal mediador',positiveClaim(r.mediacion_negativa_n,'es un mal mediador'))
+      ]);
+      const parts=[];
+      if([r.felicidad_centro,r.felicidad_diversion,r.felicidad_soledad].every(validFrequency))parts.push({text:fullName(r)+' '},frequency(r.felicidad_centro),{text:' se ha sentido bien en el colegio, '},frequency(r.felicidad_diversion),{text:' se ha divertido con sus amigos y '},frequency(r.felicidad_soledad,true),{text:' se ha sentido solo/a.'});
+      else{
+        for(const [value,before,after,reverse] of [[r.felicidad_centro,'',' se ha sentido bien en el colegio. ',false],[r.felicidad_diversion,'',' se ha divertido con sus amigos. ',false],[r.felicidad_soledad,'',' se ha sentido solo/a. ',true]]){
+          if(validFrequency(value))parts.push({text:before},frequency(value,reverse),{text:after});
+        }
+        if(!parts.length)parts.push({text:'No hay respuestas de bienestar.'});
+      }
+      section('Bienestar',[{...card('Bienestar',scale(r.felicidad)),score:r.felicidad,maximum:10}],{parts});
+      const crt=[['Carrera','carrera'],['Emilia','emilia'],['Biblioteca','biblioteca']].map(([label,key])=>{
+        const value=r['crt_'+key+'_acierto'];return {...card(label,value===1?'Acierto':value===0?'Error':'Sin respuesta'),value};
+      });
+      section('Test cognitivo',[{...card('Preguntas acertadas',scale(r.crt_aciertos,3),'Media de la clase: '+scale(mean(classroom.filter(s=>s.respondio!=='No').map(s=>s.crt_aciertos)),3)),score:r.crt_aciertos,maximum:3},...crt]);
+      section('Bullying',[card('¿Se nombra como víctima?',self(r)),card('¿Otros compañeros lo nombran como víctima?',peers(r))],{
+        self:r.bullying_autorreporte,peerCount:r.bullying_companeros_n,
+        questions:[
+          card('En los últimos dos meses, ¿con qué frecuencia has visto o sabido que ocurren estas situaciones?',r.bullying_frecuencia||'Sin respuesta'),
+          card('Cuando esto ocurre, ¿hasta qué punto crees que resulta difícil defenderse o conseguir que esas situaciones paren?',r.bullying_dificultad||'Sin respuesta'),
+          card('¿Qué situaciones de estas has visto o crees que ocurren en tu colegio?',r.bullying_situaciones?String(r.bullying_situaciones).replace(/\s*\|\s*/g,'; '):'Sin respuesta')
+        ]
+      });
+    }else{
+      const respondents=rows.filter(s=>s.respondio!=='No');
+      const schoolRespondents=center.filter(s=>s.respondio!=='No');
+      const expected=Math.max(0,...center.map(s=>known(s.n_centro)?s.n_centro:0));
+      const hasSchoolReference=view!=='center'&&(mark.header==='Equipo orientador'||demo)&&(!expected||center.length>=expected);
+      const schoolMetric=field=>hasSchoolReference?mean(schoolRespondents.map(s=>s[field])):null;
+      const alone=respondents.filter(s=>known(s.felicidad_soledad)),schoolAlone=schoolRespondents.filter(s=>known(s.felicidad_soledad));
+      const lonely=alone.filter(s=>s.felicidad_soledad>=3).length;
+      report.context=[rows.filter(s=>s.respondio==='Sí').length+' de '+rows.length+' han respondido al cuestionario'];
+      section(view==='center'?'Resumen del colegio':'Resumen de la clase',[
+        {...card('Bienestar',scale(mean(respondents.map(s=>s.felicidad))),hasSchoolReference?'Media del colegio: '+scale(schoolMetric('felicidad')):''),metric:'wellbeing'},
+        {...card('Se sienten solos siempre o casi siempre',alone.length?ratio(lonely,alone.length):'Sin dato',hasSchoolReference&&schoolAlone.length?'Media del colegio: '+number(100*schoolAlone.filter(s=>s.felicidad_soledad>=3).length/schoolAlone.length)+' %':''),metric:'alone',percent:alone.length?100*lonely/alone.length:null},
+        {...card('Test cognitivo',scale(mean(respondents.map(s=>s.crt_aciertos)),3),hasSchoolReference?'Media del colegio: '+scale(schoolMetric('crt_aciertos'),3):''),metric:'cognitive'}
+      ]);
+      const highlights=UI.bullyingHighlights(rows);
+      section('Bullying',[
+        card('Alumnos que se autorreportan',number(highlights.bullying_self_completed.count),number(highlights.bullying_self_completed.percent)+' % entre quienes finalizan'),
+        card('Alumnos con dos o más nominaciones',number(highlights.bullying_two_total.count),number(highlights.bullying_two_total.percent)+' % del alumnado registrado')
+      ]);
+      const classReach=view!=='center'&&relationshipReach==='class';
+      const rel=respondents.filter(s=>known(s.amistad_declarada_n));
+      const outgoing=s=>classReach?s.amistad_clase_declarada_n:s.amistad_declarada_n;
+      const negatives=s=>classReach?s.rechazo_clase_declarado_n??s.rechazo_clase_declarada_n:s.rechazo_declarado_n;
+      const mutual=s=>classReach?s.amistad_clase_reciproca_n:s.amistad_reciproca_n;
+      section('Relaciones de amistad y negativas',[
+        card('Media de relaciones positivas nombradas por alumno',number(mean(rel.map(outgoing)))),
+        card('Media de relaciones negativas nombradas por alumno',number(mean(rel.map(negatives)))),
+        card('Nº de alumnos con alguna amistad recíproca',rel.some(s=>known(mutual(s)))?number(rel.filter(s=>mutual(s)>0).length):'Sin dato'),
+        card('Nº de alumnos sin amistades recíprocas',rel.some(s=>known(mutual(s)))?number(rel.filter(s=>mutual(s)===0).length):'Sin dato')
+      ],{scope:classReach?'Dentro de su clase':'En el colegio'});
+      const ranking=field=>{
+        const sorted=rows.filter(s=>known(s[field])&&s[field]>0).slice().sort((a,b)=>b[field]-a[field]||fullName(a).localeCompare(fullName(b),'es'));
+        const cutoff=sorted[Math.min(2,sorted.length-1)]?.[field];
+        return sorted.filter(s=>s[field]>=cutoff).map(s=>({...card(fullName(s),number(s[field])),rank:sorted.findIndex(other=>other[field]===s[field])+1,tied:sorted.filter(other=>other[field]===s[field]).length>1}));
+      };
+      section('Top 3 populares',ranking('popularidad_reportada_n'));
+      section('Top 3 centrales',ranking('centralidad_reportada_n'));
+      section('Top 3 mediadores',ranking('mediacion_n'));
+      report.roster=rows.slice().sort((a,b)=>fullName(a).localeCompare(fullName(b),'es',{numeric:true})).map(s=>({name:fullName(s),course:s.Curso,group:s.Grupo,status:s.respondio==='No'?'NO HA REALIZADO EL TEST':s.respondio!=='Sí'?'Test incompleto':'',wellbeing:scale(s.felicidad),lonely:known(s.felicidad_soledad)?s.felicidad_soledad>=3?'Sí':'No':'Sin dato',self:self(s),peers:number(s.bullying_companeros_n),mediator:known(s.mediacion_n)&&known(s.mediacion_negativa_n)?s.mediacion_n-s.mediacion_negativa_n:null}));
+    }
+    if(view==='center'){
+      const bridge=typeof module==='object'&&module.exports?require('./private-charts.js'):window.PbisPrivateCharts;
+      const comparison=typeof module==='object'&&module.exports?require('./comparison.js'):window.PBISComparison;
+      const integration=typeof module==='object'&&module.exports?require('./integration.js'):window.PBISIntegration;
+      const school=bridge.model(center),relations=bridge.comparisonRows(center);
+      report.schoolCharts={relations,bullying:comparison.sortBullying(comparison.bullyingRows(school),'any',true),alerts:comparison.nominationAlerts(school),
+        distributionAvailable:center.some(s=>s.bullying_autorreporte!=null||known(s.bullying_companeros_n)),distribution:UI.bullyingDistribution(center).categories,overview:UI.overview(center),cognitive:UI.cognitiveBreakdown(center),
+        integrations:['neae','newcomer','migrant'].map(group=>({group,metrics:['mutual','negative','alone','bullying'].map(metric=>({key:metric,...integration.summarize(school,group,metric),available:metric!=='bullying'||school.students.some(s=>Number.isFinite(s.peerCount)||s.selfReport===true)}))})),
+        classes:school.classes.map(c=>{const members=center.filter(s=>classKey(s)===c.id),a=UI.overview(members);return {label:c.label,wellbeing:a.wellbeing.value,crt:a.crt.value};})};
+    }
+    return report;
   }
+  function fullName(r){return String(r.Nombre||r.ID||'').trim();}
+
   // Capture a self-contained SVG with computed styles. No DOM from another view.
   function snapshotNetwork(element,view){
     if(!element)return null;
@@ -140,71 +172,197 @@
     context.fillStyle='white';context.fillRect(0,0,canvas.width,canvas.height);context.drawImage(image,0,0,canvas.width,canvas.height);
     const result=canvas.toDataURL('image/png');canvas.width=canvas.height=0;image.src='';return result;
   }
-  async function generate(report,{network=null,relations=[],password,current=()=>true}={}){
+  async function generate(report,{password,current=()=>true}={}){
     password=window.PbisPdfCrypto.normalizeDni(password);
     if(!current())throw Error('La consulta ha cambiado. Repite la descarga.');
     if(!report.identity?.header||(!report.identity.watermark&&report.identity.header!=='Equipo orientador'))throw Error('No se puede generar un PDF sin identificación.');
-    const picture=network?await raster(network):null;
-    const logo=window.PBIS_BRAND?.logo?await raster({source:atob(window.PBIS_BRAND.logo.split(',')[1]),width:424.12,height:412.95}):null;
-    if(!current())throw Error('La consulta ha cambiado. Repite la descarga.');
     const doc=new window.jspdf.jsPDF({unit:'mm',format:'a4',compress:true,putOnlyUsedFonts:true});
-    doc.setProperties({title:report.type+' · PBIS',author:'PBIS',subject:'Consulta de datos disponibles',creator:'PBIS · Edición local PDF'});
-    const ink='#2b211d',blue='#a9442a',muted='#6b5b51',margin=17;
-    let y=33,sectionTitle='';
-    const width=()=>doc.internal.pageSize.getWidth(),height=()=>doc.internal.pageSize.getHeight();
-    const font=(size=10,bold=false,color=ink)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor(color);};
-    const lines=(value,w,size=10,bold=false)=>{font(size,bold);return doc.splitTextToSize(clean(value),w);};
-    function page(landscape=false){doc.addPage('a4',landscape?'landscape':'portrait');y=33;}
-    function ensure(h){if(y+h>height()-23)page();}
-    function text(value,size=10,bold=false,color=ink){const ls=lines(value,width()-2*margin,size,bold),lineHeight=size*.46;for(const line of ls){ensure(lineHeight);font(size,bold,color);doc.text(line,margin,y+size*.35);y+=lineHeight;}y+=2;}
-    function heading(value,tone='blue'){sectionTitle=value;const titleLines=lines(value,width()-2*margin-8,12,true),h=titleLines.length*5.4+7;ensure(h+25);doc.setFillColor(tone==='red'?'#fbe9e6':'#f7f2ec');doc.roundedRect(margin,y-4,width()-2*margin,h,2,2,'F');font(12,true,tone==='red'?'#9d3c35':ink);doc.text(titleLines,margin+4,y+2,{lineHeightFactor:1.28});y+=h+3;}
-    text(report.type.toUpperCase(),10,true,blue);text(report.title,23,true);text(report.scope,10,false,muted);y+=2;
-    report.context.forEach(value=>text(value,9,false,muted));
-    text('Fotografía del archivo y del periodo indicado. Requiere contraste e interpretación profesional; no es un diagnóstico.',9,false,muted);
-    text('Una respuesta registrada puede estar incompleta. Cada indicador utiliza los datos disponibles.',9,false,muted);y+=3;
-    for(const section of report.sections){
-      heading(section.title,section.tone);
-      for(const card of section.cards){
-        const q=lines(card.question,width()-2*margin-8,10,true),a=lines(card.answer,width()-2*margin-8,15,true),d=card.detail?lines(card.detail,width()-2*margin-8,9):[];
-        const bar=known(card.score);const block=q.length*4.6+a.length*6.9+d.length*4.14+(bar?12:0)+12;
-        // User strings can be very long: let text paginate rather than clip the card.
-        if(block>height()-65){text(card.question,10,true);text(card.answer,15,true);if(card.detail)text(card.detail,9,false,muted);continue;}
-        if(y+block>height()-23){page();text(sectionTitle+' · continuación',10,true,blue);y+=4;}
-        font(10,true);doc.text(q,margin+3,y,{lineHeightFactor:1.3});y+=q.length*4.6+2;
-        font(15,true,ink);doc.text(a,margin+3,y,{lineHeightFactor:1.3});y+=a.length*6.9+1;
-        if(d.length){font(9,false,muted);doc.text(d,margin+3,y,{lineHeightFactor:1.3});y+=d.length*4.14+1;}
-        if(bar){const w=62,x=margin+3;doc.setFillColor('#e5ecef');doc.roundedRect(x,y+1,w,2,1,1,'F');doc.setFillColor(blue);const v=Math.min(card.maximum,Math.max(0,card.score));if(v>0)doc.roundedRect(x,y+1,w*v/card.maximum,2,.6,.6,'F');font(8,false,muted);doc.text('0',x,y+7);doc.text(String(card.maximum),x+w,y+7,{align:'right'});doc.text('Escala: '+scale(card.score,card.maximum),x+w+6,y+4);y+=12;}
-        y+=5;doc.setDrawColor('#e0e7ea');doc.setLineWidth(.2);doc.line(margin+3,y-2,width()-margin-3,y-2);y+=3;
+    doc.setProperties({title:report.type+' · PBiS',author:'PBiS',subject:'Resultados disponibles del cuestionario',creator:'PBiS · Edición local PDF'});
+    const colors={ink:'#2b211d',accent:'#a9442a',muted:'#6b5b51',line:'#e5d9cf',pale:'#faf7f2',positive:'#187552',negative:'#b43a42'};
+    const margin=15,w=180,bottom=278;
+    const font=(size=10,bold=false,color=colors.ink)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor(color);};
+    const lines=(value,width,size=10,bold=false)=>{font(size,bold);return doc.splitTextToSize(clean(value),width);};
+    function paragraph(value,x,y,width,size=9,bold=false,color=colors.ink){const ls=lines(value,width,size,bold);font(size,bold,color);doc.text(ls,x,y,{lineHeightFactor:1.28});return y+ls.length*size*.452;}
+    function rule(x,y,width){doc.setDrawColor(colors.line);doc.setLineWidth(.2);doc.line(x,y,x+width,y);}
+    function box(x,y,width,height,title,score){doc.setDrawColor(colors.line);doc.setFillColor('#ffffff');doc.roundedRect(x,y,width,height,2,2,'FD');font(10,true);doc.text(title,x+4,y+7);if(score){font(12,true,colors.accent);doc.text(score,x+width-4,y+7,{align:'right'});}}
+    function header(r){let y=31;const titleLines=lines(r.title,w,18,true);font(18,true);doc.text(titleLines,margin,y,{lineHeightFactor:1.12});y+=titleLines.length*7.1;return paragraph(r.scope,margin,y+1,w,8,false,colors.muted)+5;}
+    function nextPage(){doc.addPage('a4','portrait');}
+    function rich(parts,x,y,width,size=9){let px=x;const lh=size*.47;for(const part of parts){for(const token of clean(part.text).match(/\S+\s*|\s+/g)||[]){font(size,!!part.emphasis,colors[part.tone]||colors.ink);let tw=doc.getTextWidth(token);if(px>x&&px+tw>x+width){px=x;y+=lh;}if(tw>width){const chunks=lines(token,width,size,!!part.emphasis);for(const chunk of chunks){font(size,!!part.emphasis,colors[part.tone]||colors.ink);doc.text(chunk,px,y);px=x;y+=lh;}}else{font(size,!!part.emphasis,colors[part.tone]||colors.ink);doc.text(token,px,y);px+=tw;}}}return y+lh;}
+    function studentPage(r){
+      let y=header(r);if(r.testStatus)y=paragraph(r.testStatus,margin,y,w,8,true,colors.accent)+3;
+      const get=title=>r.sections.find(s=>s.title===title);
+      const bully=get('Bullying');
+      const bullyingRows=bully.questions.map(c=>({q:lines(c.question,83,7.7),a:lines(c.answer,83,8.2)}));
+      const bullyingHeight=34+bullyingRows.reduce((sum,row)=>sum+Math.max(row.q.length,row.a.length)*3.8+7,0);
+      box(15,y,w,Math.min(bullyingHeight,bottom-y),'Bullying');
+      bully.cards.forEach((c,i)=>{const x=19+i*90;const end=paragraph(c.question,x,y+15,82,8,true);font(11,true,(i===0?bully.self==='Sí':bully.peerCount>0)?colors.negative:colors.ink);doc.text(c.answer,x,end+2);});
+      y+=34;
+      for(const row of bullyingRows){
+        const count=Math.max(row.q.length,row.a.length);
+        for(let i=0;i<count;i++){
+          if(y+8>bottom){nextPage();y=31;box(15,y,w,Math.min(bottom-y,14+(count-i)*3.8+7),'Bullying (continuación)');y+=14;}
+          font(7.7,false,colors.muted);if(row.q[i])doc.text(row.q[i],19,y);
+          font(8.2);if(row.a[i])doc.text(row.a[i],109,y);
+          y+=3.8;
+        }
+        y+=7;
+        if(row!==bullyingRows[bullyingRows.length-1])rule(19,y-5,172);
       }
-      if(section.note){ensure(12);text(section.note,9,false,muted);}y+=4;
+      y+=5;
+      const rel=get('Relaciones de amistad y negativas'),position=get('Posición y mediación');
+      const relationHeight=54,positionHeight=Math.max(54,position.cards.reduce((sum,c)=>sum+lines(c.answer,78,8.4).length*4+2,19));
+      const topHeight=Math.max(relationHeight,positionHeight);
+      if(y+topHeight>bottom){nextPage();y=31;}
+      box(15,y,87,topHeight,rel.title);box(108,y,87,topHeight,position.title);
+      let ry=y+15;for(const c of rel.cards){font(8.1);doc.text(c.question,19,ry);font(9,true,colors.accent);doc.text(c.answer,98,ry,{align:'right'});if(c.detail&&c.answer!=='Sin dato'){font(7.3,false,colors.muted);doc.text(c.detail,98,ry+3.7,{align:'right'});}ry+=8;}
+      let py=y+15;position.cards.forEach((c,i)=>{if(i===2){rule(112,py,79);py+=6;}py=paragraph(c.answer,112,py,79,8.4)+2;});
+      y+=topHeight+5;
+      const wellbeing=get('Bienestar');
+      const wellbeingText=wellbeing.parts.map(p=>p.text).join('');
+      const wellbeingHeight=Math.max(29,16+lines(wellbeingText,172,9).length*4.3);
+      if(y+wellbeingHeight>bottom){nextPage();y=31;}
+      box(15,y,w,wellbeingHeight,'Bienestar',wellbeing.cards[0].answer);rich(wellbeing.parts,19,y+17,172,9);y+=wellbeingHeight+5;
+      if(y+29>bottom){nextPage();y=31;}
+      const crt=get('Test cognitivo');box(15,y,w,29,crt.title,crt.cards[0].answer);
+      paragraph(crt.cards[0].detail,19,y+14,172,8,false,colors.muted);
+      crt.cards.slice(1).forEach((c,i)=>{font(8.5);doc.text(c.question+':',19+i*58,y+23);font(8.5,true,c.value===1?colors.positive:c.value===0?colors.negative:colors.muted);doc.text(c.answer,37+i*58,y+23);});y+=34;
+
     }
-    if(network){
-      page(network.width/network.height>1.25);text(network.title,18,true);text('Flechas: quien nombra > persona nombrada. Verde: buena relación. Rojo: mala relación.',10,false,muted);
-      text('Mayor grosor: muy buena o muy mala relación.'+(report.networkNote?'':' Solo se muestran relaciones autorizadas.'),9,false,muted);
-      if(report.networkNote)text(report.networkNote,9,false,muted);
-      const w=width()-2*margin,h=height()-y-27,factor=Math.min(w/network.width,h/network.height),iw=network.width*factor,ih=network.height*factor;
-      doc.addImage(picture,'PNG',(width()-iw)/2,y,iw,ih,undefined,'FAST');
-      // Text appendix keeps long/dense networks legible and retains every direction.
-      if(relations.length){page();heading('Relaciones representadas');text('Origen > destino · Tipo e intensidad. Complemento legible de la red.',9,false,muted);relations.forEach(relation=>text(relation,9));}
+    function schoolPages(r){
+      const data=r.schoolCharts,green='#94c9b0',yellow='#eed387',red='#e8a49e';let y=0,title='';
+      function page(label){nextPage();title=label;y=31;y=paragraph(label,15,y,w,15,true)+2;y=paragraph(r.title,15,y,w,8,false,colors.muted)+8;}
+      function space(height){if(y+height>bottom)page(title+' (continuación)');}
+      function legend(){font(8);[[green,'Ninguna'],[yellow,'Una'],[red,'Dos o más']].forEach(([color,label],i)=>{doc.setFillColor(color);doc.rect(15+i*48,y-3,3,3,'F');doc.text(label,20+i*48,y);});y+=9;}
+      function stack(label,percent,value,available=true){
+        const ls=lines(label,43,8),height=Math.max(14,ls.length*4+5);space(height);
+        paragraph(label,15,y+3,43,8);let x=60;
+        doc.setFillColor(colors.pale);doc.rect(x,y-1,110,8,'F');
+        if(available){percent.forEach((v,i)=>{if(v>0){doc.setFillColor([green,yellow,red][i]);doc.rect(x,y-1,110*v/100,8,'F');if(v>=12){font(7);doc.text(number(v)+' %',x+55*v/100,y+4,{align:'center'});}x+=110*v/100;}});}
+        else paragraph('Sin datos',61,y+4,100,8,false,colors.muted);
+        font(8,true);doc.text(String(value),195,y+4,{align:'right'});y+=height;rule(15,y-3,w);
+      }
+      function bar(label,value,max,color,suffix='',reference=null){
+        const ls=lines(label,43,8),height=Math.max(14,ls.length*4+5);space(height);paragraph(label,15,y+3,43,8);
+        doc.setFillColor(colors.pale);doc.rect(60,y-1,110,8,'F');if(known(value)&&value>0){doc.setFillColor(color);doc.rect(60,y-1,110*Math.min(1,value/max),8,'F');}
+        if(known(reference)){const x=60+110*Math.max(0,Math.min(1,reference/max));doc.setDrawColor(colors.ink);doc.setLineWidth(.55);doc.line(x,y-3,x,y+9);doc.setLineWidth(.2);}
+        font(8,true);doc.text(known(value)?number(value)+suffix:'Sin datos',195,y+4,{align:'right'});y+=height;rule(15,y-3,w);
+      }
+      page('Bienestar, test cognitivo y nominaciones');
+      for(const [key,label] of [['feeling','Se sienten bien casi siempre o siempre'],['enjoyment','Disfrutan con amigos casi siempre o siempre'],['alone','Se sienten solos siempre o casi siempre']]){
+        const d=data.overview[key];space(22);y=paragraph(label,15,y,150,9,true)+5;y=paragraph(d.denominator?d.count+' de '+d.denominator+' alumnos':'Sin datos',15,y,w,9)+7;
+      }
+      y=paragraph('Test cognitivo · Aciertos por pregunta',15,y,w,11,true)+6;
+      for(const d of data.cognitive)bar(d.label,d.percent,100,'#f3b5a0',' %');
+      y+=5;y=paragraph('Distribución de nominaciones de bullying',15,y,w,11,true)+6;
+      if(!data.distributionAvailable)y=paragraph('Sin datos de nominaciones disponibles.',15,y,w,9)+7;
+      for(const d of data.distributionAvailable?data.distribution:[]){space(20);y=paragraph(d.label+' · '+d.count+' alumnos',15,y,w,9,true)+1;y=paragraph(d.description,15,y,w,8,false,colors.muted)+5;}
+      page('% de Buenas y Malas relaciones');
+      y=paragraph('Relaciones entre alumnos de la misma clase',15,y,w,9,false,colors.muted)+7;
+      for(const d of data.relations.slice().sort((a,b)=>(b.good+b.bad?b.good/(b.good+b.bad):-1)-(a.good+a.bad?a.good/(a.good+a.bad):-1))){const total=d.good+d.bad;stack(d.label,[total?100*d.good/total:0,0,total?100*d.bad/total:0],total?number(100*d.good/total)+' %':'Sin datos',d.respondents>0&&total>0);}
+      space(12);y=paragraph('Verde: buenas relaciones. Coral: malas relaciones. A la derecha, porcentaje de buenas relaciones.',15,y+3,w,8,false,colors.muted)+5;
+      for(const [key,label,color] of [['good','Relaciones positivas nombradas por alumno',green],['bad','Relaciones negativas nombradas por alumno',red]]){
+        page(label);y=paragraph('Dentro de su clase · Entre quienes respondieron sobre relaciones',15,y,w,8,false,colors.muted)+7;
+        const ordered=data.relations.map(d=>({...d,value:d.respondents?d[key]/d.respondents:null})).sort((a,b)=>(b.value??-1)-(a.value??-1));const max=Math.max(1,...ordered.map(d=>d.value??0));
+        const base=data.relations.reduce((sum,d)=>sum+d.respondents,0),reference=base?data.relations.reduce((sum,d)=>sum+d[key],0)/base:null;
+        y=paragraph('Línea vertical · Media del colegio: '+number(reference),15,y,w,8,false,colors.muted)+7;
+        for(const d of ordered)bar(d.label,d.value,max,color,'',reference);
+        space(16);y=paragraph('A la derecha, media de relaciones '+(key==='good'?'positivas':'negativas')+' nombradas por alumno dentro de su clase.',15,y+3,w,8,false,colors.muted)+5;
+      }
+      page('Bullying por clases');y=paragraph('Ordenado por: Nº de nominaciones (Una + Dos o más)',15,y,w,8,false,colors.muted)+7;legend();
+      for(const d of data.bullying)stack(d.label,d.percent,d.n,d.available);
+      space(18);y=paragraph('Nominaciones registradas, incluida la propia. La cifra a la derecha es el alumnado de la clase.',15,y+3,w,8,false,colors.muted)+6;
+      for(const alert of data.alerts){space(25);y=paragraph('Una misma respuesta puede influir en muchos resultados. '+alert.label+' ('+alert.classLabel+') ha señalado a '+alert.count+' compañeros como víctimas de bullying.',15,y,w,8,false,colors.muted)+5;}
+      for(const [key,label,max,suffix] of [['wellbeing','Bienestar por clases',10,' / 10'],['crt','Test cognitivo por clases',3,' / 3']]){
+        page(label);
+        const reference=data.overview[key==='wellbeing'?'wellbeing':'crt'].value;
+        y=paragraph('Línea vertical · Media del colegio: '+number(reference)+suffix,15,y,w,8,false,colors.muted)+7;
+        for(const d of data.classes.slice().sort((a,b)=>(b[key]??-1)-(a[key]??-1))){
+          let color='#f3b5a0';
+          if(key==='wellbeing'&&known(d[key])){
+            const t=Math.max(0,Math.min(1,d[key]/10)),stops=[[231,128,120],[231,207,112],[96,174,135]],a=stops[t<=.5?0:1],b=stops[t<=.5?1:2],fraction=t<=.5?t*2:(t-.5)*2;
+            color='#'+a.map((v,i)=>Math.round(v+(b[i]-v)*fraction).toString(16).padStart(2,'0')).join('');
+          }
+          bar(d.label,d[key],max,color,suffix,reference);
+        }
+      }
+      for(const group of data.integrations){
+        page({neae:'Integración del alumnado NEAE',newcomer:'Integración del alumnado nuevo',migrant:'Integración por origen migrante'}[group.group]);
+        for(const metric of group.metrics){
+          space(metric.key==='bullying'?80:65);y=paragraph(metric.metric.title,15,y,w,10,true)+5;
+          if(metric.key==='bullying')legend();
+          const max=metric.metric.max||Math.max(1,...metric.rows.map(d=>d.value??0));
+          for(const [i,d] of metric.rows.entries()){
+            if(metric.key==='bullying')stack(d.label,d.percent,d.n,metric.available&&d.total>0);
+            else bar(d.label,d.value,max,'#654735',metric.metric.unit);
+          }
+          const bases=metric.rows.map(d=>d.label+': '+(metric.key==='bullying'?d.total+' alumnos registrados':d.n+' de '+d.total+' alumnos con datos')).join(' · ');
+          space(15);y=paragraph(bases+(metric.missing?' · '+metric.missing+' sin clasificación':''),15,y,w,7,false,colors.muted)+7;
+        }
+      }
     }
+    function generalPages(r){
+      let y=header(r);for(const line of r.context)y=paragraph(line,15,y,w,9,false,colors.muted)+2;
+      const bull=r.sections.find(s=>s.title==='Bullying');box(15,y,w,38,'Bullying');bull.cards.forEach((c,i)=>{paragraph(c.question,19+i*90,y+15,83,8);font(20,true,c.answer!=='0'&&c.answer!=='Sin dato'?colors.negative:colors.ink);doc.text(c.answer,19+i*90,y+25);paragraph(c.detail,19+i*90,y+32,83,7.5,false,colors.muted);});y+=45;
+      const summary=r.sections.find(s=>s.title==='Resumen de la clase'||s.title==='Resumen del colegio');
+      summary.cards.forEach((c,i)=>{const x=15+i*62;box(x,y,56,45,c.metric==='alone'?'Soledad frecuente':c.question);if(r.view==='center')paragraph(c.metric==='alone'?'Alumnado del colegio':'Media del colegio',x+4,y+12,48,7.5,false,colors.muted);font(18,true,colors.accent);doc.text(c.metric==='alone'&&known(c.percent)?number(c.percent)+' %':c.answer,x+4,y+20);if(c.metric==='alone'&&known(c.percent))paragraph(c.answer,x+4,y+27,48,8);paragraph(c.detail,x+4,y+34,48,7.5,false,colors.muted);});y+=53;
+      const rel=r.sections.find(s=>s.title==='Relaciones de amistad y negativas');box(15,y,w,52,rel.title);font(7.5,false,colors.muted);doc.text(rel.scope,191,y+7,{align:'right'});rel.cards.forEach((c,i)=>{const rowY=y+17+i*8+(i>=2?5:0);if(i===2)rule(19,rowY-5,172);paragraph(c.question,19,rowY,145,8.5);font(10,true,colors.accent);doc.text(c.answer,191,rowY,{align:'right'});});y+=59;
+      const rankings=r.sections.filter(s=>s.title.startsWith('Top 3'));
+      // One shared frame and three columns for both school and classroom reports.
+      // Keep the complete block together when it fits a page; continue ties otherwise.
+      const pending=rankings.map(section=>({title:section.title,rows:section.cards.map(c=>({c,height:Math.max(8,lines(c.question,32,8).length*8*.452+3+(c.tied?4:0))})),offset:0}));
+      let continuation=false;
+      do{
+        const desired=17+Math.max(8,...pending.map(col=>col.rows.slice(col.offset).reduce((sum,row)=>sum+row.height,0)));
+        if(y+Math.min(desired,bottom-31)>bottom){nextPage();y=31;}
+        const capacity=bottom-y-17;
+        const chunks=pending.map(col=>{const rows=[];let used=0;while(col.offset<col.rows.length){const row=col.rows[col.offset];if(used+row.height>capacity)break;rows.push(row);used+=row.height;col.offset++;}return {title:col.title,rows,height:used};});
+        const height=17+Math.max(8,...chunks.map(col=>col.height));
+        doc.setDrawColor(colors.line);doc.setFillColor('#ffffff');doc.roundedRect(15,y,w,height,2,2,'FD');
+        chunks.forEach((col,i)=>{const x=19+i*60;font(9,true);doc.text(col.title,x,y+7);
+          let rowY=y+16;
+          if(!col.rows.length)paragraph(continuation?'—':'Sin nominaciones',x,rowY,52,8,false,colors.muted);
+          for(const {c,height:rh} of col.rows){font(8,true,colors.muted);doc.text(String(c.rank)+'.',x,rowY);const nameEnd=paragraph(c.question,x+6,rowY,32,8);if(c.tied)paragraph('Empate',x+6,nameEnd+1,32,7,false,colors.muted);font(9,true,colors.accent);doc.text(c.answer,x+52,rowY,{align:'right'});rowY+=rh;}
+        });
+        y+=height+5;continuation=true;
+      }while(pending.some(col=>col.offset<col.rows.length));
+      if(r.schoolCharts)schoolPages(r);
+    }
+    function rosterPages(rosterGroup){
+      const roster=rosterGroup.rows;let y;
+      let offset=0;
+      do{
+        nextPage();y=31;font(15,true);doc.text('Listado de Alumnos',15,y);y+=8;paragraph(rosterGroup.title,15,y,w,9,false,colors.muted);y+=9;
+        const columns=[15,85,110,133,152,173],widths=[70,25,23,19,21,22];
+        doc.setFillColor(colors.pale);doc.rect(15,y-4,w,13,'F');
+        ['Nombre y Apellidos','Bienestar','Soledad','Auto-\nBullying','Otros-\nBullying','Mediación'].forEach((v,i)=>paragraph(v,columns[i]+2,y,widths[i]-3,7.6,true));y+=14;
+        while(offset<roster.length){
+          const row=roster[offset],ls=lines(row.name,66,8.3,true);const rh=Math.max(6.4,ls.length*3.9+(row.status?6:2));if(y+rh>bottom)break;
+          font(8.3,true);doc.text(ls,17,y);if(row.status)paragraph(row.status,17,y+ls.length*3.9,66,6.4,true,colors.accent);
+          [row.wellbeing,row.lonely,row.self,row.peers].forEach((v,i)=>paragraph(v,columns[i+1]+2,y,widths[i+1]-3,7.8,false,i===2&&v==='Sí'?colors.negative:colors.ink));
+          if(known(row.mediator)){const mid=184,half=9,max=Math.max(1,...roster.map(s=>known(s.mediator)?Math.abs(s.mediator):0));rule(175,y-1,18);doc.setDrawColor(colors.muted);doc.line(mid,y-3,mid,y+1);doc.setDrawColor(row.mediator<0?colors.negative:colors.positive);doc.setLineWidth(1.4);doc.line(mid,y-1,mid+half*Math.max(-1,Math.min(1,row.mediator/max)),y-1);doc.setLineWidth(.2);}else paragraph('Sin dato',175,y,18,7);
+          y+=rh;rule(15,y-3,w);offset++;
+        }
+        if(y+17<bottom){const legendEnd=paragraph('Auto-Bullying: se nombra como víctima de bullying. Otros-Bullying: Nº de compañeros del colegio que lo nombran a él como víctima de bullying.',15,y+4,w,7,false,colors.muted);paragraph('Soledad: siempre o casi siempre. Mediación: balance de opiniones; derecha a favor, izquierda en contra.',15,legendEnd+2,w,7,false,colors.muted);}
+      }while(offset<roster.length);
+    }
+    if(report.mode==='students')report.students.forEach((r,i)=>{if(i)nextPage();studentPage(r);});
+    else if(report.view==='student')studentPage(report);
+    else generalPages(report);
+    const logo=window.PBIS_BRAND?.logo?await raster({source:atob(window.PBIS_BRAND.logo.split(',')[1]),width:424.12,height:412.95}):null;
     const stamp=new Date().toLocaleString('es-ES'),total=doc.getNumberOfPages();
     for(let p=1;p<=total;p++){
-      doc.setPage(p);font(15,true,blue);if(logo)doc.addImage(logo,'PNG',margin,7,10,10);doc.text('PBiS',margin+(logo?13:0),16);font(9,false,muted);
-      doc.text(report.identity.header,width()-margin,15,{align:'right'});doc.setDrawColor('#dae4e8');doc.line(margin,21,width()-margin,21);
-      font(8,false,muted);doc.text('Uso confidencial · Solo para personas autorizadas',margin,height()-16);
-      font(8,false,muted);doc.text('Generado: '+stamp,margin,height()-11);doc.text(`${p} / ${total}`,width()-margin,height()-11,{align:'right'});
+      doc.setPage(p);if(logo)doc.addImage(logo,'PNG',margin,7,10,10);font(15,true,colors.accent);doc.text('PBiS',margin+(logo?13:0),16);font(8,false,colors.muted);doc.text(report.identity.header,195,15,{align:'right'});rule(margin,21,w);
+      font(7.5,false,colors.muted);doc.text('Uso confidencial · Solo para personas autorizadas',margin,285);doc.text('Generado: '+stamp,margin,290);doc.text(`${p} / ${total}`,195,290,{align:'right'});
       if(report.identity.watermark){
-        // Drawn LAST in every page content stream: not optional PDF annotations,
-        // CSS backgrounds, layers or a print setting. No unmarked download path.
-        doc.saveGraphicsState();doc.setGState(new doc.GState({opacity:.16}));font(17,true,'#7d695b');
-        const label=clean(report.identity.watermark);const size=Math.min(17,17*90/Math.max(90,doc.getTextWidth(label)));font(size,true,'#7d695b');
-        for(let row=0;row<4;row++)for(let col=0;col<2;col++)doc.text(label,margin+8+col*(width()-2*margin)/2,58+row*(height()-90)/4,{angle:27});
-        doc.restoreGraphicsState();
+        // Retain the existing visible watermark in every content stream.
+        doc.saveGraphicsState();doc.setGState(new doc.GState({opacity:.16}));const label=clean(report.identity.watermark);font(17,true,'#7d695b');const size=Math.min(17,17*90/Math.max(90,doc.getTextWidth(label)));font(size,true,'#7d695b');
+        for(let row=0;row<4;row++)for(let col=0;col<2;col++)doc.text(label,margin+8+col*w/2,58+row*(297-90)/4,{angle:27});doc.restoreGraphicsState();
       }
     }
     if(!current())throw Error('La consulta ha cambiado. Repite la descarga.');
     return window.PbisPdfCrypto.protect(doc.output('arraybuffer'),password,{current});
   }
+
   function download(blob,filename){
     if(!(blob instanceof Blob)||blob.type!=='application/pdf')throw Error('No se ha preparado un PDF protegido.');
     const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
