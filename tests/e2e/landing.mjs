@@ -28,7 +28,7 @@ try{
   assert.equal(await page.locator('#tour-panel').count(),0);
   assert.equal(await page.locator('#course').inputValue(),'1.º ESO');
   assert.equal(await page.locator('#group').inputValue(),'A');
-  assert.match(await page.locator('#report-content').innerText(),/estudiantes/);
+  assert.match(await page.locator('#report-content').innerText(),/han respondido al cuestionario/);
   await page.locator('#logout').click();await page.locator('#login-form').waitFor();
   assert.equal(await page.locator('#login-terms').isChecked(),false);
  }
