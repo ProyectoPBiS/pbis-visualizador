@@ -209,7 +209,7 @@ test('embedded names are read without a second file and do not change indicators
 
 test('display names keep given names and show only surname initials',()=>{
  assert.equal(core.displayName('Pablo Rojas Martín'),'Pablo R. M.');
- assert.equal(core.displayName('María José García López'),'María José G. L.');
+ assert.equal(core.displayName('María José García López'),'María J. G. L.');
  assert.equal(core.displayName('Ana M.'),'Ana M.');
  assert.equal(core.displayName('Lucía García'),'Lucía G.');
  assert.equal(core.displayName(null),null);

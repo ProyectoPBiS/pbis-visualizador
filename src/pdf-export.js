@@ -11,7 +11,7 @@
   const scale=(x,max=10)=>known(x)?number(x)+' / '+max:'Sin datos';
   const mean=values=>{const a=values.filter(known);return a.length?a.reduce((s,x)=>s+x,0)/a.length:null;};
   const ratio=(a,b)=>known(a)&&known(b)?`${number(a)} de ${number(b)}`:'Sin datos';
-  const name=r=>C.displayName(r.Nombre)||String(r.ID);
+  const name=r=>C.displayName(r.Nombre||r.ID);
   const clean=x=>String(x??'').replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g,'').replace(/[–—−]/g,'-').replace(/→/g,' > ').replace(/[\u202f\u00a0]/g,' ');
   const classKey=r=>JSON.stringify([r.Campus||r.Centro,r.Curso,r.Grupo]);
   function identity({demo=false,role,maskedDni,username,accountName,sessionCode,protectedProject=false}){
@@ -41,7 +41,7 @@
     const title=view==='student'?fullName(r):view==='center'?selection.center:selection.course+' '+selection.group;
     const report={type:view==='student'?'Ficha del alumno':view==='center'?'Informe del colegio':mode==='students'?'Fichas del alumnado':'Informe general de la clase',title,
       scope:selection.center+(view==='student'?' · '+r.Curso+' '+r.Grupo:''),context:[],identity:mark,sections:[],view,mode,networkNote:'',
-      filename:'PBIS-'+(view==='group'&&mode==='students'?'alumnos':view)+'-'+(view==='student'?r.ID:selection.center+(view==='group'?'-'+selection.course+'-'+selection.group:'')).replace(/[^a-z0-9_-]/gi,'_')+'.pdf'};
+      filename:'PBIS-'+(view==='group'&&mode==='students'?'alumnos':view)+'-'+(view==='student'?fullName(r):selection.center+(view==='group'?'-'+selection.course+'-'+selection.group:'')).replace(/[^a-z0-9_-]/gi,'_')+'.pdf'};
     if(view==='group'&&mode==='students'){
       report.students=classroom.slice().sort((a,b)=>fullName(a).localeCompare(fullName(b),'es',{numeric:true})).map(s=>model({view:'student',selection:{...selection,student:s.ID},students,groups,identity:mark,demo,relationshipReach}));
       return report;
@@ -143,7 +143,7 @@
     }
     return report;
   }
-  function fullName(r){return String(r.Nombre||r.ID||'').trim();}
+  function fullName(r){return C.displayName(r.Nombre||r.ID)||'';}
 
   // Capture a self-contained SVG with computed styles. No DOM from another view.
   function snapshotNetwork(element,view){

@@ -423,8 +423,7 @@
     const parts = full.split(/\s+/);
     if (parts.length === 1) return parts[0];
     const initial = part => Array.from(part)[0].toLocaleUpperCase('es-ES') + '.';
-    if (parts.length === 2) return parts[0] + ' ' + initial(parts[1]);
-    return parts.slice(0, -2).join(' ') + ' ' + initial(parts.at(-2)) + ' ' + initial(parts.at(-1));
+    return parts[0] + ' ' + parts.slice(1).map(initial).join(' ');
   }
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[character]));
   return Object.freeze({MIN_BULLYING_PEERS, hasPeerBullyingSignal, normalizeGroup, validateAndJoin, aggregate, aggregateCenter, studentNetwork, scopeRows, happiness, displayName, consultationContext, COURSE_ORDER, SCORE_COLUMNS, COUNT_COLUMNS, GROUP_SCORE_COLUMNS, STRUCTURE_COLUMNS, DEMOGRAPHIC_COLUMNS, compareCourses, sortCourses, escapeHtml});

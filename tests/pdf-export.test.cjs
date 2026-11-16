@@ -8,10 +8,10 @@ test('PDF identity preserves masking, demo and orientation; never silently omits
  assert.equal(orient.watermark,null);assert.equal(PDF.identity({demo:true}).watermark,'DATOS SIMULADOS');
  assert.throws(()=>PDF.identity({role:'tutor',username:'a'}),/sesión/);assert.throws(()=>PDF.identity({role:'tutor',protectedProject:true,maskedDni:'12345678Z',sessionCode:'abc'}),/marca/);
 });
-test('individual model uses reported nominations, full names and shared phrasing',()=>{
+test('individual model uses reported nominations, abbreviated names and shared phrasing',()=>{
  const input=structuredClone(data);Object.assign(input.students[0],{Nombre:'Ana Nombre Compuesto Apellido Segundo',popularidad_reportada_n:2,centralidad_reportada_n:1,popularidad:9.9,centralidad:8.7,felicidad_soledad:3,bullying_companeros_n:2});
  const before=JSON.stringify(input),s=PDF.model({view:'student',selection,...input,identity:orient});
- assert.equal(s.title,'Ana Nombre Compuesto Apellido Segundo');assert.doesNotMatch(s.scope,/Código/);
+ assert.equal(s.title,'Ana N. C. A. S.');assert.doesNotMatch(s.scope,/Código/);
  const crt=s.sections.find(x=>x.title==='Test cognitivo');assert.equal(crt.cards[0].answer,'3 / 3');assert.match(crt.cards[0].detail,/Media de la clase: 3 \/ 3/);assert.equal(crt.cards[1].answer,'Acierto');
  const p=s.sections.find(x=>x.title==='Posición y mediación');assert.match(p.cards[0].answer,/2 compañeros opinan que es el más popular de la clase/);assert.match(p.cards[1].answer,/1 compañero opina que es el más central de la clase/);assert.doesNotMatch(JSON.stringify(p),/9,9|8,7/);
  const wellbeing=s.sections.find(x=>x.title==='Bienestar');assert.match(wellbeing.parts.map(p=>p.text).join(''),/y casi siempre se ha sentido solo/);assert.ok(wellbeing.parts.some(p=>p.text==='casi siempre'&&p.tone==='negative'));

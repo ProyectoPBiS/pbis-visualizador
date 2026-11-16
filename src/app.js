@@ -57,7 +57,7 @@ async function activateProtected(session,fileName,buffer,current=()=>true){
  clearState();protectedSession=session;pdfAccountDni=creatorDni;
  profile={username:session.grant.userCode,role:session.grant.role,center:null,course:null,group:null,label:session.grant.role==='orientador'?'Equipo orientador':(session.grant.accountType==='classroom'?'Aula · ':'Docente · ')+window.PbisProtected.watermarkLabel(session.grant)};
  window.PbisFeedback.startSession(profile.role);sourceMode='protected';lastActivity=Date.now();workspace();
- dataset={students:session.data.students.map(r=>({...r,Nombre:r.Nombre})),groups:session.data.groups,warnings:[]};
+ dataset={students:session.data.students.map(r=>({...r,Nombre:C.displayName(r.Nombre||r.ID)})),groups:session.data.groups,warnings:[]};
  books={data:{sha256,sheets:[]}};document.getElementById('sheet-data').innerHTML='<option>Proyecto protegido</option>';
  document.getElementById('import-details').hidden=true;document.getElementById('change-files').hidden=true;
  const first=dataset.students[0];selection={center:first.Centro,course:first.Curso,group:first.Grupo,student:first.ID};
@@ -421,7 +421,7 @@ try{
   if(!demo||!Array.isArray(demo.students)||!Array.isArray(demo.groups))throw Error('El ejemplo no tiene el formato esperado.');
   const table=(name,records)=>{const headers=[...new Set(records.flatMap(row=>Object.keys(row)))];return {name,rows:[headers,...records.map(row=>headers.map(h=>row[h]??null))]};};
   const demoNames=new Map((demo.keys||[]).map(row=>[String(row.ID),row.Nombre]));
-  const demoStudents=demo.students.map(row=>({...row,Nombre:row.Nombre||demoNames.get(String(row.ID))||null}));
+  const demoStudents=demo.students.map(row=>({...row,Nombre:C.displayName(row.Nombre||demoNames.get(String(row.ID))||row.ID)}));
   const practiceStudent=demoStudents.find(row=>String(row.ID)==='00253');
   if(practiceStudent)Object.assign(tourClass,{center:practiceStudent.Centro||practiceStudent.Campus,course:practiceStudent.Curso,group:practiceStudent.Grupo});
   books={data:{sheets:[table('Datos',demoStudents),table('Grupos',demo.groups)]}};
@@ -475,7 +475,7 @@ if(demoSession&&sourceMode!=='demo')return;
 if(!demoSession&&!entryCredentials?.legacyAccount){document.getElementById('import-error').textContent=accessDenied;return;}
 try{let data=rowsFor(books.data,document.getElementById('sheet-data').value),meta=books.data.sheets.some(x=>x.name==='Grupos')?rowsFor(books.data,'Grupos'):[],conversionWarnings=[];
 if(window.PbisWave1?.isWave1(data)){const converted=window.PbisWave1.convert(data);data=converted.students;meta=converted.groups;conversionWarnings=converted.warnings;}
-const all=C.validateAndJoin(data,null,meta);const scoped=C.scopeRows(all.students,profile).map(row=>({...row,Nombre:row.Nombre}));if(!scoped.length)throw Error('No hay estudiantes del curso o aula asignados a esta cuenta. Comprueba las columnas Curso y Grupo (aula).');dataset={students:scoped,groups:all.groups.filter(g=>scoped.some(s=>s.Campus===g.Campus&&s.Curso===g.Curso&&s.Grupo===g.Grupo)),warnings:[...conversionWarnings,...all.warnings]};
+const all=C.validateAndJoin(data,null,meta);const scoped=C.scopeRows(all.students,profile).map(row=>({...row,Nombre:C.displayName(row.Nombre||row.ID)}));if(!scoped.length)throw Error('No hay estudiantes del curso o aula asignados a esta cuenta. Comprueba las columnas Curso y Grupo (aula).');dataset={students:scoped,groups:all.groups.filter(g=>scoped.some(s=>s.Campus===g.Campus&&s.Curso===g.Curso&&s.Grupo===g.Grupo)),warnings:[...conversionWarnings,...all.warnings]};
 const preferred=scoped.find(row=>row.Nombre==='Ana M.')||scoped[0];selection={center:profile.center||preferred.Campus,course:profile.course||preferred.Curso,group:preferred.Grupo,student:preferred.ID};document.getElementById('import-error').textContent='';document.getElementById('import-status').textContent=`${scoped.length.toLocaleString('es-ES')} estudiantes disponibles para tu perfil. ${dataset.warnings.join(' ')}`;document.getElementById('import-status').className='status success';document.getElementById('import-summary').textContent=`${scoped.length.toLocaleString('es-ES')} estudiantes · ${scoped.some(row=>row.Nombre)?'Con nombres':'Consulta por códigos'}`;document.getElementById('import-details').open=false;document.getElementById('tab-group').disabled=false;document.getElementById('tab-roster').disabled=false;document.getElementById('tab-student').disabled=false;view='group';document.getElementById('main').classList.add('results-mode');changeView(canViewCenter()?'center':'group');document.getElementById(canViewCenter()?'tab-center':'tab-group').focus();registerOrientationConsultation();}
 catch(error){dataset=null;document.getElementById('filters').innerHTML='';document.getElementById('filters').classList.add('hidden');document.getElementById('report-content').innerHTML=empty('Revisa el mensaje de validación y el archivo de datos.');document.getElementById('import-error').textContent=error.message;document.getElementById('import-status').textContent='';document.getElementById('import-details').open=true;}
 }
