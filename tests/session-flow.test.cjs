@@ -389,7 +389,7 @@ test('individual previous and next fully update the selected student within the 
  const first=selected();assert.ok(first);
  const initial=f.el('report-content').innerHTML;
  f.el('next-student').onclick();const next=selected();assert.ok(next);assert.notEqual(next,first);
- assert.notEqual(f.el('report-content').innerHTML,initial);assert.ok(f.el('report-content').innerHTML.includes(demo.students.find(r=>r.ID===next).Nombre));
+ assert.notEqual(f.el('report-content').innerHTML,initial);assert.ok(f.el('report-content').innerHTML.includes(require('../src/core.js').displayName(demo.students.find(r=>r.ID===next).Nombre)));
  assert.ok(!f.el('report-content').innerHTML.includes('student-network-details'));assert.doesNotMatch(f.el('report-content').innerHTML,/<details[^>]*\bopen\b/);
  const current=demo.students.find(r=>r.ID===next),original=demo.students.find(r=>r.ID===first);
  assert.equal(current.Campus,original.Campus);assert.equal(current.Curso,original.Curso);assert.equal(current.Grupo,original.Grupo);

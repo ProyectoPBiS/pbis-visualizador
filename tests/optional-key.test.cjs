@@ -43,16 +43,16 @@ test('missing names remain codes, a missing value remains null and absent requir
  for(const row of rows)delete row.bienestar;
  assert.throws(()=>core.validateAndJoin(rows,null,fixtures.groups),/bienestar/);
 });
-test('embedded given and family names show full names throughout the app',async()=>{
+test('embedded given and family names show abbreviated names throughout the app',async()=>{
  const dataRows=fixtures.students.map(row=>row.ID==='00001'?{...row,Nombre:'María José',Apellidos:'García López'}:row);
  const f=app(dataRows);await f.file('data','datos.pbis');f.el('show-reports').onclick();
  f.el('tab-group').onclick();
  f.el('course').onchange({target:{value:'4.º Primaria'}});
  f.el('group').onchange({target:{value:'A'}});
  f.el('tab-student').onclick();f.el('student').onchange({target:{value:'00001'}});
- assert.match(f.el('report-content').innerHTML,/María José García López/);
- assert.match(f.el('filters').innerHTML,/María José García López/);
- f.el('tab-roster').onclick();assert.match(f.el('report-content').innerHTML,/María José García López/);
+ assert.match(f.el('report-content').innerHTML,/María J\. G\. L\./);
+ assert.match(f.el('filters').innerHTML,/María J\. G\. L\./);
+ f.el('tab-roster').onclick();assert.match(f.el('report-content').innerHTML,/María J\. G\. L\./);
 });
 test('removed technical coverage footer stays absent from simplified reports',async()=>{
  const rows=fixtures.students.map(row=>({...row,red_centro_pendiente_pct:9}));
