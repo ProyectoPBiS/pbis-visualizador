@@ -1,5 +1,19 @@
 /* Seeded synthetic survey. Model contains blended class-level probabilities only. */
 export function generateSurvey(model){
+ // Fictional SAL profiles: approximate, deliberately different aggregate proportions
+ // inspired by S30. No real identifiers or individual profiles are copied.
+ // Separate PRNG keeps all existing survey responses and relationships unchanged.
+ let salSeed=(model.seed^0x53a130)>>>0;
+ const salDraw=weights=>{salSeed=(Math.imul(salSeed,1664525)+1013904223)>>>0;let u=salSeed/4294967296*weights.reduce((a,b)=>a+b,0);for(let i=0;i<weights.length;i++){u-=weights[i];if(u<0)return i;}return weights.length-1;};
+ const salProfile=()=>({
+  SAL_1:salDraw([89,11])?'SI':'NO',
+  SAL_2:salDraw([98,2])?'SI':'NO',
+  SAL_3:salDraw([93,2,4,1]),
+  SAL_4:salDraw([77,5,5,4,2,3,1,1,1,1,0]),
+  SAL_5:salDraw([7,1,3,4,7,45,12,8,5,4,4]),
+  SAL_6:salDraw([100]),
+  SAL_7:salDraw([65,2,3,4,3,7,4,4,3,2,3])
+ });
  let seed=model.seed>>>0;const rnd=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
  const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),pick=a=>a[Math.floor(rnd()*a.length)];
  const shuffle=a=>a.map(v=>({v,r:rnd()})).sort((a,b)=>a.r-b.r).map(x=>x.v);
@@ -59,7 +73,7 @@ export function generateSurvey(model){
  const headers=['Usuario Id','Alumno Id','Nombre','Apellidos','Estudio','Curso','Grupo','start','end','dia','eredes1','redes1','eredes2','redes2','ebeliefs1','beliefs1','ebeliefs2','beliefs2','carrera1','carrera2','emilia1','emilia2','library1','library2','egeneral','general','efun','fun','ealone','alone','ebullying','bullying','fqbullying','stopbullying','conductas','emediador','mediador','popular','central'];
  const freq=['Nunca','Casi nunca','Algunas veces','Casi siempre','Siempre'],stamp='2026-11-01 10:00:00',list=a=>a.length?a.join(' | '):'Nadie';
  return students.map((s,i)=>{
-  const row=Object.fromEntries(headers.map(h=>[h,'']));Object.assign(row,{'Usuario Id':s.id,'Alumno Id':'SIM'+s.id,Nombre:s.name,Apellidos:s.family,Estudio:s.m.center,Curso:s.m.course,Grupo:s.m.group});if(!s.answers)return row;
+  const row=Object.fromEntries(headers.map(h=>[h,'']));Object.assign(row,{'Usuario Id':s.id,'Alumno Id':'SIM'+s.id,Nombre:s.name,Apellidos:s.family,Estudio:s.m.center,Curso:s.m.course,Grupo:s.m.group},salProfile());if(!s.answers)return row;
   const suffix=i%2?'1':'2';row.start=stamp;row.end='2026-11-01 10:16:00';row.dia=i%2?'Par':'Impar';row['eredes'+suffix]=stamp;row['redes'+suffix]=list([...s.links].map(([id,e])=>`${id} (${e.strong?'Muy ':''}${e.type==='amistad'?(e.strong?'buena':'Buena'):(e.strong?'mala':'Mala')} relación)`));row['ebeliefs'+suffix]=stamp;row['beliefs'+suffix]=list(s.pred);
   ['carrera','emilia','library'].forEach((q,j)=>row[q+suffix]=s.crt[j]===null?'':s.crt[j]?['Segundo','Emilia','47'][j]:['Primero','María','24'][j]);
   for(const q of ['general','fun','alone']){row['e'+q]=stamp;row[q]=freq[s[q]];}

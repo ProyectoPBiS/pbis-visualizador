@@ -7,6 +7,13 @@ test('realistic demo is deterministic, imports the raw synthetic survey and keep
  const {generateSurvey}=await import('../tools/synthetic-survey.mjs'),W=require('../src/raw-wave1.js');
  const model=JSON.parse(read('data/demo-model.json')),raw=generateSurvey(model),demo=JSON.parse(read('site/demo-data.json'));
  assert.deepEqual(raw,generateSurvey(model));assert.equal(raw.length,1512);assert.equal(new Set(raw.map(r=>r['Usuario Id'])).size,1512);
+ for(const r of raw){
+  for(const key of ['SAL_1','SAL_2'])assert(['SI','NO'].includes(r[key]));
+  assert([0,1,2,3,4].includes(r.SAL_3));
+  for(const key of ['SAL_4','SAL_5','SAL_6','SAL_7'])assert(Number.isInteger(r[key])&&r[key]>=0&&r[key]<=10);
+ }
+ for(const key of ['SAL_1','SAL_2'])assert(raw.some(r=>r[key]==='SI')&&raw.some(r=>r[key]==='NO'));
+ assert(raw.some(r=>r.SAL_3===2));
  assert.equal(new Set(raw.map(r=>r.Nombre+' '+r.Apellidos)).size,1512);
  assert(raw.every(r=>r.Apellidos.split(' ').length===2));assert.deepEqual(demo.keys,[]);
  for(const row of raw.filter(r=>r.bullying)){
@@ -14,6 +21,9 @@ test('realistic demo is deterministic, imports the raw synthetic survey and keep
   assert.equal(row.conductas==='No he observado estas situaciones',row.fqbullying==='Nunca');
  }
  const expected=W.convert(raw);assert.deepEqual(demo.students,expected.students.map(s=>({...s,Campus:s.Centro})));
+ for(const [key,field]of [['SAL_1','demografia_neae'],['SAL_2','demografia_migrante'],['SAL_3','demografia_nueva_incorporacion']]){
+  assert.equal(expected.students.filter(s=>s[field]===true).length,raw.filter(r=>key==='SAL_3'?[2,3].includes(r[key]):r[key]==='SI').length);
+ }
  const data=C.validateAndJoin(demo.students,null,demo.groups);assert.equal(data.groups.length,54);
  const by=new Map(raw.map(r=>[r['Usuario Id'],r])),incoming=new Map();
  const peerBallots=raw.filter(r=>r.bullying).map(r=>({id:r['Usuario Id'],peers:r.bullying.split(' | ').filter(id=>id!=='Nadie'&&id!==r['Usuario Id'])}));
