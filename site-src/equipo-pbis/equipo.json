@@ -9,7 +9,7 @@
   },
   {
     "area": "Dirección",
-    "nombre_visible": "Antonio Cabrales",
+    "nombre_visible": "Antonio Cabrales · co-PI",
     "institucion": "Universidad Carlos III de Madrid",
     "foto": "assets/antonio-cabrales.png",
     "perfil": "https://loyolabehlab.org/members/antonio-cabrales/",
@@ -28,7 +28,7 @@
     "nombre_visible": "Adriana García",
     "institucion": "Universidad Loyola",
     "foto": "assets/adriana-garcia.jpg",
-    "perfil": null,
+    "perfil": "https://www.uloyola.es/investigacion/servicios/unidad-de-proyectos-de-investigacion-y-transferencia",
     "origen_foto": "Fotografía aportada por el usuario"
   },
   {

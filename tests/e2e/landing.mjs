@@ -44,7 +44,7 @@ try{
   await page.screenshot({path:path.join(out,'portada-'+width+'.png'),fullPage:width===1360});
   if(await page.locator('#menuBtn').isVisible()){
    await page.locator('#menuBtn').click();assert.equal(await page.locator('#menuBtn').getAttribute('aria-expanded'),'true');
-   await page.locator('#mobileMenu a[href="#contacto"]').click();
+   await page.locator('#mobileMenu a[href="#pbis-equipo"]').click();
    assert.equal(await page.locator('#menuBtn').getAttribute('aria-expanded'),'false');
    await page.locator('#menuBtn').click();await page.keyboard.press('Escape');
    assert.equal(await page.locator('#menuBtn').getAttribute('aria-expanded'),'false');

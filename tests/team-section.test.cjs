@@ -15,8 +15,8 @@ test('team editorial module preserves all people, profiles and local portraits',
  const names=[...component.matchAll(/<h4>([^<]+)<\/h4>/g)].map(match=>match[1]);
  assert.deepEqual(names,people.map(person=>person.nombre_visible));
  assert.deepEqual([...component.matchAll(/class="profile-link" href="([^"]+)"/g)].map(match=>match[1]),people.filter(person=>person.perfil).map(person=>person.perfil));
- assert.equal((component.match(/class="profile-link"/g)||[]).length,20);
- assert.equal((component.match(/class="profile-note"/g)||[]).length,2);
+ assert.equal((component.match(/class="profile-link"/g)||[]).length,21);
+ assert.equal((component.match(/class="profile-note"/g)||[]).length,1);
  assert.doesNotMatch(component,/<h1|<script|<header|src="https?:/);
  assert.match(component,/<h2>Equipo <span>PBiS<\/span><\/h2>/);
  for(const image of images){
