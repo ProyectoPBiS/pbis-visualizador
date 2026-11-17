@@ -30,6 +30,20 @@ test('optional cards and their section disappear for missing, blank or unknown c
  }
 });
 
+test('school comparison panels disappear without answers and retain explicit No and zero relations',()=>{
+ const empty={ID:'empty',Campus:'C',Curso:'1.º ESO',Grupo:'A',respondio:'Sí'};
+ assert.doesNotMatch(Charts.html([empty]),/school-comparisons|data-relations-comparison|data-bullying-comparison/);
+ const no={...empty,bullying_autorreporte:'No',demografia_neae:false};
+ assert.match(Charts.html([no]),/data-bullying-comparison/);
+ assert.equal(comparison.bullyingRows(Charts.model([no]))[0].available,true);
+ const host={querySelectorAll:()=>[],querySelector:()=>null};
+ integration.mount(host,Charts.model([no]),'neae');
+ assert.doesNotMatch(host.innerHTML,/No hay información disponible/);
+ assert.match(host.innerHTML,/Ninguna/);
+ const zeros={...empty,amistad_declarada_n:0,rechazo_declarado_n:0,amistad_clase_declarada_n:0,rechazo_clase_declarada_n:0};
+ assert.match(Charts.html([zeros]),/data-relations-comparison/);
+});
+
 test('false classifications and zero measurements are valid data, not missing data',()=>{
  const school=Charts.model([{...base,ID:'zero',demografia_neae:false,amistad_reciproca_n:0,felicidad_soledad:0}]);
  assert.deepEqual(integration.availableMetrics(school,'neae'),['mutual','negative','alone','bullying']);

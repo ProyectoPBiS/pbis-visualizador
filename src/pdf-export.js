@@ -105,6 +105,18 @@
         {...card('Se sienten solos siempre o casi siempre',alone.length?ratio(lonely,alone.length):'Sin dato',hasSchoolReference&&schoolAlone.length?'Media del colegio: '+number(100*schoolAlone.filter(s=>s.felicidad_soledad>=3).length/schoolAlone.length)+' %':''),metric:'alone',percent:alone.length?100*lonely/alone.length:null},
         {...card('Test cognitivo',scale(mean(respondents.map(s=>s.crt_aciertos)),3),hasSchoolReference?'Media del colegio: '+scale(schoolMetric('crt_aciertos'),3):''),metric:'cognitive'}
       ]);
+      // An incomplete questionnaire can still contain usable item answers.
+      // Keep those answers even when a combined score cannot be calculated.
+      const overview=UI.overview(rows);
+      if(!overview.wellbeing.n){
+        const facts=[['feeling','Se sienten bien casi siempre o siempre'],['enjoyment','Disfrutan con amigos casi siempre o siempre']]
+          .filter(([key])=>overview[key].denominator>0).map(([key,label])=>card(label,ratio(overview[key].count,overview[key].denominator)));
+        if(facts.length)section('Respuestas de bienestar',facts);
+      }
+      if(!overview.crt.n){
+        const items=UI.cognitiveBreakdown(rows).filter(q=>q.n>0).map(q=>card(q.label,ratio(q.correct,q.n),number(q.percent)+' % de aciertos'));
+        if(items.length)section('Test cognitivo',items);
+      }
       const highlights=UI.bullyingHighlights(rows);
       section('Bullying',[
         card('Alumnos que se autorreportan',number(highlights.bullying_self_completed.count),number(highlights.bullying_self_completed.percent)+' % entre quienes finalizan'),
@@ -141,6 +153,22 @@
         integrations:['neae','newcomer','migrant'].map(group=>({group,metrics:integration.availableMetrics(school,group).map(metric=>({key:metric,...integration.summarize(school,group,metric),available:true}))})).filter(group=>group.metrics.length),
         classes:school.classes.map(c=>{const members=center.filter(s=>classKey(s)===c.id),a=UI.overview(members);return {label:c.label,wellbeing:a.wellbeing.value,crt:a.crt.value};})};
     }
+    const available=UI.reportAvailability(view==='student'?[r]:rows,{student:view==='student',reach:relationshipReach});
+    const sectionKeys={'Bullying':'bullying','Relaciones de amistad y negativas':'relationships','Bienestar':'wellbeing','Test cognitivo':'cognitive',
+      'Top 3 populares':'popular','Top 3 centrales':'central','Top 3 mediadores':'mediation'};
+    report.sections=report.sections.filter(s=>s.title==='Posición y mediación'?available.position||available.mediation:!sectionKeys[s.title]||available[sectionKeys[s.title]]);
+    for(const s of report.sections){
+      if(s.title.startsWith('Resumen de')){
+        const a=UI.overview(rows);
+        s.cards=s.cards.filter(c=>({wellbeing:a.wellbeing.n,alone:a.alone.denominator,cognitive:a.crt.n})[c.metric]>0);
+      }
+      if(s.title==='Posición y mediación')s.cards=s.cards.filter((c,i)=>i<2?available[i===0?'popular':'central']:available.mediation);
+      if(view==='student'&&r.respondio==='No'&&s.title==='Bullying'){
+        s.self=null;
+        s.questions=s.questions.map(c=>({...c,answer:'Sin respuesta'}));
+      }
+    }
+    report.sections=report.sections.filter(s=>!s.title.startsWith('Resumen de')||s.cards.length);
     return report;
   }
   function fullName(r){return C.displayName(r.Nombre||r.ID)||'';}
@@ -189,9 +217,10 @@
     function nextPage(){doc.addPage('a4','portrait');}
     function rich(parts,x,y,width,size=9){let px=x;const lh=size*.47;for(const part of parts){for(const token of clean(part.text).match(/\S+\s*|\s+/g)||[]){font(size,!!part.emphasis,colors[part.tone]||colors.ink);let tw=doc.getTextWidth(token);if(px>x&&px+tw>x+width){px=x;y+=lh;}if(tw>width){const chunks=lines(token,width,size,!!part.emphasis);for(const chunk of chunks){font(size,!!part.emphasis,colors[part.tone]||colors.ink);doc.text(chunk,px,y);px=x;y+=lh;}}else{font(size,!!part.emphasis,colors[part.tone]||colors.ink);doc.text(token,px,y);px+=tw;}}}return y+lh;}
     function studentPage(r){
-      let y=header(r);if(r.testStatus)y=paragraph(r.testStatus,margin,y,w,8,true,colors.accent)+3;
+      let y=header(r);if(!r.sections.length)y=paragraph('Sin datos disponibles para esta ficha.',15,y,w,9,false,colors.muted)+3;if(r.testStatus)y=paragraph(r.testStatus,margin,y,w,8,true,colors.accent)+3;
       const get=title=>r.sections.find(s=>s.title===title);
       const bully=get('Bullying');
+      if(bully){
       const bullyingRows=bully.questions.map(c=>({q:lines(c.question,83,7.7),a:lines(c.answer,83,8.2)}));
       const bullyingHeight=34+bullyingRows.reduce((sum,row)=>sum+Math.max(row.q.length,row.a.length)*3.8+7,0);
       box(15,y,w,Math.min(bullyingHeight,bottom-y),'Bullying');
@@ -209,24 +238,36 @@
         if(row!==bullyingRows[bullyingRows.length-1])rule(19,y-5,172);
       }
       y+=5;
+      }
       const rel=get('Relaciones de amistad y negativas'),position=get('Posición y mediación');
-      const relationHeight=54,positionHeight=Math.max(54,position.cards.reduce((sum,c)=>sum+lines(c.answer,78,8.4).length*4+2,19));
-      const topHeight=Math.max(relationHeight,positionHeight);
+      if(rel||position){
+      const relationHeight=54,positionHeight=position?Math.max(54,position.cards.reduce((sum,c)=>sum+lines(c.answer,78,8.4).length*4+2,19)):0;
+      const topHeight=Math.max(rel?relationHeight:0,positionHeight);
       if(y+topHeight>bottom){nextPage();y=31;}
-      box(15,y,87,topHeight,rel.title);box(108,y,87,topHeight,position.title);
-      let ry=y+15;for(const c of rel.cards){font(8.1);doc.text(c.question,19,ry);font(9,true,colors.accent);doc.text(c.answer,98,ry,{align:'right'});if(c.detail&&c.answer!=='Sin dato'){font(7.3,false,colors.muted);doc.text(c.detail,98,ry+3.7,{align:'right'});}ry+=8;}
-      let py=y+15;position.cards.forEach((c,i)=>{if(i===2){rule(112,py,79);py+=6;}py=paragraph(c.answer,112,py,79,8.4)+2;});
+      if(rel){
+        const width=position?87:w;box(15,y,width,topHeight,rel.title);
+        let ry=y+15;for(const c of rel.cards){font(8.1);doc.text(c.question,19,ry);font(9,true,colors.accent);doc.text(c.answer,15+width-4,ry,{align:'right'});if(c.detail&&c.answer!=='Sin dato'){font(7.3,false,colors.muted);doc.text(c.detail,15+width-4,ry+3.7,{align:'right'});}ry+=8;}
+      }
+      if(position){
+        const x=rel?108:15,width=rel?87:w;box(x,y,width,topHeight,position.title);
+        let py=y+15;position.cards.forEach(c=>{py=paragraph(c.answer,x+4,py,width-8,8.4)+2;});
+      }
       y+=topHeight+5;
+      }
       const wellbeing=get('Bienestar');
+      if(wellbeing){
       const wellbeingText=wellbeing.parts.map(p=>p.text).join('');
       const wellbeingHeight=Math.max(29,16+lines(wellbeingText,172,9).length*4.3);
       if(y+wellbeingHeight>bottom){nextPage();y=31;}
       box(15,y,w,wellbeingHeight,'Bienestar',wellbeing.cards[0].answer);rich(wellbeing.parts,19,y+17,172,9);y+=wellbeingHeight+5;
+      }
+      const crt=get('Test cognitivo');
+      if(crt){
       if(y+29>bottom){nextPage();y=31;}
-      const crt=get('Test cognitivo');box(15,y,w,29,crt.title,crt.cards[0].answer);
+      box(15,y,w,29,crt.title,crt.cards[0].answer);
       paragraph(crt.cards[0].detail,19,y+14,172,8,false,colors.muted);
       crt.cards.slice(1).forEach((c,i)=>{font(8.5);doc.text(c.question+':',19+i*58,y+23);font(8.5,true,c.value===1?colors.positive:c.value===0?colors.negative:colors.muted);doc.text(c.answer,37+i*58,y+23);});y+=34;
-
+      }
     }
     function schoolPages(r){
       const data=r.schoolCharts,green='#94c9b0',yellow='#eed387',red='#e8a49e';let y=0,title='';
@@ -247,18 +288,24 @@
         if(known(reference)){const x=60+110*Math.max(0,Math.min(1,reference/max));doc.setDrawColor(colors.ink);doc.setLineWidth(.55);doc.line(x,y-3,x,y+9);doc.setLineWidth(.2);}
         font(8,true);doc.text(known(value)?number(value)+suffix:'Sin datos',195,y+4,{align:'right'});y+=height;rule(15,y-3,w);
       }
-      page('Bienestar, test cognitivo y nominaciones');
+      const facts=['feeling','enjoyment','alone'].filter(key=>data.overview[key].denominator>0);
+      if(facts.length||data.cognitive.some(d=>d.n>0)||data.distributionAvailable)page('Resultados del colegio');
       for(const [key,label] of [['feeling','Se sienten bien casi siempre o siempre'],['enjoyment','Disfrutan con amigos casi siempre o siempre'],['alone','Se sienten solos siempre o casi siempre']]){
-        const d=data.overview[key];space(22);y=paragraph(label,15,y,150,9,true)+5;y=paragraph(d.denominator?d.count+' de '+d.denominator+' alumnos':'Sin datos',15,y,w,9)+7;
+        const d=data.overview[key];if(!d.denominator)continue;space(22);y=paragraph(label,15,y,150,9,true)+5;y=paragraph(d.denominator?d.count+' de '+d.denominator+' alumnos':'Sin datos',15,y,w,9)+7;
       }
+      if(data.cognitive.some(d=>d.n>0)){
       y=paragraph('Test cognitivo · Aciertos por pregunta',15,y,w,11,true)+6;
-      for(const d of data.cognitive)bar(d.label,d.percent,100,'#f3b5a0',' %');
+      for(const d of data.cognitive.filter(d=>d.n>0))bar(d.label,d.percent,100,'#f3b5a0',' %');
+      }
+      if(data.distributionAvailable){
       y+=5;y=paragraph('Distribución de nominaciones de bullying',15,y,w,11,true)+6;
       if(!data.distributionAvailable)y=paragraph('Sin datos de nominaciones disponibles.',15,y,w,9)+7;
       for(const d of data.distributionAvailable?data.distribution:[]){space(20);y=paragraph(d.label+' · '+d.count+' alumnos',15,y,w,9,true)+1;y=paragraph(d.description,15,y,w,8,false,colors.muted)+5;}
+      }
+      if(data.relations.some(d=>d.respondents>0)){
       page('% de Buenas y Malas relaciones');
       y=paragraph('Relaciones entre alumnos de la misma clase',15,y,w,9,false,colors.muted)+7;
-      for(const d of data.relations.slice().sort((a,b)=>(b.good+b.bad?b.good/(b.good+b.bad):-1)-(a.good+a.bad?a.good/(a.good+a.bad):-1))){const total=d.good+d.bad;stack(d.label,[total?100*d.good/total:0,0,total?100*d.bad/total:0],total?number(100*d.good/total)+' %':'Sin datos',d.respondents>0&&total>0);}
+      for(const d of data.relations.slice().sort((a,b)=>(b.good+b.bad?b.good/(b.good+b.bad):-1)-(a.good+a.bad?a.good/(a.good+a.bad):-1))){const total=d.good+d.bad;stack(d.label,[total?100*d.good/total:0,0,total?100*d.bad/total:0],total?number(100*d.good/total)+' %':d.respondents?'0 relaciones':'Sin datos',d.respondents>0);}
       space(12);y=paragraph('Verde: buenas relaciones. Coral: malas relaciones. A la derecha, porcentaje de buenas relaciones.',15,y+3,w,8,false,colors.muted)+5;
       for(const [key,label,color] of [['good','Relaciones positivas nombradas por alumno',green],['bad','Relaciones negativas nombradas por alumno',red]]){
         page(label);y=paragraph('Dentro de su clase · Entre quienes respondieron sobre relaciones',15,y,w,8,false,colors.muted)+7;
@@ -268,11 +315,15 @@
         for(const d of ordered)bar(d.label,d.value,max,color,'',reference);
         space(16);y=paragraph('A la derecha, media de relaciones '+(key==='good'?'positivas':'negativas')+' nombradas por alumno dentro de su clase.',15,y+3,w,8,false,colors.muted)+5;
       }
+      }
+      if(data.bullying.some(d=>d.available)){
       page('Bullying por clases');y=paragraph('Ordenado por: Nº de nominaciones (Una + Dos o más)',15,y,w,8,false,colors.muted)+7;legend();
       for(const d of data.bullying)stack(d.label,d.percent,d.n,d.available);
       space(18);y=paragraph('Nominaciones registradas, incluida la propia. La cifra a la derecha es el alumnado de la clase.',15,y+3,w,8,false,colors.muted)+6;
       for(const alert of data.alerts){space(25);y=paragraph('Una misma respuesta puede influir en muchos resultados. '+alert.label+' ('+alert.classLabel+') ha señalado a '+alert.count+' compañeros como víctimas de bullying.',15,y,w,8,false,colors.muted)+5;}
+      }
       for(const [key,label,max,suffix] of [['wellbeing','Bienestar por clases',10,' / 10'],['crt','Test cognitivo por clases',3,' / 3']]){
+        if(!data.classes.some(d=>known(d[key])))continue;
         page(label);
         const reference=data.overview[key==='wellbeing'?'wellbeing':'crt'].value;
         y=paragraph('Línea vertical · Media del colegio: '+number(reference)+suffix,15,y,w,8,false,colors.muted)+7;
@@ -301,17 +352,24 @@
       }
     }
     function generalPages(r){
-      let y=header(r);for(const line of r.context)y=paragraph(line,15,y,w,9,false,colors.muted)+2;
-      const bull=r.sections.find(s=>s.title==='Bullying');box(15,y,w,38,'Bullying');bull.cards.forEach((c,i)=>{paragraph(c.question,19+i*90,y+15,83,8);font(20,true,c.answer!=='0'&&c.answer!=='Sin dato'?colors.negative:colors.ink);doc.text(c.answer,19+i*90,y+25);paragraph(c.detail,19+i*90,y+32,83,7.5,false,colors.muted);});y+=45;
+      let y=header(r);if(!r.sections.length)y=paragraph('Sin datos disponibles para esta ficha.',15,y,w,9,false,colors.muted)+3;for(const line of r.context)y=paragraph(line,15,y,w,9,false,colors.muted)+2;
+      const bull=r.sections.find(s=>s.title==='Bullying');if(bull){box(15,y,w,38,'Bullying');bull.cards.forEach((c,i)=>{paragraph(c.question,19+i*90,y+15,83,8);font(20,true,c.answer!=='0'&&c.answer!=='Sin dato'?colors.negative:colors.ink);doc.text(c.answer,19+i*90,y+25);paragraph(c.detail,19+i*90,y+32,83,7.5,false,colors.muted);});y+=45;}
       const summary=r.sections.find(s=>s.title==='Resumen de la clase'||s.title==='Resumen del colegio');
-      summary.cards.forEach((c,i)=>{const x=15+i*62;box(x,y,56,45,c.metric==='alone'?'Soledad frecuente':c.question);if(r.view==='center')paragraph(c.metric==='alone'?'Alumnado del colegio':'Media del colegio',x+4,y+12,48,7.5,false,colors.muted);font(18,true,colors.accent);doc.text(c.metric==='alone'&&known(c.percent)?number(c.percent)+' %':c.answer,x+4,y+20);if(c.metric==='alone'&&known(c.percent))paragraph(c.answer,x+4,y+27,48,8);paragraph(c.detail,x+4,y+34,48,7.5,false,colors.muted);});y+=53;
-      const rel=r.sections.find(s=>s.title==='Relaciones de amistad y negativas');box(15,y,w,52,rel.title);font(7.5,false,colors.muted);doc.text(rel.scope,191,y+7,{align:'right'});rel.cards.forEach((c,i)=>{const rowY=y+17+i*8+(i>=2?5:0);if(i===2)rule(19,rowY-5,172);paragraph(c.question,19,rowY,145,8.5);font(10,true,colors.accent);doc.text(c.answer,191,rowY,{align:'right'});});y+=59;
+      if(summary){const cardWidth=(w-(summary.cards.length-1)*6)/summary.cards.length;summary.cards.forEach((c,i)=>{const x=15+i*(cardWidth+6);box(x,y,cardWidth,45,c.metric==='alone'?'Soledad frecuente':c.question);if(r.view==='center')paragraph(c.metric==='alone'?'Alumnado del colegio':'Media del colegio',x+4,y+12,48,7.5,false,colors.muted);font(18,true,colors.accent);doc.text(c.metric==='alone'&&known(c.percent)?number(c.percent)+' %':c.answer,x+4,y+20);if(c.metric==='alone'&&known(c.percent))paragraph(c.answer,x+4,y+27,48,8);paragraph(c.detail,x+4,y+34,48,7.5,false,colors.muted);});y+=53;}
+      const rel=r.sections.find(s=>s.title==='Relaciones de amistad y negativas');if(rel){box(15,y,w,52,rel.title);font(7.5,false,colors.muted);doc.text(rel.scope,191,y+7,{align:'right'});rel.cards.forEach((c,i)=>{const rowY=y+17+i*8+(i>=2?5:0);if(i===2)rule(19,rowY-5,172);paragraph(c.question,19,rowY,145,8.5);font(10,true,colors.accent);doc.text(c.answer,191,rowY,{align:'right'});});y+=59;}
       const rankings=r.sections.filter(s=>s.title.startsWith('Top 3'));
+      for(const s of r.sections.filter(s=>['Respuestas de bienestar','Test cognitivo'].includes(s.title))){
+        const height=16+s.cards.length*13;
+        if(y+height>bottom){nextPage();y=31;}
+        box(15,y,w,height,s.title);
+        s.cards.forEach((c,i)=>{const cy=y+17+i*13;paragraph(c.question,19,cy,130,8.5);font(10,true,colors.accent);doc.text(c.answer,191,cy,{align:'right'});if(c.detail)paragraph(c.detail,19,cy+5,172,7.5,false,colors.muted);});
+        y+=height+5;
+      }
       // One shared frame and three columns for both school and classroom reports.
       // Keep the complete block together when it fits a page; continue ties otherwise.
       const pending=rankings.map(section=>({title:section.title,rows:section.cards.map(c=>({c,height:Math.max(8,lines(c.question,32,8).length*8*.452+3+(c.tied?4:0))})),offset:0}));
       let continuation=false;
-      do{
+      if(rankings.length)do{
         const desired=17+Math.max(8,...pending.map(col=>col.rows.slice(col.offset).reduce((sum,row)=>sum+row.height,0)));
         if(y+Math.min(desired,bottom-31)>bottom){nextPage();y=31;}
         const capacity=bottom-y-17;

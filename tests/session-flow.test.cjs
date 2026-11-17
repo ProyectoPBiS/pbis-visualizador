@@ -426,11 +426,12 @@ test('non-participation controls preserve a reason through navigation and send i
  assert.doesNotMatch(payload.feedback_json,/"Nombre"|password|bullying_companeros_n/);
 });
 
-test('PDF buttons restore authorized pupil reports for tutors and retain school report for orientation',async()=>{
+test('PDF buttons expose only the current class, centre or individual report',async()=>{
  const tutor=fixture();tutor.login('tutoria1eso');await tutor.upload();
  assert.match(tutor.el('report-content').innerHTML,/Descargar Informe PDF General de la Clase/);
- assert.match(tutor.el('report-content').innerHTML,/export-pdf-students/);
+ assert.doesNotMatch(tutor.el('report-content').innerHTML,/export-pdf-students|Descargar Informe PDF Por Alumno/);
  tutor.el('tab-student').onclick();assert.match(tutor.el('report-content').innerHTML,/id="export-pdf"/);
  const orientador=fixture();orientador.login('orientacion');await orientador.upload();
  assert.match(orientador.el('report-content').innerHTML,/Descargar Informe PDF del Colegio/);
+ assert.doesNotMatch(orientador.el('report-content').innerHTML,/export-pdf-students|Descargar Informe PDF Por Alumno/);
 });

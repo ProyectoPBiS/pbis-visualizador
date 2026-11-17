@@ -39,10 +39,24 @@ test('missing scores remain unavailable, not zero or favourable',()=>{
  const html=render([row],null,false);assert.match(html,/Sin datos/);assert.doesNotMatch(html,/width:NaN|NaN|undefined/);
 });
 
+test('school and class omit empty cards but keep all six cards for measured zeros and No',()=>{
+ const empty={ID:'empty',Campus:selection.center,Curso:selection.course,Grupo:selection.group,respondio:'Sí'};
+ const zero={...empty,bullying_autorreporte:'No',bullying_companeros_n:0,amistad_declarada_n:0,rechazo_declarado_n:0,amistad_reciproca_n:0,amistad_clase_reciproca_n:0,popularidad_reportada_n:0,centralidad_reportada_n:0,mediacion_n:0,mediacion_negativa_n:0,felicidad:0,crt_aciertos:0};
+ for(const isCenter of [true,false]){
+  assert.doesNotMatch(render([empty],null,isCenter),/class="overview-card /);
+  const html=render([zero],null,isCenter);
+  assert.equal((html.match(/class="overview-card /g)||[]).length,6);
+  assert.match(html,/data-result="bullying_self_completed"/);
+  assert.match(html,/Sin nominaciones registradas/);
+  assert.match(html,/<strong>0 <small>\/ 3<\/small>/);
+  assert.match(html,/data-result="sin_reciprocas"/);
+ }
+});
+
 test('reported centrality uses its own count and never falls back to eigenvector when missing',()=>{
  const original=structuredClone(rows),custom=rows.map(r=>({...r,centralidad_reportada_n:null,centralidad:9.9}));
  let html=render(custom,null,false);let ranking=html.slice(html.indexOf('Top 3 centrales'),html.indexOf('<h3>Mediador'));
- assert.match(ranking,/Sin respuestas disponibles/);assert.doesNotMatch(ranking,/9,9/);
+ assert.doesNotMatch(html,/Top 3 centrales|Estudiantes señalados como centrales/);assert.doesNotMatch(ranking,/9,9/);
  custom[0].centralidad_reportada_n=4;
  html=render(custom,null,false);ranking=html.slice(html.indexOf('Top 3 centrales'),html.indexOf('<h3>Mediador'));
  assert.match(ranking,/<strong>4<\/strong> compañeros opinan que es el más central de la clase/);assert.doesNotMatch(ranking,/9,9|\/ 10/);

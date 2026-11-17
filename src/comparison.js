@@ -17,7 +17,7 @@ function bullyingRows(school){
  return school.classes.map(c=>{
   const students=school.students.filter(s=>s.classId===c.id),counts=[0,0,0];
   for(const s of students){const nominations=(s.selfReport===true?1:0)+(s.peerCount||0);counts[Math.min(2,nominations)]++;}
-  const n=students.length;return {id:c.id,label:c.label,n,available:students.some(s=>Number.isFinite(s.peerCount)||s.selfReport===true),counts,percent:counts.map(v=>n?v/n*100:0),noSelfResponse:students.filter(s=>s.selfReport===null).length};
+  const n=students.length;return {id:c.id,label:c.label,n,available:students.some(s=>Number.isFinite(s.peerCount)||typeof s.selfReport==='boolean'),counts,percent:counts.map(v=>n?v/n*100:0),noSelfResponse:students.filter(s=>s.selfReport===null).length};
  }).sort((a,b)=>b.percent[2]-a.percent[2]||b.percent[1]-a.percent[1]||a.label.localeCompare(b.label,'es',{numeric:true}));
 }
 function nominationConcentration(school){

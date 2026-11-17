@@ -18,14 +18,14 @@ const reportHero=(name,subtitle)=>`<header>${E(name)} · ${E(subtitle)}</header>
 const studentReportExpanded=()=>'<div>Indicadores ampliados</div>';
 const studentNetworkSection=()=>'<section class="student-network">Red en estrella</section>';
 const C={studentNetwork:()=>({})};
-const studentReport=new Function('window','number','E','classCell','known','reportHero','studentReportExpanded','studentNetworkSection','C','networkCoverageNote',`${feedbackHelper}${source.slice(start,end)}\nreturn studentReport;`)({PbisFeedbackModel:require('../src/feedback-model.js')},number,E,classCell,known,reportHero,studentReportExpanded,studentNetworkSection,C,()=> '');
+const studentReport=new Function('window','number','E','classCell','known','reportHero','studentReportExpanded','studentNetworkSection','C','networkCoverageNote',`${feedbackHelper}${source.slice(start,end)}\nreturn studentReport;`)({PbisFeedbackModel:require('../src/feedback-model.js'),PbisConsultationUI:require('../src/consultation-ui.js')},number,E,classCell,known,reportHero,studentReportExpanded,studentNetworkSection,C,()=> '');
 const expandedEnd=source.indexOf('\nfunction studentNetworkSection(',end);
 const expanded=new Function('reading','section','metric','detail',`${source.slice(end+1,expandedEnd)}\nreturn studentReportExpanded;`)(()=>'',(_number,title)=>title,(title)=>`<div class="metric">${title}</div>`,(values,format)=>values.every(value=>value!=null)?format(...values):'Sin datos');
 const base={ID:'00001',Curso:'4.º Primaria',Grupo:'A',Nombre:'Ana M.',respondio:'Sí',bullying_autorreporte:'No',bullying_companeros_n:0,amistad_recibida_n:16,amistad_declarada_n:6,amistad_reciproca_n:3,rechazo_recibido_n:0,rechazo_declarado_n:0,popularidad:5.9,centralidad:10,felicidad:7.5,felicidad_centro:3,felicidad_diversion:3,felicidad_soledad:1,mediacion_n:7,mediacion:2.6};
 
 
-test('reference summary presents six cards, bullying first, without an individual network',()=>{
- const html=studentReport(base);
+test('reference summary presents six available cards, bullying first, and the existing network',()=>{
+ const html=studentReport({...base,popularidad_reportada_n:0,centralidad_reportada_n:0,mediacion_negativa_n:0,crt_aciertos:0});
  const titles=['Bullying','Relaciones de amistad y negativas','Posición','Bienestar','Mediador','Test cognitivo'];
  assert.deepEqual([...html.matchAll(/<h3>(.*?)<\/h3>/g)].map(m=>m[1]),titles);
  assert.match(html,/student-network/);
@@ -35,7 +35,7 @@ test('reference summary presents six cards, bullying first, without an individua
 
 test('reported position never substitutes calculated centrality, preserves ties and distinguishes missing from zero',()=>{
  for(const n of [0,1,4,null]){
-  const row={...base,centralidad_reportada_n:n},html=studentReport(row,[row,{...base,ID:'2',centralidad_reportada_n:4}]);
+  const row={...base,popularidad_reportada_n:0,centralidad_reportada_n:n},html=studentReport(row,[row,{...base,ID:'2',centralidad_reportada_n:4}]);
   assert.ok(html.includes('Consideran que es central</span><strong>'+(n==null?'Sin dato':n+' compañero'+(n===1?'':'s'))));
   assert.match(html,n==null?/Sin respuestas de sus compañeros/:n===0?/Sin nominaciones registradas/:n===4?/Top 1 de la clase/:/Top 2 de la clase/);
  }
@@ -63,7 +63,7 @@ test('nonrespondents retain received information, without inventing their answer
  const html=studentReport({...base,Nombre:null,respondio:'No',crt_aciertos:3,crt_carrera_acierto:1,bullying_companeros_n:2,bullying_autorreporte:'Sí',bullying_frecuencia:'Una vez'});
  assert.match(html,/00001/);assert.match(html,/no ha realizado el test/);
  assert.match(html,/¿Se nombra como víctima\?<\/span><strong>Sin dato/);assert.match(html,/Sí, 2 compañeros/);
- assert.match(html,/No hay respuestas de bienestar/);assert.match(html,/<dd>Sin respuesta<\/dd>/);
+ assert.doesNotMatch(html,/<h3>Bienestar<\/h3>|<h3>Test cognitivo<\/h3>/);assert.match(html,/<dd>Sin respuesta<\/dd>/);
  assert.doesNotMatch(html,/<dd>Una vez<\/dd>|answer-correct|NaN|Infinity/);
 });
 test('wellbeing uses the original loneliness response, and reports incomplete items honestly',()=>{
@@ -98,5 +98,19 @@ test('all 216 frequency and missing-response combinations use grammatical clause
    for(const [v,clause] of [[a,'se ha sentido bien en el colegio'],[b,'se ha divertido con sus amigos'],[c,'se ha sentido solo/a']])if(v!==null)assert.ok(text.includes(words[v]+' '+clause),text);
    assert.doesNotMatch(text,/se ha (sentido|divertido) (nunca|casi nunca)|undefined/);
   }
+ }
+});
+
+test('student cards omit missing answers, not zero, No or a partial answer; classmates cannot fill gaps',()=>{
+ const empty={ID:'empty',Curso:'1.º ESO',Grupo:'A',Nombre:'Caso sin respuestas',respondio:'Sí'};
+ const zero={...empty,bullying_autorreporte:'No',bullying_companeros_n:0,amistad_recibida_n:0,rechazo_recibido_n:0,amistad_declarada_n:0,amistad_reciproca_n:0,popularidad_reportada_n:0,centralidad_reportada_n:0,mediacion_n:0,mediacion_negativa_n:0,felicidad:0,crt_aciertos:0};
+ assert.doesNotMatch(studentReport(empty,[empty,base]),/class="overview-card /);
+ const html=studentReport(zero,[zero,base]);
+ assert.equal((html.match(/class="overview-card /g)||[]).length,6);
+ assert.match(html,/<strong>NO<\/strong>/);assert.match(html,/<strong>No<\/strong>/);
+ assert.match(html,/<strong>0 \/ 3<\/strong>/);assert.match(html,/0 compañeros/);
+ for(const [field,value,title] of [['felicidad_soledad',0,'Bienestar'],['crt_carrera_acierto',0,'Test cognitivo'],['bullying_dificultad','No','Bullying'],['mediacion_negativa_n',0,'Mediador'],['mediacion_n',0,'Mediador']]){
+  const partial=studentReport({...empty,[field]:value});
+  assert.deepEqual([...partial.matchAll(/<h3>(.*?)<\/h3>/g)].map(m=>m[1]),[title]);
  }
 });

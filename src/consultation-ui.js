@@ -16,6 +16,25 @@ const predicates={
 predicates.popularidad_reportada=r=>r.popularidad_reportada_n>0;
 predicates.centralidad_reportada=r=>r.centralidad_reportada_n>0;
 const labels={bullying_declarado:'Se autorreportan como víctimas de bullying',bullying_companeros:'Señalados por otros como víctimas de bullying',soledad:'Indican soledad frecuente',sin_reciprocas:'Sin buenas relaciones mutuas registradas'};
+// Availability is presentation-only. Never use truthiness: 0 and «No» are data.
+// A class average or a missing-response counter cannot supply a student's answer.
+function reportAvailability(rows,{student=false,reach='school'}={}){
+ const own=rows.filter(r=>r.respondio!=='No');
+ const numeric=(members,fields)=>members.some(r=>fields.some(field=>Number.isFinite(r[field])));
+ const text=(members,fields)=>members.some(r=>fields.some(field=>typeof r[field]==='string'&&r[field].trim()!==''));
+ const self=own.some(r=>['Sí','No'].includes(r.bullying_autorreporte));
+ const peers=numeric(rows,['bullying_companeros_n']);
+ const bullying=self||peers||(student&&text(own,['bullying_frecuencia','bullying_dificultad','bullying_situaciones']));
+ const mutual=reach==='class'?'amistad_clase_reciproca_n':'amistad_reciproca_n';
+ const relationships=student
+  ?numeric(rows,['amistad_recibida_n','rechazo_recibido_n'])||numeric(own,['amistad_declarada_n','amistad_reciproca_n'])
+  :numeric(own,[mutual])||own.some(r=>Number.isFinite(r.amistad_declarada_n)&&Number.isFinite(r.rechazo_declarado_n));
+ const popular=numeric(rows,['popularidad_reportada_n']),central=numeric(rows,['centralidad_reportada_n']);
+ const wellbeing=numeric(own,['felicidad','felicidad_centro','felicidad_diversion','felicidad_soledad']);
+ const mediation=numeric(rows,student?['mediacion_n','mediacion_negativa_n']:['mediacion_n']);
+ const cognitive=numeric(own,['crt_aciertos','crt_carrera_acierto','crt_emilia_acierto','crt_biblioteca_acierto']);
+ return {bullying,relationships,position:popular||central,popular,central,wellbeing,mediation,cognitive};
+}
 Object.assign(labels,{bullying_self_completed:'Autorreporte · Alumnos que finalizan el cuestionario',bullying_two_total:'Dos o más nominaciones registradas, incluida la propia'});
 function bullyingHighlights(rows){
  const completed=rows.filter(r=>r.respondio==='Sí');
@@ -139,6 +158,6 @@ function restoreReviews(payload,rows,store,source,reasons){
  }
  return checked.length;
 }
-return Object.freeze({filter,searchStudents,labels,mean,ranking,overview,relationshipRates,cognitiveBreakdown,bullyingCategory,bullyingDistribution,bullyingHighlights,observed,exportReviews,restoreReviews});
+return Object.freeze({filter,searchStudents,labels,reportAvailability,mean,ranking,overview,relationshipRates,cognitiveBreakdown,bullyingCategory,bullyingDistribution,bullyingHighlights,observed,exportReviews,restoreReviews});
 });
 

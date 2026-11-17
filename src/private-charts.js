@@ -18,8 +18,9 @@ function comparisonRows(rows){
 }
 function mount(host,rows,onList){
  const school=model(rows);
- root.PBISComparison.mountRows(host.querySelector('[data-relations-comparison]'),comparisonRows(rows));
- root.PBISComparison.mountBullying(host.querySelector('[data-bullying-comparison]'),school);
+ const relationsHost=host.querySelector('[data-relations-comparison]'),bullyingHost=host.querySelector('[data-bullying-comparison]');
+ if(relationsHost)root.PBISComparison.mountRows(relationsHost,comparisonRows(rows));
+ if(bullyingHost)root.PBISComparison.mountBullying(bullyingHost,school);
  for(const kind of ['neae','newcomer'])root.PBISIntegration.mount(host.querySelector('[data-integration="'+kind+'"]'),school,kind,key=>{
   const match=/^integration_(neae|newcomer|migrant)_([01])$/.exec(key);if(!match)return;
   const selected=school.students.filter(s=>s.demographics[match[1]]===(match[2]==='0')&&s.relationsAnswered&&s.schoolMutualCount===0);
@@ -28,7 +29,8 @@ function mount(host,rows,onList){
 }
 function html(rows=[]){
  const school=model(rows),panels=['neae','newcomer'].filter(kind=>Integration.availableGroups(school,kind).length);
- return '<section class="school-comparisons"><h2 class="school-section-heading">Comparativas entre cursos y clases</h2><section class="comparison-panel" data-relations-comparison></section><section class="comparison-panel bullying-comparison" data-bullying-comparison></section></section>'+(panels.length?'<section class="school-other-charts"><h2 class="school-section-heading">Otros gráficos</h2>'+panels.map(kind=>'<section class="comparison-panel integration-panel" data-integration="'+kind+'"></section>').join('')+'</section>':'');
+ const relations=comparisonRows(rows).some(d=>d.respondents>0),bullying=school.students.some(s=>finite(s.peerCount)||typeof s.selfReport==='boolean');
+ return (relations||bullying?'<section class="school-comparisons"><h2 class="school-section-heading">Comparativas entre cursos y clases</h2>'+(relations?'<section class="comparison-panel" data-relations-comparison></section>':'')+(bullying?'<section class="comparison-panel bullying-comparison" data-bullying-comparison></section>':'')+'</section>':'')+(panels.length?'<section class="school-other-charts"><h2 class="school-section-heading">Otros gráficos</h2>'+panels.map(kind=>'<section class="comparison-panel integration-panel" data-integration="'+kind+'"></section>').join('')+'</section>':'');
 }
 const api={model,comparisonRows,mount,html};if(typeof module==='object'&&module.exports)module.exports=api;else root.PbisPrivateCharts=api;
 })(typeof globalThis==='undefined'?this:globalThis);

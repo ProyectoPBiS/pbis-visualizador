@@ -20,7 +20,8 @@ test('individual model uses reported nominations, abbreviated names and shared p
 test('PDF retains zero versus unanswered and missing values',()=>{
  const students=structuredClone(data.students);Object.assign(students[0],{respondio:'No',bullying_autorreporte:null,bullying_companeros_n:0,crt_aciertos:null,crt_carrera_acierto:null,felicidad:null,felicidad_centro:null,felicidad_diversion:null,felicidad_soledad:null});
  const m=PDF.model({view:'student',selection,students,groups:data.groups,identity:orient});assert.equal(m.testStatus,'NO HA REALIZADO EL TEST');const b=m.sections.find(s=>s.title==='Bullying');assert.equal(b.cards[0].answer,'Sin dato');assert.equal(b.cards[1].answer,'No');
- assert.equal(m.sections.find(x=>x.title==='Bienestar').cards[0].answer,'Sin datos');assert.equal(m.sections.find(x=>x.title==='Test cognitivo').cards[0].answer,'Sin datos');assert.equal(m.sections.find(x=>x.title==='Test cognitivo').cards[1].answer,'Sin respuesta');
+ assert.ok(!m.sections.some(x=>['Bienestar','Test cognitivo'].includes(x.title)));
+ assert.ok(b.questions.every(c=>c.answer==='Sin respuesta'));
 });
 test('class general PDF and student bundle differ; bundle reuses individual model',()=>{
  const general=PDF.model({view:'group',selection,...data,identity:orient});assert.equal(general.roster.length,3);assert.ok(general.sections.find(s=>s.title==='Resumen de la clase').cards[0].detail.startsWith('Media del colegio:'));
@@ -74,4 +75,29 @@ test('PDF omits optional integration pages without data and retains valid zeros'
  const groups=PDF.model({view:'center',selection,...input,identity:orient}).schoolCharts.integrations;
  assert.deepEqual(groups.map(g=>g.group),['neae']);
  assert.ok(groups[0].metrics.some(m=>m.key==='negative'));
+});
+
+test('empty centre, class and student PDFs have no result sections; zeros and partial answers survive',async()=>{
+ const fixture=require('./empty-cards-fixture.cjs'),choice={center:'Centro de prueba',course:'1.º ESO',group:'A',student:'PRUEBA1'};
+ const previous=global.window;
+ global.window={jspdf:require('../vendor/jspdf.umd.min.js'),PbisPdfCrypto:{normalizeDni:v=>v,protect:async bytes=>new Blob([bytes],{type:'application/pdf'})}};
+ try{
+  for(const kind of ['empty','zero','partial'])for(const view of ['center','group','student']){
+   const input=fixture.data(kind),before=JSON.stringify(input);
+   const report=PDF.model({view,selection:choice,...input,identity:PDF.identity({demo:true}),demo:true});
+   if(kind==='empty')assert.deepEqual(report.sections,[]);
+   else{
+    const bullying=report.sections.find(s=>s.title==='Bullying');assert.ok(bullying);
+    if(view==='student')assert.equal(bullying.cards[0].answer,'No');
+    if(kind==='zero'){
+     assert.ok(report.sections.find(s=>s.title==='Relaciones de amistad y negativas'));
+     const cognitive=report.sections.find(s=>s.title==='Test cognitivo');
+     if(view==='student')assert.equal(cognitive.cards[0].answer,'0 / 3');
+     else assert.ok(report.sections.find(s=>s.title.startsWith('Resumen')).cards.some(c=>c.metric==='cognitive'&&c.answer==='0 / 3'));
+    }
+   }
+   assert.ok((await PDF.generate(report,{password:'test'})).size>1000);
+   assert.equal(JSON.stringify(input),before);
+  }
+ }finally{global.window=previous;}
 });
