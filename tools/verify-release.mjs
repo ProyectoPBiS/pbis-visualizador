@@ -3,6 +3,7 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {inflateRawSync} from 'node:zlib';
 import {fileURLToPath} from 'node:url';
+import {verifyWorkerAsset} from './worker-assets.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 export function zipEntries(bytes){
@@ -35,6 +36,16 @@ export function verifyRelease(directory=root){
     }
   }
   const allowed=new Set(['.nojekyll','cookies.html','condiciones.html','index.html','PBIS.html','DEMO.html','demo-data.json','site.css','site.js','assets/ficha-grupo-ejemplo.png','guia.html','proyectos-protegidos.html','prompts-proyectos.html','privacidad.html','metodologia.html','opiniones.html','feedback-datos.html','auditoria.html','prompts.html','downloads/manifest.json','downloads/SHA256SUMS.txt',...names.map(name=>'downloads/'+name)]);
+  const workers=JSON.parse(read('site/worker-assets.json'));
+  if(JSON.stringify(Object.keys(workers).sort())!==JSON.stringify(['parser','pdf']))throw Error('Recursos de aplicación no previstos.');
+  allowed.add('worker-assets.json');
+  for(const [kind,entry] of Object.entries(workers)){
+    if(!new RegExp('^assets/workers/'+kind+'\\.[a-f0-9]{12}\\.js$').test(entry.url))throw Error('Ruta de recurso no admitida.');
+    verifyWorkerAsset(kind,entry,read('site/'+entry.url));allowed.add(entry.url);
+  }
+  for(const name of ['PBIS.html','DEMO.html']){
+    if(!read('site/'+name).toString().includes('window.PBIS_WORKER_ASSETS='+JSON.stringify(workers)+';'))throw Error('Recursos sin sincronizar: '+name);
+  }
   const teamAssets=JSON.parse(read('site-src/equipo-pbis/assets-manifest.json'));
   for(const asset of teamAssets){
     if(!/^assets\/[a-z0-9-]+\.(?:jpg|png)$/.test(asset.archivo))throw new Error('Ruta de equipo no admitida.');

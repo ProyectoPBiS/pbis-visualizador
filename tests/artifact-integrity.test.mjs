@@ -23,6 +23,10 @@ test('release verification rejects checksum corruption and unexpected public fil
   const portrait=path.join(temp,'site/assets/equipo-pbis/pablo-branas.jpg'),portraitOriginal=fs.readFileSync(portrait);
   fs.writeFileSync(portrait,'changed');assert.throws(()=>verifyRelease(temp),/Foto de equipo alterada/);
   fs.writeFileSync(portrait,portraitOriginal);
+  const workers=JSON.parse(fs.readFileSync(path.join(temp,'site/worker-assets.json')));
+  const worker=path.join(temp,'site',workers.parser.url),workerOriginal=fs.readFileSync(worker);
+  fs.writeFileSync(worker,'altered');assert.throws(()=>verifyRelease(temp),/Recurso de aplicación alterado/);
+  fs.writeFileSync(worker,workerOriginal);
   fs.copyFileSync(new URL('../data/examples/llave_evaluacion.xlsx',import.meta.url),path.join(temp,'site/downloads/llave_evaluacion.xlsx'));
   assert.throws(()=>verifyRelease(temp),/público no previsto/,'Even a synthetic key must not become a public download again.');
 });

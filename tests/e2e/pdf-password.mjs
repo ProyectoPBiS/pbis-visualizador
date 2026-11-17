@@ -34,7 +34,7 @@ try{
  await download('docente.pdf');assert.equal(downloads,2);
  // Cancelling while encryption is running terminates the worker and downloads nothing.
  await page.evaluate(()=>{window.savedCryptoWorker=window.PBIS_PDF_CRYPTO_WORKER;window.PBIS_PDF_CRYPTO_WORKER='self.onmessage=()=>{};';const NativeWorker=Worker;window.cancelledWorkers=0;window.Worker=class extends NativeWorker{terminate(){window.cancelledWorkers++;super.terminate();}};});
- await page.locator('#export-pdf').click();await page.locator('#pdf-network').uncheck();await page.locator('#pdf-terms').check();await page.locator('#pdf-confirm').click();await page.locator('#pdf-cancel').click();await page.waitForFunction(()=>window.cancelledWorkers>0);assert.equal(downloads,2);
+ await page.locator('#export-pdf').click();assert.equal(await page.locator('#pdf-network').count(),0);await page.locator('#pdf-terms').check();await page.locator('#pdf-confirm').click();await page.locator('#pdf-cancel').click();await page.waitForFunction(()=>window.cancelledWorkers>0);assert.equal(downloads,2);
  await page.locator('#logout').click();await login('orientacion','FRJ508',path.join(root,'data/examples/datos_evaluacion.xlsx'));await page.locator('#export-pdf').click();
  assert.equal(await page.locator('#pdf-dni').inputValue(),''); // Previous teacher DNI cannot survive logout.
  await page.locator('#pdf-dni').fill('11223344B');await page.keyboard.press('Escape');assert.equal(await page.locator('#pdf-dni').count(),0);

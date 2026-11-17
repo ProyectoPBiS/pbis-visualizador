@@ -51,6 +51,10 @@ jobs:
         run: node tests/e2e/protected.mjs
       - name: Probar portada, descargas y uso sin conexión
         run: node tests/e2e/landing.mjs
+      - name: Probar carga diferida y cifrado PDF
+        run: |
+          node tests/e2e/lazy-resources.mjs
+          node tests/e2e/pdf-password.mjs
       - name: Probar administración y permisos PDF
         run: |
           node tests/e2e/admin-clean.mjs

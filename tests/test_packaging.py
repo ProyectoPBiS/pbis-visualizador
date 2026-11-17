@@ -23,7 +23,8 @@ class PackagingTests(unittest.TestCase):
         self.assertFalse(any(name.startswith('outputs/') for name in files))
         generated = pack.generated_files(ROOT)
         manifest = json.loads((ROOT / 'site-src/equipo-pbis/assets-manifest.json').read_text(encoding='utf-8'))
-        self.assertEqual(len(generated), 34 + len(manifest))
+        self.assertEqual(len(generated), 37 + len(manifest))
+        self.assertEqual(len(pack.public_worker_assets(ROOT)), 3)
         for entry in manifest:
             self.assertIn('site/assets/equipo-pbis/' + Path(entry['archivo']).name, generated)
 

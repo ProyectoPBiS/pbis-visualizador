@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 import { deflateRawSync } from 'node:zlib';
 import { feedbackConfig, connectPolicy } from './feedback-config.mjs';
 import { completeDemo } from './demo-fixture.mjs';
+import {workerAsset} from './worker-assets.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 // HTML normalizes CRLF before CSP hashing; hash and embed the same LF bytes.
 const read=async p=>(await fs.readFile(path.join(root,p),'utf8')).replace(/\r\n?/g,'\n');
@@ -22,7 +23,7 @@ const demo=completeDemo(root);
 const config="window.PBIS_HOME='index.html';\nwindow.PBIS_DEMO_ACCOUNT="+await read('data/demo-account.json')+";\nwindow.PBIS_PROFILES="+await read('data/profiles.json')+';\nwindow.PBIS_PARSER='+JSON.stringify(parser)+';\nwindow.PBIS_FEEDBACK='+JSON.stringify(feedback)+';\nwindow.PBIS_BATCH='+JSON.stringify(batch)+';\nwindow.PBIS_FEEDBACK_WORKER='+JSON.stringify(feedbackWorker)+';';
 const pdfCryptoWorker=await read('vendor/qpdf.js')+'\nconst PBIS_QPDF_WASM='+JSON.stringify((await fs.readFile(path.join(root,'vendor/qpdf.wasm'))).toString('base64'))+';\n'+await read('src/pdf-crypto-worker.js');
 const termsScript='window.PBIS_TERMS_TEXT='+JSON.stringify(await read('docs/CONDICIONES_USO.md'))+';\n'+await read('src/usage-terms.js');
-const scripts=[config+'\nwindow.PBIS_PDF_CRYPTO_WORKER='+JSON.stringify(pdfCryptoWorker)+';',termsScript,await read('src/brand.js'),await read('src/consultation-ui.js'),await read('src/core.js'),await read('src/raw-wave1.js'),await read('src/protected-project.js'),await read('src/access-audit.js'),await read('src/audit-connection.js'),await read('src/project-accounts.js'),await read('src/project-admin.js'),await read('src/student-network.js'),await read('src/class-network.js'),await read('src/roster-review.js'),await read('src/review-batch.js'),await read('src/linked-feedback.js'),await read('src/feedback-model.js'),await read('src/feedback.js'),await read('vendor/jspdf.umd.min.js'),await read('src/pdf-crypto.js'),await read('src/pdf-export.js'),await read('src/comparison.js'),await read('src/integration.js'),await read('src/private-charts.js'),await read('src/app.js')].map(safeScript);
+const scripts=[config+'\nwindow.PBIS_PDF_CRYPTO_WORKER='+JSON.stringify(pdfCryptoWorker)+';',termsScript,await read('src/lazy-resources.js'),await read('src/brand.js'),await read('src/consultation-ui.js'),await read('src/core.js'),await read('src/raw-wave1.js'),await read('src/protected-project.js'),await read('src/access-audit.js'),await read('src/audit-connection.js'),await read('src/project-accounts.js'),await read('src/project-admin.js'),await read('src/student-network.js'),await read('src/class-network.js'),await read('src/roster-review.js'),await read('src/review-batch.js'),await read('src/linked-feedback.js'),await read('src/feedback-model.js'),await read('src/feedback.js'),await read('vendor/jspdf.umd.min.js'),await read('src/pdf-crypto.js'),await read('src/pdf-export.js'),await read('src/comparison.js'),await read('src/integration.js'),await read('src/private-charts.js'),await read('src/app.js')].map(safeScript);
 const policy="default-src 'none'; script-src 'wasm-unsafe-eval' "+scripts.map(s=>"'sha256-"+hash(s)+"'").join(' ')+"; style-src 'unsafe-inline'; img-src data:; worker-src blob:; child-src blob:; connect-src "+connectPolicy(batch)+" https://script.google.com https://script.googleusercontent.com; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";
 const css=await read('src/app.css')+'\n'+await read('src/feedback.css')+'\n'+await read('src/protected-project.css')+'\n'+await read('src/relaunch.css');
 const offlineDemoConfig=safeScript('window.PBIS_DEMO_DATA='+JSON.stringify(demo)+';');
@@ -74,7 +75,24 @@ await put('direccion-local/index.html',localHome);
 await put('site/demo-data.json',JSON.stringify(demo));
 const fingerprint=bytes=>createHash('sha256').update(bytes).digest('hex').slice(0,12);
 const demoConfig=safeScript("window.PBIS_DEMO_URL='demo-data.json?v="+fingerprint(JSON.stringify(demo))+"';");
-const demoScripts=[...scripts.slice(0,1),demoConfig,...scripts.slice(1)];
+// Online visits load static worker code only when Excel or encrypted PDF is used.
+// The downloaded application above still embeds both workers for file:// use.
+const workerAssets={};
+await fs.mkdir(path.join(root,'site/assets/workers'),{recursive:true});
+let previousWorkers={};
+try{previousWorkers=JSON.parse(await read('site/worker-assets.json'));}catch(error){if(error.code!=='ENOENT')throw error;}
+for(const [kind,source] of Object.entries({parser,pdf:pdfCryptoWorker})){
+ const entry=workerAsset(kind,source);workerAssets[kind]=entry;
+ await put('site/'+entry.url,source);
+}
+// Remove only obsolete, previously generated worker files within this fixed directory.
+for(const [kind,entry] of Object.entries(previousWorkers)){
+ if(!['parser','pdf'].includes(kind)||!new RegExp('^assets/workers/'+kind+'\\.[a-f0-9]{12}\\.js$').test(entry.url))throw Error('Ruta de recurso no admitida.');
+ if(entry.url!==workerAssets[kind].url)await fs.rm(path.join(root,'site',entry.url),{force:true});
+}
+await put('site/worker-assets.json',JSON.stringify(workerAssets,null,2)+'\n');
+const onlineConfig=config.replace('window.PBIS_PARSER='+JSON.stringify(parser)+';',()=> 'window.PBIS_WORKER_ASSETS='+JSON.stringify(workerAssets)+';');
+const demoScripts=[safeScript(onlineConfig),demoConfig,...scripts.slice(1)];
 const demoPolicy=policy.replace(/script-src [^;]+/, "script-src 'wasm-unsafe-eval' "+demoScripts.map(s=>"'sha256-"+hash(s)+"'").join(' ')).replace(/connect-src ([^;]+)/,(_,destinations)=>`connect-src 'self' ${destinations==='\'none\''?'':destinations}`.trim());
 const demoHtml=(await read('src/app.html')).replace('<!--CSP-->',()=>`<meta http-equiv="Content-Security-Policy" content="${demoPolicy}">`).replace('<!--STYLE-->',()=>`<style>${css}</style>`).replace('<!--SCRIPTS-->',()=>demoScripts.map(s=>`<script>${s}</script>`).join('\n')).replace('<title>PBIS · Consulta local</title>','<title>PBiS · Consulta de fichas</title>');
 await put('site/DEMO.html',demoHtml);

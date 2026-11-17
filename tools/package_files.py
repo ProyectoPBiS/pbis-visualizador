@@ -1,6 +1,7 @@
 """Public project files only; never walk uploads, outputs or feedback storage."""
 from pathlib import Path
 import hashlib
+import base64
 import json
 import re
 from zipfile import ZipFile, ZIP_DEFLATED
@@ -57,6 +58,28 @@ def public_team_assets(root):
     return files
 
 
+def public_worker_assets(root):
+    root = Path(root).resolve()
+    manifest = json.loads((root / 'site/worker-assets.json').read_text(encoding='utf-8'))
+    if set(manifest) != {'parser', 'pdf'}:
+        raise ValueError('Recursos de aplicación no previstos.')
+    files = ['site/worker-assets.json']
+    for kind, entry in manifest.items():
+        name = entry['url']
+        if not re.fullmatch(r'assets/workers/' + kind + r'\.[a-f0-9]{12}\.js', name):
+            raise ValueError('Ruta de recurso no admitida.')
+        source = root / 'site' / name
+        if source.is_symlink() or not source.resolve().is_relative_to(root / 'site'):
+            raise ValueError('Recurso fuera de la distribución.')
+        data = source.read_bytes()
+        digest = hashlib.sha256(data)
+        if (entry['size'] != len(data) or entry['integrity'] != 'sha256-' + base64.b64encode(digest.digest()).decode('ascii')
+                or name != f'assets/workers/{kind}.{digest.hexdigest()[:12]}.js'):
+            raise ValueError('Recurso de aplicación alterado: ' + kind)
+        files.append('site/' + name)
+    return files
+
+
 def generated_files(root):
     root = Path(root)
     manifest = json.loads((root / 'site/downloads/manifest.json').read_text(encoding='utf-8'))
@@ -70,6 +93,7 @@ def generated_files(root):
               'feedback-datos.html', 'auditoria.html', 'prompts.html',
               'downloads/manifest.json', 'downloads/SHA256SUMS.txt']]
     files += ['site/' + name for name in public_team_assets(root)]
+    files += public_worker_assets(root)
     expected = {'PBIS-Windows.zip', 'PBIS-macOS.zip', 'PBIS-Linux.zip', 'PBIS-Universal.zip'}
     if {item['name'] for item in manifest['files']} != expected or len(manifest['files']) != len(expected):
         raise ValueError('Descargas no previstas.')

@@ -304,11 +304,27 @@ ctrlAlumno.querySelectorAll('.mini-tab').forEach(b=>b.addEventListener('click',(
 }));
 negToggle.addEventListener('change',()=>paint());
 
-let rt; window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(paint,220);});
+let networkVisible=false,networkPainted=false,networkSize='',rt;
+function updateNetworkActivity(){
+  if(!sim)return;
+  if(reduceMotion||document.hidden||!networkVisible)sim.stop();
+  else if(sim.alpha()>sim.alphaMin())sim.restart();
+}
+window.addEventListener('resize',()=>{
+  clearTimeout(rt);rt=setTimeout(()=>{
+    const size=JSON.stringify(sizeStage());
+    if(networkPainted&&size!==networkSize){networkSize=size;paint();updateNetworkActivity();}
+  },220);
+});
+document.addEventListener('visibilitychange',updateNetworkActivity);
 
 /* pinta cuando la sección es visible (para que el stage tenga tamaño) */
 const io = new IntersectionObserver((entries)=>{
-  entries.forEach(e=>{ if(e.isIntersecting){ paint(); io.disconnect(); } });
+  entries.forEach(e=>{
+    networkVisible=e.isIntersecting;
+    if(networkVisible&&!networkPainted){networkPainted=true;networkSize=JSON.stringify(sizeStage());paint();}
+    updateNetworkActivity();
+  });
 },{threshold:.15});
 io.observe(document.getElementById('informes'));
 
@@ -317,12 +333,14 @@ io.observe(document.getElementById('informes'));
 ===================================================================== */
 (function(){
   const canvas=document.getElementById('hero-canvas'); if(!canvas) return;
-  const ctx=canvas.getContext('2d'); let W,H,pts,raf;
+  const ctx=canvas.getContext('2d'); let W,H,pts,raf=null,visible=true;
   const N = 46;
   function resize(){ const r=canvas.parentElement.getBoundingClientRect(); W=canvas.width=r.width*devicePixelRatio; H=canvas.height=r.height*devicePixelRatio; canvas.style.width=r.width+'px'; canvas.style.height=r.height+'px'; }
   function init(){ resize(); pts=[]; for(let i=0;i<N;i++){ pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.18*devicePixelRatio,vy:(Math.random()-.5)*.18*devicePixelRatio,r:(Math.random()*2.4+1.6)*devicePixelRatio}); } }
   const maxD = 150*devicePixelRatio;
   function frame(){
+    raf=null;
+    if(!visible||document.hidden||reduceMotion)return;
     ctx.clearRect(0,0,W,H);
     for(let i=0;i<pts.length;i++){ const p=pts[i]; p.x+=p.vx; p.y+=p.vy; if(p.x<0||p.x>W)p.vx*=-1; if(p.y<0||p.y>H)p.vy*=-1; }
     for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
@@ -332,10 +350,23 @@ io.observe(document.getElementById('informes'));
     for(const p of pts){ ctx.fillStyle='rgba(234,131,102,.55)'; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); }
     raf=requestAnimationFrame(frame);
   }
-  init();
-  if(reduceMotion){ // dibujo estático
+  function staticFrame(){ // mismo dibujo para quienes reducen el movimiento
     for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){ const a=pts[i],b=pts[j],d=Math.hypot(a.x-b.x,a.y-b.y); if(d<maxD){ctx.strokeStyle=`rgba(234,131,102,${(1-d/maxD)*.22})`;ctx.lineWidth=1*devicePixelRatio;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();} }
     for(const p of pts){ctx.fillStyle='rgba(234,131,102,.5)';ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();}
-  } else { frame(); }
-  let hrt; window.addEventListener('resize',()=>{clearTimeout(hrt);hrt=setTimeout(()=>{cancelAnimationFrame(raf);init();if(!reduceMotion)frame();},220);});
+  }
+  function updateActivity(){
+    if(reduceMotion||!visible||document.hidden){if(raf!==null)cancelAnimationFrame(raf);raf=null;}
+    else if(raf===null)frame();
+  }
+  init();if(reduceMotion)staticFrame();else updateActivity();
+  const heroObserver=new IntersectionObserver(entries=>{
+    visible=entries[0].isIntersecting;updateActivity();
+  });
+  heroObserver.observe(canvas.parentElement);
+  document.addEventListener('visibilitychange',updateActivity);
+  let hrt; window.addEventListener('resize',()=>{clearTimeout(hrt);hrt=setTimeout(()=>{
+    const r=canvas.parentElement.getBoundingClientRect();
+    if(Math.round(W)===Math.round(r.width*devicePixelRatio)&&Math.round(H)===Math.round(r.height*devicePixelRatio))return;
+    if(raf!==null)cancelAnimationFrame(raf);raf=null;init();if(reduceMotion)staticFrame();else updateActivity();
+  },220);});
 })();
