@@ -11,11 +11,11 @@ test('team editorial module preserves all people, profiles and local portraits',
  const component=read('site-src/equipo-pbis/equipo-pbis.html');
  const people=JSON.parse(read('site-src/equipo-pbis/equipo.json'));
  const images=JSON.parse(read('site-src/equipo-pbis/assets-manifest.json'));
- assert.equal(people.length,21);assert.equal(images.length,21);
+ assert.equal(people.length,22);assert.equal(images.length,22);
  const names=[...component.matchAll(/<h4>([^<]+)<\/h4>/g)].map(match=>match[1]);
  assert.deepEqual(names,people.map(person=>person.nombre_visible));
  assert.deepEqual([...component.matchAll(/class="profile-link" href="([^"]+)"/g)].map(match=>match[1]),people.filter(person=>person.perfil).map(person=>person.perfil));
- assert.equal((component.match(/class="profile-link"/g)||[]).length,19);
+ assert.equal((component.match(/class="profile-link"/g)||[]).length,20);
  assert.equal((component.match(/class="profile-note"/g)||[]).length,2);
  assert.doesNotMatch(component,/<h1|<script|<header|src="https?:/);
  assert.match(component,/<h2>Equipo <span>PBiS<\/span><\/h2>/);
