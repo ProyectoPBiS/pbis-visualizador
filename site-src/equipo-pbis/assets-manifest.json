@@ -103,5 +103,10 @@
     "nombre": "Adriana Gaviria",
     "archivo": "assets/adriana-gaviria.png",
     "sha256": "0b6d246a5af22318e0d8d013c0b6e4c9f0f6be9e465dac3a514900e52794bea6"
+  },
+  {
+    "nombre": "Diego Jorrat",
+    "archivo": "assets/diego-jorrat.png",
+    "sha256": "fd04d287b195c746262da0525d4c92597b135edc453db3235b5e257ad63fef35"
   }
 ]

@@ -104,6 +104,14 @@
     "origen_foto": "https://loyolabehlab.org/wordpress/wp-content/uploads/2024/02/Magis-150x150.png"
   },
   {
+    "area": "Cuantitativo",
+    "nombre_visible": "Diego Jorrat",
+    "institucion": "Universidad de Sevilla",
+    "foto": "assets/diego-jorrat.png",
+    "perfil": "https://loyolabehlab.org/members/diego-jorrat/",
+    "origen_foto": "https://loyolabehlab.org/wordpress/wp-content/uploads/2019/09/diego2-e1572821159451-300x300.png"
+  },
+  {
     "area": "Software",
     "nombre_visible": "Antonio Alfonso",
     "institucion": "Universidad de Sevilla",
