@@ -2,6 +2,7 @@
 (function(root){'use strict';
 const finite=Number.isFinite;
 const UI=typeof module==='object'&&module.exports?require('./consultation-ui.js'):root.PbisConsultationUI;
+const Integration=typeof module==='object'&&module.exports?require('./integration.js'):root.PBISIntegration;
 function model(rows){
  const key=r=>JSON.stringify([r.Campus,r.Curso,r.Grupo]),classes=new Map();
  for(const r of rows)if(!classes.has(key(r)))classes.set(key(r),{id:key(r),label:[r.Curso,r.Grupo].filter(Boolean).join(' ')});
@@ -25,6 +26,9 @@ function mount(host,rows,onList){
   onList(selected.map(s=>s.id),'Sin amistad recíproca · '+({neae:'Alumnado NEAE',newcomer:'Nueva incorporación',migrant:'Origen migrante'}[match[1]])+(match[2]==='1'?' · Resto del alumnado':''));
  });
 }
-function html(){return '<section class="school-comparisons"><h2 class="school-section-heading">Comparativas entre cursos y clases</h2><section class="comparison-panel" data-relations-comparison></section><section class="comparison-panel bullying-comparison" data-bullying-comparison></section></section><section class="school-other-charts"><h2 class="school-section-heading">Otros gráficos</h2><section class="comparison-panel integration-panel" data-integration="neae"></section><section class="comparison-panel integration-panel" data-integration="newcomer"></section></section>';}
+function html(rows=[]){
+ const school=model(rows),panels=['neae','newcomer'].filter(kind=>Integration.availableGroups(school,kind).length);
+ return '<section class="school-comparisons"><h2 class="school-section-heading">Comparativas entre cursos y clases</h2><section class="comparison-panel" data-relations-comparison></section><section class="comparison-panel bullying-comparison" data-bullying-comparison></section></section>'+(panels.length?'<section class="school-other-charts"><h2 class="school-section-heading">Otros gráficos</h2>'+panels.map(kind=>'<section class="comparison-panel integration-panel" data-integration="'+kind+'"></section>').join('')+'</section>':'');
+}
 const api={model,comparisonRows,mount,html};if(typeof module==='object'&&module.exports)module.exports=api;else root.PbisPrivateCharts=api;
 })(typeof globalThis==='undefined'?this:globalThis);

@@ -58,9 +58,20 @@ test('school report reuses web comparisons and excludes other centres',()=>{
 });
 
 test('school report preserves missing bullying rather than presenting it as no nominations',()=>{
- const input=structuredClone(data);input.students.forEach(s=>{s.bullying_companeros_n=null;s.bullying_autorreporte=null;});
+ const input=structuredClone(data);input.students.forEach(s=>{s.bullying_companeros_n=null;s.bullying_autorreporte=null;s.demografia_neae=true;});
  const report=PDF.model({view:'center',selection,...input,identity:orient});
  assert.equal(report.schoolCharts.distributionAvailable,false);
  assert.ok(report.schoolCharts.bullying.every(d=>!d.available));
- assert.ok(report.schoolCharts.integrations.every(g=>g.metrics.find(m=>m.key==='bullying').available===false));
+ assert.ok(report.schoolCharts.integrations.length>0);
+ assert.ok(report.schoolCharts.integrations.every(g=>!g.metrics.some(m=>m.key==='bullying')));
+});
+
+test('PDF omits optional integration pages without data and retains valid zeros',()=>{
+ const input=structuredClone(data);
+ for(const s of input.students)for(const field of ['demografia_neae','demografia_nueva_incorporacion','demografia_migrante'])delete s[field];
+ assert.deepEqual(PDF.model({view:'center',selection,...input,identity:orient}).schoolCharts.integrations,[]);
+ input.students.forEach(s=>{s.demografia_neae=false;});
+ const groups=PDF.model({view:'center',selection,...input,identity:orient}).schoolCharts.integrations;
+ assert.deepEqual(groups.map(g=>g.group),['neae']);
+ assert.ok(groups[0].metrics.some(m=>m.key==='negative'));
 });

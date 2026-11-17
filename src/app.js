@@ -577,7 +577,7 @@ function importQualityNote(rows){
   if(centrality)messages.push('No se ha podido calcular la centralidad. Los demás datos siguen disponibles.');
   return messages.length?`<p id="report-import-warning" class="network-coverage-note" role="status">${messages.join(' ')}</p>`:'';
 }
-function centerReport(rows){return '<h2 class="school-section-heading">Información general del colegio</h2>'+overviewReport(rows,null,true)+'<div id="school-private-charts">'+window.PbisPrivateCharts.html()+'</div>';}
+function centerReport(rows){return '<h2 class="school-section-heading">Información general del colegio</h2>'+overviewReport(rows,null,true)+'<div id="school-private-charts">'+window.PbisPrivateCharts.html(rows)+'</div>';}
 function overviewReport(rows,meta,isCenter=false){
  const relationshipReach=isCenter?'school':'class';
  const UI=window.PbisConsultationUI,g=isCenter?C.aggregateCenter(rows):C.aggregate(rows,meta),a=UI.overview(rows);

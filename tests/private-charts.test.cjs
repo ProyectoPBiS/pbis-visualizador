@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const UI=require('../src/consultation-ui.js'),comparison=require('../src/comparison.js'),integration=require('../src/integration.js');
-const context={PbisConsultationUI:UI};context.globalThis=context;vm.createContext(context);
+const context={PbisConsultationUI:UI,PBISIntegration:integration};context.globalThis=context;vm.createContext(context);
 for(const f of ['private-charts.js','tutor-validation.js'])vm.runInContext(fs.readFileSync(require.resolve('../src/'+f),'utf8'),context);
 const Charts=context.PbisPrivateCharts,T=context.PbisTutorValidation;
 const base={Campus:'C',Curso:'5º PRIMARIA',Grupo:'A',n_clase:3,n_centro:3,respondio:'Sí',amistad_declarada_n:1,rechazo_declarado_n:0,amistad_clase_declarada_n:1,rechazo_clase_declarada_n:0,amistad_reciproca_n:1,amistad_clase_reciproca_n:0,rechazo_recibido_n:0,bullying_autorreporte:'No',bullying_companeros_n:0,demografia_neae:true};
@@ -19,6 +19,38 @@ test('comparison counts only authorized within-class choices and uses responding
  const school=Charts.model(rows);assert.deepEqual([...comparison.bullyingRows(school)[0].counts],[1,1,1]);
  const empty=Charts.model(rows.map(r=>({...r,bullying_autorreporte:null,bullying_companeros_n:null})));assert.equal(comparison.bullyingRows(empty)[0].available,false);
  assert.equal(Charts.model(rows.slice(0,1)).students.length,1,'No rows are fetched or inferred outside the supplied subset');
+});
+
+test('optional cards and their section disappear for missing, blank or unknown classifications',()=>{
+ for(const value of [undefined,null,'']){
+  const absent=rows.map(r=>({...r,demografia_neae:value,demografia_nueva_incorporacion:value,demografia_migrante:value}));
+  assert.doesNotMatch(Charts.html(absent),/Otros gráficos|data-integration=/);
+  const host={innerHTML:'stale content'};integration.mount(host,Charts.model(absent),'neae');
+  assert.equal(host.hidden,true);assert.equal(host.innerHTML,'');
+ }
+});
+
+test('false classifications and zero measurements are valid data, not missing data',()=>{
+ const school=Charts.model([{...base,ID:'zero',demografia_neae:false,amistad_reciproca_n:0,felicidad_soledad:0}]);
+ assert.deepEqual(integration.availableMetrics(school,'neae'),['mutual','negative','alone','bullying']);
+ assert.equal(integration.summarize(school,'neae','mutual').rows[1].value,0);
+ assert.match(Charts.html([{...base,demografia_neae:false}]),/data-integration="neae"/);
+});
+
+test('optional graphs need both classification and a usable result for the same students',()=>{
+ const empty={...base,ID:'empty',respondio:'No',amistad_declarada_n:null,amistad_reciproca_n:null,rechazo_recibido_n:null,felicidad_soledad:null,bullying_autorreporte:null,bullying_companeros_n:null};
+ assert.deepEqual(integration.availableMetrics(Charts.model([empty]),'neae'),[]);
+ assert.doesNotMatch(Charts.html([empty,{...base,demografia_neae:null}]),/Otros gráficos/);
+ const onlyLoneliness=Charts.model([{...empty,respondio:'Sí',felicidad_soledad:0}]);
+ assert.deepEqual(integration.availableMetrics(onlyLoneliness,'neae'),['alone']);
+});
+
+test('newcomer card falls back to migrant data and exposes only available groups',()=>{
+ const school=Charts.model(rows.map(r=>({...r,demografia_nueva_incorporacion:null,demografia_migrante:false})));
+ assert.deepEqual(integration.availableGroups(school,'newcomer'),['migrant']);
+ const host={querySelectorAll:()=>[],querySelector:()=>null};integration.mount(host,school,'newcomer');
+ assert.equal(host.hidden,false);assert.match(host.innerHTML,/Integración del alumnado de origen migrante/);
+ assert.doesNotMatch(host.innerHTML,/data-integration-group|No hay información disponible/);
 });
 test('bullying sort defaults to any nomination and threshold warning includes exactly fifteen',()=>{
  const input=[{label:'A',n:10,counts:[3,6,1]},{label:'B',n:10,counts:[6,0,4]}];

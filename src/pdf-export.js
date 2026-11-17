@@ -138,7 +138,7 @@
       const school=bridge.model(center),relations=bridge.comparisonRows(center);
       report.schoolCharts={relations,bullying:comparison.sortBullying(comparison.bullyingRows(school),'any',true),alerts:comparison.nominationAlerts(school),
         distributionAvailable:center.some(s=>s.bullying_autorreporte!=null||known(s.bullying_companeros_n)),distribution:UI.bullyingDistribution(center).categories,overview:UI.overview(center),cognitive:UI.cognitiveBreakdown(center),
-        integrations:['neae','newcomer','migrant'].map(group=>({group,metrics:['mutual','negative','alone','bullying'].map(metric=>({key:metric,...integration.summarize(school,group,metric),available:metric!=='bullying'||school.students.some(s=>Number.isFinite(s.peerCount)||s.selfReport===true)}))})),
+        integrations:['neae','newcomer','migrant'].map(group=>({group,metrics:integration.availableMetrics(school,group).map(metric=>({key:metric,...integration.summarize(school,group,metric),available:true}))})).filter(group=>group.metrics.length),
         classes:school.classes.map(c=>{const members=center.filter(s=>classKey(s)===c.id),a=UI.overview(members);return {label:c.label,wellbeing:a.wellbeing.value,crt:a.crt.value};})};
     }
     return report;
