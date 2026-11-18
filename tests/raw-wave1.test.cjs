@@ -324,3 +324,17 @@ test('original bullying narrative survives import without changing numeric resul
  for(let i=0;i<rows.length;i++)for(const field of [...C.SCORE_COLUMNS,...C.COUNT_COLUMNS,'centralidad_eigenvector'])assert.equal(result.students[i][field],before.students[i][field],field);
  for(const invalid of [42,{},'x'.repeat(4001),'texto\u0000']){const copy=structuredClone(result);copy.students[0].bullying_frecuencia=invalid;assert.throws(()=>C.validateAndJoin(copy.students,null,copy.groups),/bullying_frecuencia/);}
 });
+
+test('free course names import without merging vocational classrooms or changing indicators',()=>{
+ const labels=[['1º BACHILLERATO','C'],['1º BACHILLERATO','H'],['2º BACHILLERATO','C'],['2º BACHILLERATO','H'],...['1º IC','1º IO','1º SA','2º IC','2º IO','2º SA'].map(g=>['GRADO BÁSICO',g]),...['1º-GADM','1º-SMR','2º-GADM','2º-SMR'].map(g=>['GRADO MEDIO',g]),['OTRO CURSO LIBRE','Taller A'],['1º ESO especial','A']];
+ for(const [course,group] of labels){
+  const rows=fixture(),baseline=W.convert(rows);
+  rows.forEach((r,i)=>{r.Curso=course;r.Grupo=i<2?group:'OTRO GRUPO';});
+  const converted=W.convert(rows),joined=C.validateAndJoin(converted.students,null,converted.groups);
+  const expected=course.includes('BACHILLERATO')?course[0]+'.º Bachillerato':course;
+  assert.ok(joined.students.every(r=>r.Curso===expected));assert.equal(converted.groups.length,2);
+  assert.deepEqual(C.scopeRows(joined.students,{role:'tutor',course:expected,group}).map(r=>r.ID),['U1','U2']);
+  for(let i=0;i<rows.length;i++)for(const field of [...C.SCORE_COLUMNS,...C.COUNT_COLUMNS])assert.equal(converted.students[i][field],baseline.students[i][field],field);
+ }
+ const rows=fixture();rows[0].Curso=' ';assert.throws(()=>W.convert(rows),/Falta Curso/);
+});

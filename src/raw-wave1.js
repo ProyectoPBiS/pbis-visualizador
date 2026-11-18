@@ -26,7 +26,7 @@ function demographics(raw,warnings){
  return {demografia_neae:field(yesNo,'SAL_1','NEAE'),demografia_migrante:field(yesNo,'SAL_2','INMIGRANTE'),demografia_nueva_incorporacion:field(newcomer,'SAL_3','NUEVA INCORPORACIÓN')};
 }
 const score=(a,b)=>a===null||a===undefined||!b?null:Math.round(100*a/b)/10;
-function course(v){const s=clean(v),n=s.match(/([1-6])\s*[^\w\d]*\s*(primaria|eso|bachillerato)/i);if(n)return n[1]+'.º '+(n[2].toLowerCase()==='eso'?'ESO':n[2].toLowerCase()==='primaria'?'Primaria':'Bachillerato');throw Error('Curso no reconocido en la base Wave 1.');}
+function course(v){const s=clean(v),n=s.match(/^([1-6])\s*[^\w\d]*\s*(primaria|eso|bachillerato)$/i);if(n)return n[1]+'.º '+(n[2].toLowerCase()==='eso'?'ESO':n[2].toLowerCase()==='primaria'?'Primaria':'Bachillerato');if(s)return s;throw Error('Falta Curso en una fila de la base Wave 1.');}
 function isWave1(rows){return Array.isArray(rows)&&rows.length>0&&needed.every(h=>Object.prototype.hasOwnProperty.call(rows[0],h));}
 function selections(value,known,field,byId,selfId){
   if(!known)return null;
