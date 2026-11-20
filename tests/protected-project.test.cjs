@@ -50,3 +50,5 @@ test('protected contract rejects invalid reported counts and inconsistent CRT de
   const copy=structuredClone(valid);copy.students[0][field]=value;assert.throws(()=>P.validateSnapshot(copy,allowed));
  }
 });
+
+test('orientation accent aliases open existing accounts but never bypass the password',async()=>{const built=await P.build({data:fixture.data(),center:'Centro 4826',accounts:[{username:'orientacion',password:'FRJ508'}]});for(const username of ['orientación','ORIENTACIÓN','orientacio\u0301n']){assert.equal((await P.open(built.text,username,'FRJ508')).grant.role,'orientador');await assert.rejects(P.open(built.text,username,'incorrecta'));}});

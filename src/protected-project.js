@@ -24,7 +24,7 @@ async function digest(s){return b64(new Uint8Array(await crypto().subtle.digest(
 function parse(s){return JSON.parse(s,(k,v)=>{if(['__proto__','constructor','prototype'].includes(k))fail('Campo no permitido en el proyecto.');return v;});}
 function string(v,max=200){return typeof v==='string'&&v.length>0&&v.length<=max&&!/[\x00-\x1f]/.test(v);}
 function isDni(u){return /^\d{8}[A-Z]$/.test(u)&&'TRWAGMYFPDXBNJZSQVHLCKE'[Number(u.slice(0,8))%23]===u[8];}
-function normalizeUser(value){const u=String(value||'').trim().toUpperCase();if(u==='ORIENTACION')return 'orientacion';if(/^\d{8}[A-Z]$/.test(u)&&!isDni(u))fail('Introduce un DNI válido: ocho cifras y su letra.');if(!/^[A-Z0-9][A-Z0-9_-]{0,63}$/.test(u)||u==='DEMO')fail('Introduce el usuario de tu hoja de accesos, por ejemplo 1ESOA.');return u;}
+function normalizeUser(value){const u=String(value||'').trim().toUpperCase();if(u==='ORIENTACION'||u.normalize('NFC')==='ORIENTACIÓN')return 'orientacion';if(/^\d{8}[A-Z]$/.test(u)&&!isDni(u))fail('Introduce un DNI válido: ocho cifras y su letra.');if(!/^[A-Z0-9][A-Z0-9_-]{0,63}$/.test(u)||u==='DEMO')fail('Introduce el usuario de tu hoja de accesos, por ejemplo 1ESOA.');return u;}
 function maskDni(u){return [...u].map((c,i)=>[1,3,4,6].includes(i)?'*':c).join('');}
 function accountType(a){const type=a.accountType||(a.username==='orientacion'||isDni(a.username)?'dni':'classroom');if(!['dni','classroom'].includes(type)||type==='dni'&&a.username!=='orientacion'&&!isDni(a.username)||type==='classroom'&&isDni(a.username))fail('El tipo de cuenta del proyecto no es válido.');return type;}
 function watermarkLabel(a){if(a.role==='orientador')return '';return accountType(a)==='classroom'?normalizeUser(a.username):maskDni(a.username);}

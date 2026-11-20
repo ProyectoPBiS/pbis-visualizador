@@ -67,7 +67,7 @@ test('class network toggles connections without opening a student profile',async
 });
 test('every account signs in, loads its exact course scope and signs out without data leaking into the next session',async()=>{
  const f=fixture();
- f.login('orientacion','1234');assert.ok(f.el('file-data'));assert.equal(f.el('admin-project'),undefined);await f.upload();assert.match(f.el('import-error').textContent,/No tienes permisos/);assert.doesNotMatch(f.el('report-content').innerHTML,/overview-report/);await f.el('logout').onclick();
+ f.login('orientacion','1234');assert.ok(f.el('file-data'));assert.equal(f.el('admin-project'),undefined);await f.upload();assert.match(f.el('import-error').textContent,/No se ha podido abrir/);assert.doesNotMatch(f.el('report-content').innerHTML,/overview-report/);await f.el('logout').onclick();
  for(const p of profiles.filter(p=>!p.group)){
   f.login(p.username);assert.equal(f.el('open-accounts'),undefined);assert.equal(f.el('accounts-dialog'),undefined);assert.equal(f.el('open-demo'),undefined);assert.equal(f.el('start-tour'),undefined);assert.equal(f.el('load-demo'),undefined);
   await f.upload();assert.match(f.el('import-status').textContent,new RegExp(`${p.role==='orientador'?1512:168} estudiantes`));
@@ -98,7 +98,7 @@ test('initial form accepts arbitrary credentials repeatedly but grants no access
   f.login(i%2?'orientacion':'12345678Z','CualquierClave'+i);
   assert.ok(f.el('file-data'));assert.equal(f.el('admin-project'),undefined);assert.equal(f.el('open-protected'),undefined);
   assert.doesNotMatch(f.el('report-content').innerHTML,/overview-report/);
-  await f.upload();assert.match(f.el('import-error').textContent,/No tienes permisos/);
+  await f.upload();assert.match(f.el('import-error').textContent,/No se ha podido abrir/);
   assert.equal(f.el('show-reports').disabled,true);assert.equal(f.fetches.length,0);
   await f.el('change-access').onclick();assert.ok(f.el('login-form'));
  }
@@ -164,7 +164,7 @@ test('PDC sign-in loads the exact group in each center and can open individual c
 test('PDC credentials cannot fall back to other groups, and renamed accounts reject former credentials',async()=>{
  const f=fixture();
  for(const [username,password] of [['orientador','FRJ508'],['orientacion','NU6WY3'],['tutor1eso',profiles.find(p=>p.username==='tutoria1eso').password]]){
-  f.login(username,password);assert.ok(f.el('file-data'));await f.upload();assert.match(f.el('import-error').textContent,/No tienes permisos/);assert.equal(f.el('show-reports').disabled,true);await f.el('logout').onclick();
+  f.login(username,password);assert.ok(f.el('file-data'));await f.upload();assert.match(f.el('import-error').textContent,/No se ha podido abrir/);assert.equal(f.el('show-reports').disabled,true);await f.el('logout').onclick();
  }
  f.login('tutoria3esopdci');await f.upload();
  assert.match(f.el('import-error').textContent,/curso o aula asignados/);
