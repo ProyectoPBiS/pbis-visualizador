@@ -19,7 +19,7 @@ test('individual model uses reported nominations, abbreviated names and shared p
 });
 test('PDF retains zero versus unanswered and missing values',()=>{
  const students=structuredClone(data.students);Object.assign(students[0],{respondio:'No',bullying_autorreporte:null,bullying_companeros_n:0,crt_aciertos:null,crt_carrera_acierto:null,felicidad:null,felicidad_centro:null,felicidad_diversion:null,felicidad_soledad:null});
- const m=PDF.model({view:'student',selection,students,groups:data.groups,identity:orient});assert.equal(m.testStatus,'NO HA REALIZADO EL TEST');const b=m.sections.find(s=>s.title==='Bullying');assert.equal(b.cards[0].answer,'Sin dato');assert.equal(b.cards[1].answer,'No');
+ const m=PDF.model({view:'student',selection,students,groups:data.groups,identity:orient});assert.equal(m.testStatus,'NO HA REALIZADO EL TEST');const b=m.sections.find(s=>s.title==='Bullying');assert.equal(b.cards[0].answer,'Sin dato');assert.equal(b.cards[1].answer,'NO');
  assert.ok(!m.sections.some(x=>['Bienestar','Test cognitivo'].includes(x.title)));
  assert.ok(b.questions.every(c=>c.answer==='Sin respuesta'));
 });
@@ -88,7 +88,7 @@ test('empty centre, class and student PDFs have no result sections; zeros and pa
    if(kind==='empty')assert.deepEqual(report.sections,[]);
    else{
     const bullying=report.sections.find(s=>s.title==='Bullying');assert.ok(bullying);
-    if(view==='student')assert.equal(bullying.cards[0].answer,'No');
+    if(view==='student')assert.equal(bullying.cards[0].answer,'NO');
     if(kind==='zero'){
      assert.ok(report.sections.find(s=>s.title==='Relaciones de amistad y negativas'));
      const cognitive=report.sections.find(s=>s.title==='Test cognitivo');
@@ -101,3 +101,5 @@ test('empty centre, class and student PDFs have no result sections; zeros and pa
   }
  }finally{global.window=previous;}
 });
+
+test('Top rankings keep abbreviated names and show course and group',()=>{const input=structuredClone(data);Object.assign(input.students[0],{Nombre:'Laura Martín Díaz',popularidad_reportada_n:7});const report=PDF.model({view:'center',selection,...input,identity:orient});const entry=report.sections.find(s=>s.title==='Top 3 populares').cards.find(c=>c.question==='Laura M. D.');assert.ok(entry);assert.equal(entry.classLabel,[input.students[0].Curso,input.students[0].Grupo].join(' · '));});

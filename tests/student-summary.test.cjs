@@ -107,7 +107,7 @@ test('student cards omit missing answers, not zero, No or a partial answer; clas
  assert.doesNotMatch(studentReport(empty,[empty,base]),/class="overview-card /);
  const html=studentReport(zero,[zero,base]);
  assert.equal((html.match(/class="overview-card /g)||[]).length,6);
- assert.match(html,/<strong>NO<\/strong>/);assert.match(html,/<strong>No<\/strong>/);
+ assert.equal((html.match(/<strong>NO<\/strong>/g)||[]).length,2);
  assert.match(html,/<strong>0 \/ 3<\/strong>/);assert.match(html,/0 compañeros/);
  for(const [field,value,title] of [['felicidad_soledad',0,'Bienestar'],['crt_carrera_acierto',0,'Test cognitivo'],['bullying_dificultad','No','Bullying'],['mediacion_negativa_n',0,'Mediador'],['mediacion_n',0,'Mediador']]){
   const partial=studentReport({...empty,[field]:value});

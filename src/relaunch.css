@@ -360,3 +360,16 @@ button.overview-count{cursor:pointer}button.overview-count:hover{color:#a9442a}.
  .integration-panel .integration-note,.integration-panel .integration-note:empty{min-height:60px}
  .integration-panel .integration-empty{min-height:458px}
 }
+
+/* Consulta inicial: misma alineación para título, archivo y acciones. */
+.main:not(.results-mode) > .workspace-title{max-width:960px;margin:26px auto 28px}
+.main > .upload-area{max-width:960px;margin-left:auto;margin-right:auto}
+.upload-area .uploads{grid-template-columns:minmax(0,1fr)}
+.upload-area .import-bottom{gap:20px;margin-top:22px}
+.upload-area #change-access{margin-top:8px;padding-left:0}
+.upload-area .import-body > p.subtle:last-child{border-top:1px solid var(--line);padding-top:18px;margin-top:18px;line-height:1.65}
+@media(max-width:720px){
+ .main:not(.results-mode) > .workspace-title{flex-wrap:wrap;margin:12px auto 22px}
+ .upload-area .import-bottom{gap:12px}
+}
+.upload-area .upload-card{max-width:none;width:100%}

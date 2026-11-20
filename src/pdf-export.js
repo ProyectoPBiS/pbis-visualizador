@@ -83,7 +83,7 @@
         const value=r['crt_'+key+'_acierto'];return {...card(label,value===1?'Acierto':value===0?'Error':'Sin respuesta'),value};
       });
       section('Test cognitivo',[{...card('Preguntas acertadas',scale(r.crt_aciertos,3),'Media de la clase: '+scale(mean(classroom.filter(s=>s.respondio!=='No').map(s=>s.crt_aciertos)),3)),score:r.crt_aciertos,maximum:3},...crt]);
-      section('Bullying',[card('¿Se nombra como víctima?',self(r)),card('¿Otros compañeros lo nombran como víctima?',peers(r))],{
+      section('Bullying',[card('¿Se nombra como víctima?',self(r)==='No'?'NO':self(r)),card('¿Otros compañeros lo nombran como víctima?',peers(r)==='No'?'NO':peers(r))],{
         self:r.bullying_autorreporte,peerCount:r.bullying_companeros_n,
         questions:[
           card('En los últimos dos meses, ¿con qué frecuencia has visto o sabido que ocurren estas situaciones?',r.bullying_frecuencia||'Sin respuesta'),
@@ -136,7 +136,7 @@
       const ranking=field=>{
         const sorted=rows.filter(s=>known(s[field])&&s[field]>0).slice().sort((a,b)=>b[field]-a[field]||fullName(a).localeCompare(fullName(b),'es'));
         const cutoff=sorted[Math.min(2,sorted.length-1)]?.[field];
-        return sorted.filter(s=>s[field]>=cutoff).map(s=>({...card(fullName(s),number(s[field])),rank:sorted.findIndex(other=>other[field]===s[field])+1,tied:sorted.filter(other=>other[field]===s[field]).length>1}));
+        return sorted.filter(s=>s[field]>=cutoff).map(s=>({...card(fullName(s),number(s[field])),classLabel:[s.Curso,s.Grupo].filter(Boolean).join(' · '),rank:sorted.findIndex(other=>other[field]===s[field])+1,tied:sorted.filter(other=>other[field]===s[field]).length>1}));
       };
       section('Top 3 populares',ranking('popularidad_reportada_n'));
       section('Top 3 centrales',ranking('centralidad_reportada_n'));
@@ -367,7 +367,7 @@
       }
       // One shared frame and three columns for both school and classroom reports.
       // Keep the complete block together when it fits a page; continue ties otherwise.
-      const pending=rankings.map(section=>({title:section.title,rows:section.cards.map(c=>({c,height:Math.max(8,lines(c.question,32,8).length*8*.452+3+(c.tied?4:0))})),offset:0}));
+      const pending=rankings.map(section=>({title:section.title,rows:section.cards.map(c=>({c,height:Math.max(8,lines(c.question,32,8).length*8*.452+3+(c.classLabel?lines(c.classLabel,32,7).length*7*.452+1:0)+(c.tied?4:0))})),offset:0}));
       let continuation=false;
       if(rankings.length)do{
         const desired=17+Math.max(8,...pending.map(col=>col.rows.slice(col.offset).reduce((sum,row)=>sum+row.height,0)));
@@ -379,7 +379,7 @@
         chunks.forEach((col,i)=>{const x=19+i*60;font(9,true);doc.text(col.title,x,y+7);
           let rowY=y+16;
           if(!col.rows.length)paragraph(continuation?'—':'Sin nominaciones',x,rowY,52,8,false,colors.muted);
-          for(const {c,height:rh} of col.rows){font(8,true,colors.muted);doc.text(String(c.rank)+'.',x,rowY);const nameEnd=paragraph(c.question,x+6,rowY,32,8);if(c.tied)paragraph('Empate',x+6,nameEnd+1,32,7,false,colors.muted);font(9,true,colors.accent);doc.text(c.answer,x+52,rowY,{align:'right'});rowY+=rh;}
+          for(const {c,height:rh} of col.rows){font(8,true,colors.muted);doc.text(String(c.rank)+'.',x,rowY);let nameEnd=paragraph(c.question,x+6,rowY,32,8);if(c.classLabel)nameEnd=paragraph(c.classLabel,x+6,nameEnd+1,32,7,false,colors.muted);if(c.tied)paragraph('Empate',x+6,nameEnd+1,32,7,false,colors.muted);font(9,true,colors.accent);doc.text(c.answer,x+52,rowY,{align:'right'});rowY+=rh;}
         });
         y+=height+5;continuation=true;
       }while(pending.some(col=>col.offset<col.rows.length));
